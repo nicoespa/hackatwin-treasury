@@ -20,6 +20,7 @@ PAYDAY_HYPOTHESES: dict[str, tuple[float, ...]] = {
 }
 SALARIED = "salaried_formal"
 ANSES = "anses_beneficiary"
+ANSES_FIRST_DAY, ANSES_LAST_DAY = 9, 25  # calendar days of month over which ANSES pays
 INITIAL_SHARE = 0.6
 MAX_BILLS = 6
 
@@ -73,7 +74,11 @@ def generate_users(
     seed: int,
     payday_hypothesis: str = "late",
 ) -> pd.DataFrame:
-    """``n`` users with ``user_id, segment, activation_date, payday_bd, anses_day, n_bills, has_autodebit``."""
+    """``n`` users with ``user_id, segment, activation_date, payday_bd, anses_day, n_bills, has_autodebit``.
+
+    ``payday_bd`` is a business-day index (1..4) for salaried users; ``anses_day`` is a
+    calendar day of month (9..25) for ANSES beneficiaries.
+    """
     payday_p = check_payday_hypothesis(payday_hypothesis)
     rng = np.random.default_rng(seed)
     specs = archetypes["archetypes"]
@@ -83,7 +88,7 @@ def generate_users(
 
     salaried = segment == SALARIED
     payday_bd = np.where(salaried, rng.choice(np.arange(1, 5), size=n, p=payday_p), np.nan)
-    anses_day = np.where(segment == ANSES, rng.integers(9, 26, size=n), np.nan)
+    anses_day = np.where(segment == ANSES, rng.integers(ANSES_FIRST_DAY, ANSES_LAST_DAY + 1, size=n), np.nan)
     bills_mean = np.array([specs[s]["bills_mean"] for s in segment], dtype=float)
     n_bills = np.minimum(rng.poisson(bills_mean), MAX_BILLS)
     has_autodebit = (n_bills > 0) & (rng.random(n) < 0.5)

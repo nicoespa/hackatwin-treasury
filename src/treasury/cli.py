@@ -12,7 +12,15 @@ import typer
 
 from treasury.calendar import Calendar
 from treasury.routing import load_partners, route_events
-from treasury.simulate import SimParams, generate_users, load_archetypes, simulate_events, validate
+from treasury.simulate import (
+    SimParams,
+    apply_cohort_waves,
+    apply_payday_shift,
+    generate_users,
+    load_archetypes,
+    simulate_events,
+    validate,
+)
 from treasury.simulate.scenarios import Scenario, scenario_overrides
 
 CONFIG = Path(__file__).resolve().parents[2] / "config"
@@ -46,6 +54,8 @@ def simulate(
     scenarios: list[Scenario] = []
 
     population = generate_users(users, archetypes, first, last, seed, payday_hypothesis)
+    population = apply_cohort_waves(population, scenarios, archetypes, seed, payday_hypothesis)
+    population = apply_payday_shift(population, scenarios)
     events, macro = simulate_events(population, archetypes, cal, first, last, params, scenarios, seed)
     routed = route_events(events, partners, cal, scenario_overrides(scenarios, partners))
     checks = validate(routed, cal)
@@ -57,12 +67,12 @@ def simulate(
     meta = {
         **asdict(params),
         "seed": seed,
-        "n_users": users,
+        "n_users": len(population),
         "start": first.isoformat(),
         "end": last.isoformat(),
         "n_events": len(routed),
         "validation": checks,
     }
     (out / "params.json").write_text(json.dumps(meta, indent=2) + "\n")
-    typer.echo(f"{len(routed):,} events for {users:,} users in {time.perf_counter() - began:.1f}s -> {out}")
+    typer.echo(f"{len(routed):,} events for {len(population):,} users in {time.perf_counter() - began:.1f}s -> {out}")
     typer.echo(json.dumps(checks))

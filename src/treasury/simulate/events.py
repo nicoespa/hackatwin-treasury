@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from typing import Literal
 
 import numpy as np
@@ -12,13 +12,7 @@ import pandas as pd
 from scipy.signal import lfilter
 
 from treasury.calendar import Calendar
-from treasury.simulate.population import (
-    ANSES,
-    SALARIED,
-    apply_cohort_waves,
-    apply_payday_shift,
-    check_payday_hypothesis,
-)
+from treasury.simulate.population import ANSES, ANSES_FIRST_DAY, ANSES_LAST_DAY, SALARIED, check_payday_hypothesis
 from treasury.simulate.scenarios import Scenario
 
 DAYS_PER_MONTH = 30.4375
@@ -47,6 +41,22 @@ def macro_factor(n_days: int, params: SimParams, rng: np.random.Generator) -> np
     shocks = rng.normal(0.0, params.sigma_m * np.sqrt(1 - params.phi**2), n_days)
     shocks[0] = rng.normal(0.0, params.sigma_m)
     return np.exp(lfilter([1.0], [1.0, -params.phi], shocks))
+
+
+def anses_boost_date(month: date, anses_day: int, cal: Calendar) -> date:
+    """First business day of ``month`` whose calendar day is >= ``anses_day`` (weekends and holidays roll forward)."""
+    day = month.replace(day=anses_day)
+    while not cal.is_business_day(day):
+        day += timedelta(days=1)
+    return day
+
+
+def _anses_boost_days(month: date, cal: Calendar) -> np.ndarray:
+    """Lookup ``anses_day -> boost day of month`` for ``month``; unused indices hold 0."""
+    lut = np.zeros(ANSES_LAST_DAY + 1, dtype=np.int64)
+    for anses_day in range(ANSES_FIRST_DAY, ANSES_LAST_DAY + 1):
+        lut[anses_day] = anses_boost_date(month, anses_day, cal).day
+    return lut
 
 
 def _cols(products: list[str], names: Sequence[str]) -> list[int]:
@@ -107,9 +117,11 @@ def simulate_events(
     scenarios: Sequence[Scenario],
     seed: int,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Events ``at, user_id, segment, product, amount, confirmed, counterparty`` and the ``date, m_t`` macro factor."""
-    users = apply_cohort_waves(users, scenarios, archetypes, seed, params.payday_hypothesis)
-    users = apply_payday_shift(users, scenarios)
+    """Events ``at, user_id, segment, product, amount, confirmed, counterparty`` and the ``date, m_t`` macro factor.
+
+    ``users`` must already be prepared: callers apply ``apply_cohort_waves`` and
+    ``apply_payday_shift`` first. Here ``scenarios`` only scale intensities.
+    """
     macro_rng, adopt_rng, day_rng, bill_rng, detail_rng = map(
         np.random.default_rng, np.random.SeedSequence(seed).spawn(5)
     )
@@ -133,16 +145,20 @@ def simulate_events(
     seg_code = users["segment"].map({s: i for i, s in enumerate(segments)}).to_numpy()
     act_idx = ((users["activation_date"] - pd.Timestamp(start)).dt.days).to_numpy()
     payday = users["payday_bd"].to_numpy()
-    anses_day = users["anses_day"].to_numpy()
     salaried = np.flatnonzero(users["segment"].to_numpy() == SALARIED)
     anses = np.flatnonzero(users["segment"].to_numpy() == ANSES)
+    anses_day = users["anses_day"].to_numpy()[anses].astype(np.int64)
     user_rate = rate[seg_code] * (adopt_rng.random((len(users), len(products))) < adoption[seg_code])
     payday_cols, anses_cols, sac_cols = (_cols(products, p) for p in (PAYDAY_PRODUCTS, ANSES_PRODUCTS, SAC_PRODUCTS))
     early_col = _cols(products, [EARLY_MONTH_PRODUCT])
 
     ev_user, ev_prod, ev_day = [], [], []
+    month = None
     for i, ts in enumerate(dates):
         day = ts.date()
+        if day.replace(day=1) != month:
+            month = day.replace(day=1)
+            anses_boost_day = _anses_boost_days(month, cal)[anses_day]
         day_mult = dow_mult[:, day.weekday()].copy()
         if day.day <= EARLY_MONTH_LAST_DAY:
             day_mult[early_col] *= EARLY_MONTH_MULT
@@ -154,8 +170,8 @@ def simulate_events(
                 payday[salaried] == nbd, PAYDAY_MULT, np.where(payday[salaried] + 1 == nbd, DAY_AFTER_PAYDAY_MULT, 1.0)
             )
             lam[np.ix_(salaried, payday_cols)] *= mult[:, None]
-            mult = np.where(anses_day[anses] == nbd, ANSES_MULT, 1.0)
-            lam[np.ix_(anses, anses_cols)] *= mult[:, None]
+        mult = np.where(anses_boost_day == day.day, ANSES_MULT, 1.0)
+        lam[np.ix_(anses, anses_cols)] *= mult[:, None]
         if cal.is_sac_window(day):
             lam[np.ix_(salaried, sac_cols)] *= SAC_MULT
         lam[act_idx > i] = 0.0

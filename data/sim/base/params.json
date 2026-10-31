@@ -7,11 +7,11 @@
   "n_users": 20000,
   "start": "2025-11-01",
   "end": "2026-10-31",
-  "n_events": 4258211,
+  "n_events": 4260236,
   "validation": {
-    "dispersion_index": 789.4040964079118,
+    "dispersion_index": 784.0570734439733,
     "acf7_gt_acf3": true,
     "salaried_argmax_in_bd1_5": true,
-    "p99_over_median": 1.7946579185899207
+    "p99_over_median": 1.761708535243473
   }
 }

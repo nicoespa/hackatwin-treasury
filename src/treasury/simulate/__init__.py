@@ -1,6 +1,6 @@
 """Synthetic wallet population, its events, stress scenarios and realism checks."""
 
-from treasury.simulate.events import SimParams, macro_factor, simulate_events
+from treasury.simulate.events import SimParams, anses_boost_date, macro_factor, simulate_events
 from treasury.simulate.population import (
     PAYDAY_HYPOTHESES,
     apply_cohort_waves,
@@ -28,6 +28,7 @@ __all__ = [
     "PaydayShift",
     "Scenario",
     "SimParams",
+    "anses_boost_date",
     "apply_cohort_waves",
     "apply_payday_shift",
     "generate_users",

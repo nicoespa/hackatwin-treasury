@@ -14,6 +14,7 @@ from treasury.simulate import (
     PartnerOutage,
     PaydayShift,
     SimParams,
+    anses_boost_date,
     apply_cohort_waves,
     apply_payday_shift,
     generate_users,
@@ -168,6 +169,69 @@ def test_scenarios(archetypes, partners):
     }
     assert outage.multiplier(date(2026, 1, 5), "informal", "card_purchase") == 1.0
     assert scenario_overrides([fx, outage, wave], partners) == overrides
+
+
+def test_anses_boost_rolls_to_first_business_day_on_or_after_anses_day(cal):
+    # 2026-04-25 is a Saturday; 2025-12-25 is Christmas (a Thursday, then a normal Friday).
+    assert anses_boost_date(date(2026, 4, 1), 25, cal) == date(2026, 4, 27)
+    assert anses_boost_date(date(2025, 12, 1), 25, cal) == date(2025, 12, 26)
+    for month in [date(2025, 11, 1), date(2025, 12, 1), date(2026, 4, 1), date(2026, 10, 1)]:
+        for anses_day in range(9, 26):
+            boost = anses_boost_date(month, anses_day, cal)
+            assert cal.is_business_day(boost) and boost.month == month.month and boost.day >= anses_day
+            skipped = pd.date_range(month.replace(day=anses_day), boost, inclusive="left")
+            assert not any(cal.is_business_day(d.date()) for d in skipped)
+
+
+def test_anses_boost_reaches_every_beneficiary_each_month(archetypes, cal):
+    # Only cash_out (bill_payment present but unused), at a rate high enough that every boosted user transacts.
+    anses_only = {
+        **archetypes,
+        "archetypes": {
+            "anses_beneficiary": {
+                "share": 1.0,
+                "bills_mean": 0.0,
+                "products": {
+                    "bill_payment": {
+                        "adoption": 0.0,
+                        "base_rate_per_day": 0.0,
+                        "amount_median": 1,
+                        "amount_sigma": 0.1,
+                    },
+                    "cash_out": {
+                        "adoption": 1.0,
+                        "base_rate_per_day": 40.0,
+                        "amount_median": 1000,
+                        "amount_sigma": 0.1,
+                    },
+                },
+            }
+        },
+    }
+    end = date(2025, 12, 31)
+    users = generate_users(300, anses_only, START, START, seed=13)
+    events, _ = simulate_events(users, anses_only, cal, START, end, SimParams(sigma_m=0.0), [], seed=13)
+    daily = events.assign(day=events["at"].dt.normalize()).groupby(["user_id", "day"]).size()
+    for month in [date(2025, 11, 1), date(2025, 12, 1)]:
+        for user in users.itertuples():
+            boost = pd.Timestamp(anses_boost_date(month, int(user.anses_day), cal))
+            user_days = daily.loc[user.user_id]
+            others = user_days[(user_days.index.month == month.month) & (user_days.index != boost)]
+            assert daily.loc[(user.user_id, boost)] > 1.5 * others.mean()
+
+
+def test_cohort_wave_users_reach_the_table_and_start_on_wave_day(archetypes, cal):
+    end = date(2026, 1, 31)
+    users = generate_users(2_000, archetypes, START, end, seed=15)
+    wave = CohortWave(start=date(2026, 1, 10), n_users=500, segment="young_heavy")
+    prepared = apply_payday_shift(apply_cohort_waves(users, [wave], archetypes, seed=15), [wave])
+    assert len(prepared) == len(users) + 500
+    events, _ = simulate_events(prepared, archetypes, cal, START, end, SimParams(), [wave], seed=15)
+    wave_ids = set(prepared["user_id"].iloc[len(users) :])
+    from_wave = events[events["user_id"].isin(wave_ids)]
+    assert len(from_wave) > 0
+    assert (from_wave["at"] >= pd.Timestamp(wave.start)).all()
+    assert set(events["user_id"]) <= set(prepared["user_id"])
 
 
 def test_validate_flags(archetypes, cal, partners):
