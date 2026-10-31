@@ -1,14 +1,14 @@
 # Argentine business calendar. Methods refuse dates outside `coverage`.
 #
 # holidays: Ley 27.399 feriados (fixed and movable) plus the Res. 164/2025
-# "días no laborables con fines turísticos" (puentes) for 2026. Movable dates
-# (Güemes, Paso a la Inmortalidad de San Martín, Diversidad Cultural,
-# Soberanía Nacional) follow the official decree of each year. 2025 lists only
-# the feriados from 2025-11-01 onward; the 2025-11-21 día no laborable
-# (Decreto 1027/2024) is not included.
+# "días no laborables con fines turísticos" (puentes) for 2026, and the
+# 2025-11-21 puente (Decreto 1027/2024). Movable dates (Güemes, Paso a la
+# Inmortalidad de San Martín, Diversidad Cultural, Soberanía Nacional) follow
+# the official decree of each year. 2025 lists only dates from 2025-11-01 onward.
 coverage: {start: 2025-11-01, end: 2026-12-31}
 
 holidays:
+  - 2025-11-21  # Puente turístico (Decreto 1027/2024)
   - 2025-11-24  # Soberanía Nacional (moved to Monday, Decreto 1027/2024)
   - 2025-12-08  # Inmaculada Concepción
   - 2025-12-25  # Navidad

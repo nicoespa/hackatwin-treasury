@@ -57,6 +57,7 @@ def test_anses_window(cal):
 
 def test_2025_holiday_is_not_business_day(cal):
     assert cal.is_business_day(date(2025, 12, 8)) is False
+    assert cal.is_business_day(date(2025, 11, 21)) is False
 
 
 def test_timestamp_input_behaves_like_date(cal):
