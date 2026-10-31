@@ -1,35 +1,17 @@
 import copy
 import json
-from dataclasses import replace
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from treasury.agent import tools
-from treasury.agent.queue import ApprovalQueue, Tiers
-
-# The simulated amounts are ARS; config tiers (50k/250k/1M) would block every deposit of the base data.
-ARS_TIERS = Tiers(50_000_000, 250_000_000, 1_000_000_000)
 
 
-@pytest.fixture
-def ctx(agent_ctx, tmp_path):
-    return replace(agent_ctx, queue=ApprovalQueue(tmp_path / "queue.jsonl", tiers=ARS_TIERS))
-
-
-def _funded_partner(ctx) -> tuple[str, dict]:
-    for pid in ctx.partners:
-        decision = tools.get_policy_decision(ctx, pid, "stablecoin")
-        if decision["amount"] > 0:
-            return pid, decision
-    raise AssertionError("no partner needs a deposit")
-
-
-def test_propose_transfer_tool_only_enqueues(ctx):
+def test_propose_transfer_tool_only_enqueues(ctx, funded):
     balances, pending = copy.deepcopy(ctx.balances), copy.deepcopy(ctx.pending_credits)
     events_hash = pd.util.hash_pandas_object(ctx.dataset.events, index=False).sum()
-    pid, decision = _funded_partner(ctx)
+    pid, decision = next(iter(funded.items()))
     lot = ctx.policy_cfg.lot_size
 
     with pytest.raises(ValueError, match="policy amount"):
@@ -48,8 +30,8 @@ def test_propose_transfer_tool_only_enqueues(ctx):
     assert pd.util.hash_pandas_object(ctx.dataset.events, index=False).sum() == events_hash
 
 
-def test_read_tools_are_json_and_consistent(ctx):
-    pid, _ = _funded_partner(ctx)
+def test_read_tools_are_json_and_consistent(ctx, funded):
+    pid = next(iter(funded))
     forecast = tools.get_forecast(ctx, pid)
     json.dumps(forecast)
     q = np.array([forecast[k] for k in ("q05", "q50", "q95", "q99")])

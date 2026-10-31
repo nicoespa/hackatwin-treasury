@@ -26,11 +26,16 @@ Python is pinned to 3.12 (`.python-version`); `uv sync` downloads it if needed.
    partner's deposit first. The LLM never changes the amount: `propose_transfer` refuses an
    amount more than one lot away from the policy's and always queues the policy amount.
 2. The LLM (optional) calls read-only tools (forecast, balance, decision, components) and writes
-   a rationale plus an optional `exception` (e.g. `p_unresolvable > 0.05`). Every number in the
-   rationale must appear in the tool outputs (3 significant digits); otherwise a templated
-   rationale replaces it, tagged `[templated]`.
-3. A human approves by tier (`config/policy.yaml` → `tiers`): T1 is queued `auto_approved`, T2
-   needs one approver, T3 two distinct approvers, and anything above `T3_dual_max` is blocked.
+   a rationale plus an optional `exception` (e.g. `p_unresolvable > 0.05`). The rationale must
+   cite the policy amount or target, and every number in it (and in the exception) must appear
+   in the tool outputs (3 significant digits). Otherwise a templated rationale replaces it,
+   tagged `[templated: <reason>]` (the exception is dropped), and every fallback is logged with
+   the partner and the reason: offline, LLM call failed, refusal, max_tokens, round cap,
+   unparseable final JSON, rationale rejected by the validator.
+3. A human approves by tier (`config/policy.yaml` → `tiers`, in ARS): T1 (≤ 50M) is queued
+   `auto_approved`, T2 (≤ 250M) needs one approver, T3 (≤ 2B) two distinct approvers (ids
+   compared case-insensitively, each approval stamped with `at`), and anything above is blocked
+   and logged, not queued.
 
 ```bash
 # offline: templated rationales, no API call
@@ -45,9 +50,12 @@ uv run treasury agent reject <id> --approver beto --reason "balance already enou
 
 The demo fits the model on the data before `--as-of` and starts every partner at its
 fixed-buffer target (3 days of trailing mean drain) with nothing in transit. Re-running the same
-day queues nothing new: one proposal per partner and forecast run. Note that the simulated amounts
-are ARS, so with the tiers as configured (50k / 250k / 1M) every deposit of the base data is
-blocked and logged rather than queued.
+day queues nothing new: one proposal per partner and forecast run. On the base data at
+2026-10-26 with `--rail stablecoin`, the policy funds fci_custodian (≈ 320M, T3) and
+cash_network (≈ 180M, T2), both on wire, their only rail; every other partner needs nothing.
+
+The LLM path is covered by offline tests with a scripted fake client only. A run against the
+real API is still owed: it needs `ANTHROPIC_API_KEY`, which was not available when this was built.
 
 ## Troubleshooting
 

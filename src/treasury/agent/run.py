@@ -35,7 +35,9 @@ log = logging.getLogger(__name__)
 
 MODEL = "claude-opus-5-5"
 MAX_ROUNDS = 8
-SYSTEM = """You explain treasury funding decisions to the humans who approve them.
+EXCEPTION_P_UNRESOLVABLE = 0.05
+RULES = {"exception_p_unresolvable": EXCEPTION_P_UNRESOLVABLE}  # thresholds of the prompt, citable
+SYSTEM = f"""You explain treasury funding decisions to the humans who approve them.
 
 A deterministic policy has already decided how much to deposit at one partner. You cannot change
 that amount. Your job is to explain it and to flag anomalies.
@@ -44,12 +46,13 @@ Rules:
 - Use the tools to read the forecast, the balance, the decision and its components.
 - Cite only numbers returned by the tools, written as they appear or rounded (thousands separators
   and percentages are fine). Do not compute new numbers, do not invent any. Name quantiles as
-  q05/q50/q95/q99 rather than writing their levels.
+  q05/q50/q95/q99 rather than writing their levels. The rationale must cite the policy amount or
+  target.
 - You may call propose_transfer once for the partner, with exactly the policy amount. If you do
   not, the deposit is queued for you with your final rationale.
 - Set exception only when you see an anomaly a human should look at, such as p_unresolvable above
-  0.05 or a forecast far above the partner's usual level; otherwise null.
-- Finish with only a JSON object: {"rationale": "<two or three sentences>", "exception": null}."""
+  {EXCEPTION_P_UNRESOLVABLE} or a forecast far above the partner's usual level; otherwise null.
+- Finish with only a JSON object: {{"rationale": "<two or three sentences>", "exception": null}}."""
 
 _DATETIME = re.compile(r"\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:[+-]\d{2}:\d{2})?)?|\b\d{1,2}:\d{2}\b")
 _NUMBER = re.compile(r"(?<![\w.,])(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?%?")
@@ -57,6 +60,10 @@ _NUMBER = re.compile(r"(?<![\w.,])(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?%?")
 
 def _round_sig(x: float, sig: int) -> float:
     return 0.0 if x == 0 else round(x, sig - 1 - math.floor(math.log10(abs(x))))
+
+
+def _same(a: float, b: float, sig: int) -> bool:
+    return math.isclose(_round_sig(a, sig), _round_sig(b, sig), rel_tol=1e-9)
 
 
 def _tool_numbers(value) -> list[float]:
@@ -69,27 +76,34 @@ def _tool_numbers(value) -> list[float]:
     return [abs(float(value))] if math.isfinite(float(value)) else []
 
 
-def validate_rationale(rationale: str, tool_outputs: Sequence) -> bool:
-    """True when every number in ``rationale`` appears among the numbers of ``tool_outputs``.
+def validate_rationale(
+    rationale: str, tool_outputs: Sequence, must_cite: Sequence[float] = (), require_number: bool = True,
+) -> bool:
+    """True when every number in ``rationale`` appears among the numbers of ``tool_outputs``, at
+    least one number is cited (unless ``require_number`` is False) and, when ``must_cite`` is
+    given, one of the cited numbers is one of them (the policy amount or target).
 
     Dates and clock times are skipped. A token (``1,234.5``, ``12``, ``1.2%`` read as ``0.012``)
-    matches a tool number when both round to the same ``min(3, digits shown)`` significant digits,
-    so ``1.2%`` cites ``0.0123`` and ``1,230,000`` cites ``1,234,567.9``. Signs are ignored.
+    matches a number when both round to the same ``min(3, digits shown)`` significant digits, so
+    ``1.2%`` cites ``0.0123`` and ``1,230,000`` cites ``1,234,567.9``. Signs are ignored.
     """
     known = _tool_numbers(list(tool_outputs))
+    cited: list[tuple[float, int]] = []
     for token in _NUMBER.findall(_DATETIME.sub(" ", rationale)):
-        digits = re.sub(r"\D", "", token).lstrip("0")
-        sig = max(1, min(3, len(digits)))
+        sig = max(1, min(3, len(re.sub(r"\D", "", token).lstrip("0"))))
         value = float(token.rstrip("%").replace(",", "")) / (100 if token.endswith("%") else 1)
-        if not any(math.isclose(_round_sig(t, sig), _round_sig(value, sig), rel_tol=1e-9) for t in known):
+        if not any(_same(t, value, sig) for t in known):
             return False
-    return True
+        cited.append((value, sig))
+    if (require_number or must_cite) and not cited:
+        return False
+    return not must_cite or any(_same(abs(m), v, sig) for v, sig in cited for m in must_cite)
 
 
-def templated_rationale(decision: dict, balance: dict) -> str:
+def templated_rationale(decision: dict, balance: dict, reason: str) -> str:
     return (f"Target {decision['target']:,.0f}, available {balance['available']:,.0f}, deposit "
             f"{decision['amount']:,.0f} via {decision['rail_used']}; p_unresolvable "
-            f"{decision['p_unresolvable']:.1%} [templated]")
+            f"{decision['p_unresolvable']:.1%} [templated: {reason}]")
 
 
 def _final_json(text: str) -> tuple[str, str | None] | None:
@@ -103,17 +117,30 @@ def _final_json(text: str) -> tuple[str, str | None] | None:
     return parsed["rationale"], exception if isinstance(exception, str) and exception.strip() else None
 
 
-def _explain(ctx: ToolContext, client, partner: str, rail: str, decision: dict, fallback: str) -> Proposal:
-    """Run the tool-use loop for one partner and queue the proposal it ends in."""
-    outputs: list[dict] = [decision]
+def _explain(ctx: ToolContext, client, partner: str, rail: str, decision: dict, balance: dict) -> Proposal:
+    """Run the tool-use loop for one partner and queue the proposal it ends in. Every fallback to
+    the template, and every dropped exception, is logged with the partner and the reason."""
+    outputs: list[dict] = [decision, RULES]
     made: list[Proposal] = []
+
+    def checked(rationale: str, exception: str | None) -> tuple[str, str | None, list[str]]:
+        notes = []
+        if not validate_rationale(rationale, outputs, must_cite=(decision["amount"], decision["target"])):
+            notes.append("templated rationale (rationale rejected by the validator)")
+            rationale = templated_rationale(decision, balance, "rationale rejected by the validator")
+        if exception is not None and not validate_rationale(exception, outputs, require_number=False):
+            notes.append(f"exception dropped, it cites numbers absent from the tool outputs: {exception!r}")
+            exception = None
+        return rationale, exception, notes
 
     def propose(args: dict) -> dict:
         if args.get("partner") != partner or args.get("rail") != rail:
             raise ValueError(f"this review is for {partner} on {rail}")
-        rationale = args["rationale"] if validate_rationale(args["rationale"], outputs) else fallback
-        out = tools.propose_transfer(ctx, partner, rail, args["amount"], rationale, args.get("exception"))
+        rationale, exception, notes = checked(args["rationale"], args.get("exception"))
+        out = tools.propose_transfer(ctx, partner, rail, args["amount"], rationale, exception)
         made.append(Proposal(**out))
+        for note in notes:
+            log.warning("%s: %s", partner, note)
         return out
 
     def run_tool(block) -> dict:
@@ -128,32 +155,45 @@ def _explain(ctx: ToolContext, client, partner: str, rail: str, decision: dict, 
 
     messages: list[dict] = [{"role": "user", "content": f"Review the deposit for partner {partner} on rail {rail}. "
                              "The policy decision:\n" + json.dumps(decision)}]
-    final = None
+    final, reason = None, None
     try:
         for _ in range(MAX_ROUNDS):
             response = client.messages.create(model=MODEL, max_tokens=16000, system=SYSTEM, tools=tools.TOOL_SCHEMAS,
                                               messages=messages, output_config={"effort": "medium"})
-            if response.stop_reason != "tool_use":
-                if response.stop_reason == "end_turn":
-                    final = _final_json("".join(b.text for b in response.content if b.type == "text"))
-                break
-            messages.append({"role": "assistant", "content": response.content})
-            messages.append({"role": "user", "content": [run_tool(b) for b in response.content if b.type == "tool_use"]})
-    except anthropic.APIError:
-        final = None  # the API failing must not stop the queue: fall back to the template
+            if response.stop_reason == "tool_use":
+                messages.append({"role": "assistant", "content": response.content})
+                messages.append({"role": "user", "content": [run_tool(b) for b in response.content
+                                                             if b.type == "tool_use"]})
+                continue
+            if response.stop_reason == "end_turn":
+                final = _final_json("".join(b.text for b in response.content if b.type == "text"))
+                reason = None if final else "unparseable final JSON"
+            else:
+                reason = str(response.stop_reason)  # refusal, max_tokens, ...
+            break
+        else:
+            reason = f"round cap of {MAX_ROUNDS} exhausted"
+    except anthropic.APIError as e:
+        log.warning("LLM call failed for %s: %s", partner, e, exc_info=True)
+        reason = "LLM call failed"
     if made:
         return made[0]
-    rationale, exception = final if final else (fallback, None)
-    if not validate_rationale(rationale, outputs):
-        rationale = fallback
-    return Proposal(**tools.propose_transfer(ctx, partner, rail, decision["amount"], rationale, exception))
+    if final is None:
+        log.warning("%s: templated rationale (%s)", partner, reason)
+        rationale, exception, notes = templated_rationale(decision, balance, reason), None, []
+    else:
+        rationale, exception, notes = checked(*final)
+    proposal = Proposal(**tools.propose_transfer(ctx, partner, rail, decision["amount"], rationale, exception))
+    for note in notes:
+        log.warning("%s: %s", partner, note)
+    return proposal
 
 
 def propose_for_day(ctx: ToolContext, client=None, rail: str = "stablecoin") -> list[Proposal]:
     """One proposal per partner the policy funds, in partner order. With ``client=None`` the LLM is
-    skipped and every rationale is templated. A deposit above ``T3_dual_max`` is logged as blocked
-    and not queued. A partner that already has a proposal for ``ctx.forecast_run_id`` keeps it
-    (re-running a day queues nothing new)."""
+    skipped and every rationale is templated (``[templated: offline]``). A deposit above
+    ``T3_dual_max`` is logged as blocked and not queued. A partner that already has a proposal for
+    ``ctx.forecast_run_id`` keeps it (re-running a day queues nothing new)."""
     existing = {p.partner: p for p in ctx.queue.list() if p.forecast_run_id == ctx.forecast_run_id}
     out = []
     for partner in ctx.partners:
@@ -167,11 +207,12 @@ def propose_for_day(ctx: ToolContext, client=None, rail: str = "stablecoin") -> 
             log.warning("%s: %s via %s is above T3_dual_max; blocked, not queued", partner,
                         f"{decision['amount']:,.0f}", decision["rail_used"])
             continue
-        fallback = templated_rationale(decision, tools.get_balance(ctx, partner))
+        balance = tools.get_balance(ctx, partner)
         if client is None:
-            out.append(Proposal(**tools.propose_transfer(ctx, partner, rail, decision["amount"], fallback)))
+            rationale = templated_rationale(decision, balance, "offline")
+            out.append(Proposal(**tools.propose_transfer(ctx, partner, rail, decision["amount"], rationale)))
         else:
-            out.append(_explain(ctx, client, partner, decision["rail_used"], decision, fallback))
+            out.append(_explain(ctx, client, partner, decision["rail_used"], decision, balance))
     return out
 
 

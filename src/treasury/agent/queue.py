@@ -42,7 +42,8 @@ def tier_for(amount: float, tiers: Tiers) -> str:
 @dataclass(frozen=True)
 class Proposal:
     """One state of a proposed transfer. ``status`` is ``auto_approved``, ``pending``, ``approved``
-    or ``rejected``; ``exception`` is the anomaly the LLM flagged for the approver, if any."""
+    or ``rejected``; ``approvals`` holds ``{approver, at}`` and ``rejection`` ``{approver, reason,
+    at}``; ``exception`` is the anomaly the LLM flagged for the approver, if any."""
 
     id: str
     created_at: str
@@ -53,7 +54,7 @@ class Proposal:
     rationale: str
     forecast_run_id: str
     status: str
-    approvals: list[str] = field(default_factory=list)
+    approvals: list[dict] = field(default_factory=list)
     rejection: dict | None = None
     exception: str | None = None
 
@@ -89,7 +90,7 @@ class ApprovalQueue:
         if tier == "T4_blocked":
             raise ValueError(f"{amount:,.0f} to {partner} is above T3_dual_max: T4_blocked, not queued")
         return self._append(Proposal(
-            id=uuid4().hex, created_at=pd.Timestamp.now(tz="UTC").isoformat(), partner=partner, rail=rail,
+            id=uuid4().hex, created_at=_now(), partner=partner, rail=rail,
             amount=float(amount), tier=tier, rationale=rationale, forecast_run_id=forecast_run_id,
             status="auto_approved" if tier == "T1" else "pending", exception=exception,
         ))
@@ -107,14 +108,26 @@ class ApprovalQueue:
         return proposal
 
     def approve(self, id: str, approver: str) -> Proposal:
-        proposal = self._pending(id)
-        if approver in proposal.approvals:
-            raise ValueError(f"{approver} already approved {id}; {proposal.tier} needs distinct approvers")
-        approvals = [*proposal.approvals, approver]
+        proposal, who = self._pending(id), _approver_id(approver)
+        if who in (a["approver"] for a in proposal.approvals):
+            raise ValueError(f"{who} already approved {id}; {proposal.tier} needs distinct approvers")
+        approvals = [*proposal.approvals, {"approver": who, "at": _now()}]
         status = "approved" if len(approvals) >= APPROVALS_NEEDED[proposal.tier] else "pending"
         return self._append(replace(proposal, approvals=approvals, status=status))
 
     def reject(self, id: str, approver: str, reason: str) -> Proposal:
         proposal = self._pending(id)
-        rejection = {"approver": approver, "reason": reason, "at": pd.Timestamp.now(tz="UTC").isoformat()}
+        rejection = {"approver": _approver_id(approver), "reason": reason, "at": _now()}
         return self._append(replace(proposal, status="rejected", rejection=rejection))
+
+
+def _approver_id(approver: str) -> str:
+    """Approver ids compare case- and whitespace-insensitively, so "Ana " and "ana" are one person."""
+    who = approver.strip().lower()
+    if not who:
+        raise ValueError("approver must not be empty")
+    return who
+
+
+def _now() -> str:
+    return pd.Timestamp.now(tz="UTC").isoformat()
