@@ -4,7 +4,7 @@ import pytest
 
 from treasury.metrics import coverage
 from treasury.models.base import QCOLS
-from treasury.models.seasonal_naive import SeasonalNaive
+from treasury.models.seasonal_naive import SeasonalNaive, seasonal_mean
 
 LEVELS = {"alpha": [10.0, 20, 30, 40, 50, 5, 1], "beta": [7.0, 7, 7, 7, 7, 0, 0]}
 
@@ -55,3 +55,11 @@ def test_seasonal_naive_needs_two_weeks():
     model.fit(_weekday_history(pd.date_range("2026-01-01", periods=14, freq="D")), None)
     with pytest.raises(ValueError):
         model.fit(_weekday_history(pd.date_range("2026-01-01", periods=13, freq="D")), None)
+
+
+def test_seasonal_mean_does_not_repeat_weeks_beyond_one_season():
+    days = pd.date_range("2026-01-01", periods=70, freq="D")
+    series = pd.Series(np.arange(70, dtype=float), index=days)
+    same_weekday = days[-1] + pd.to_timedelta([1, 8, 15], unit="D")
+    baseline = seasonal_mean(series, same_weekday)
+    assert baseline == pytest.approx(np.full(3, np.mean(np.arange(14, 70, 7))))

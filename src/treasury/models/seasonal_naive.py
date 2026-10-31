@@ -27,8 +27,16 @@ def seasonal_mean(
 ) -> np.ndarray:
     """The seasonal-naive point for each date: mean of the latest ``weeks`` observed values in the
     date's phase, at least one season before it. With fewer than ``weeks`` observed it averages
-    those available, and is NaN below ``MIN_WEEKS``."""
-    values = np.column_stack([seasonal_lag(series, dates, season * k, season) for k in range(1, weeks + 1)])
+    those available, and is NaN below ``MIN_WEEKS``.
+
+    Beyond one season ahead the window starts at the latest observed date in the phase, so every
+    horizon averages the same ``weeks`` distinct observations instead of repeating the latest."""
+    dates = pd.DatetimeIndex(dates)
+    ahead = np.maximum((dates - series.index.max()).days.to_numpy(), 1)
+    first = np.ceil(ahead / season).astype(int)  # seasons back to the latest observed same phase
+    values = np.column_stack(
+        [series.reindex(dates - pd.to_timedelta(season * (first + k), unit="D")).to_numpy(float) for k in range(weeks)]
+    )
     enough = np.isfinite(values).sum(axis=1) >= min(MIN_WEEKS, weeks)
     with np.errstate(invalid="ignore"):
         mean = np.nanmean(np.where(enough[:, None], values, 0.0), axis=1)
