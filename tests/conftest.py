@@ -37,3 +37,13 @@ def drivers(sim) -> pd.DataFrame:
 @pytest.fixture(scope="session")
 def dataset(sim) -> Dataset:
     return Dataset.from_frames(*sim, params=json.loads((SIM / "params.json").read_text()))
+
+
+@pytest.fixture(scope="session")
+def agent_ctx(dataset, tmp_path_factory):
+    """A ``ToolContext`` on the base data at 2026-10-26 with a small ``SegmentLGBM`` (300 paths)."""
+    from treasury.agent.queue import ApprovalQueue
+    from treasury.agent.run import build_context
+
+    queue = ApprovalQueue(tmp_path_factory.mktemp("agent") / "queue.jsonl")
+    return build_context(dataset, pd.Timestamp("2026-10-26"), queue, n_paths=300)

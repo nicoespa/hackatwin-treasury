@@ -30,6 +30,7 @@ class PolicyConfig:
 
 def load_policy(path: str | Path) -> PolicyConfig:
     raw = yaml.safe_load(Path(path).read_text())
+    raw.pop("tiers", None)  # approval tiers belong to the agent's queue (agent.queue.load_tiers)
     return PolicyConfig(**{**raw, "review_hours_247": tuple(raw.get("review_hours_247", (9, 18)))})
 
 

@@ -13,6 +13,7 @@ dependencies = [
     "pyyaml",
     "typer",
     "scikit-learn>=1.9.1",
+    "anthropic>=2.3.0",
 ]
 
 [project.scripts]

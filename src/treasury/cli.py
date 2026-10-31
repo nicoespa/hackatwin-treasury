@@ -1,4 +1,5 @@
-"""Command-line entry point: ``simulate`` a routed dataset, ``backtest`` a policy, run the ``experiments``."""
+"""Command-line entry point: ``simulate`` a routed dataset, ``backtest`` a policy, run the ``experiments``,
+and the ``agent`` that queues transfer proposals for human approval."""
 
 from __future__ import annotations
 
@@ -108,3 +109,82 @@ def experiments(data: Path = Path("data/sim/base"), out: Path = Path("reports/ex
     timings = run_all(data, out, n_paths)
     typer.echo(json.dumps(timings))
     typer.echo(f"experiments written to {out} in {time.perf_counter() - began:.0f}s")
+
+
+agent = typer.Typer(no_args_is_help=True, help="Transfer proposals: the policy decides, the LLM explains, a human approves.")
+app.add_typer(agent, name="agent")
+QUEUE = Path("data/queue.jsonl")
+
+
+def _show(proposal) -> None:
+    typer.echo(json.dumps(asdict(proposal), indent=2))
+
+
+def _decide(action) -> None:
+    """Run a queue action and show the result; an unknown id or a refused change exits 1."""
+    try:
+        _show(action())
+    except KeyError as e:
+        raise typer.BadParameter(f"no proposal with id {e}") from None
+    except ValueError as e:
+        typer.echo(f"refused: {e}", err=True)
+        raise typer.Exit(1) from None
+
+
+@agent.command("propose")
+def agent_propose(
+    data: Path = Path("data/sim/base"),
+    as_of: datetime = typer.Option("2026-10-26", formats=["%Y-%m-%d"]),
+    rail: str = "stablecoin",
+    no_llm: bool = typer.Option(False, "--no-llm", help="Templated rationales, no API call."),
+    queue: Path = QUEUE,
+    n_paths: int = 2000,
+) -> None:
+    """Fit the segment model on data before AS_OF, queue one proposal per partner the policy funds.
+
+    Balances are the fixed-buffer targets at AS_OF (demo). Without --no-llm, ANTHROPIC_API_KEY
+    must be set; the LLM only writes the rationale and may flag an exception."""
+    import logging
+    import os
+
+    from treasury.agent.queue import ApprovalQueue
+    from treasury.agent.run import build_context, propose_for_day
+    from treasury.backtest import Dataset
+
+    logging.basicConfig(format="%(levelname)s %(message)s")
+    client = None
+    if not no_llm:
+        key = os.environ.get("ANTHROPIC_API_KEY")
+        if not key:
+            raise typer.BadParameter("set ANTHROPIC_API_KEY or pass --no-llm")
+        import anthropic
+
+        client = anthropic.Anthropic(api_key=key)
+    ctx = build_context(Dataset.load(data), as_of, ApprovalQueue(queue), n_paths=n_paths)
+    for proposal in propose_for_day(ctx, client=client, rail=rail):
+        _show(proposal)
+
+
+@agent.command("approve")
+def agent_approve(id: str, approver: str = typer.Option(...), queue: Path = QUEUE) -> None:
+    """Approve a pending proposal (T3 needs two distinct approvers). Executes nothing."""
+    from treasury.agent.queue import ApprovalQueue
+
+    _decide(lambda: ApprovalQueue(queue).approve(id, approver))
+
+
+@agent.command("reject")
+def agent_reject(id: str, approver: str = typer.Option(...), reason: str = typer.Option(...), queue: Path = QUEUE) -> None:
+    """Reject a pending proposal with a reason."""
+    from treasury.agent.queue import ApprovalQueue
+
+    _decide(lambda: ApprovalQueue(queue).reject(id, approver, reason))
+
+
+@agent.command("list")
+def agent_list(status: str | None = None, queue: Path = QUEUE) -> None:
+    """Latest state of every proposal, optionally only those with STATUS."""
+    from treasury.agent.queue import ApprovalQueue
+
+    for proposal in ApprovalQueue(queue).list(status=status):
+        _show(proposal)

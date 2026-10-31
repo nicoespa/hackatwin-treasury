@@ -6,3 +6,6 @@ lot_size: 1000               # deposits are rounded up to a multiple of this
 review_hour: 9               # daily review for business-day rails (business days only)
 fixed_buffer_days: 3         # reference policy: top up to this many days of trailing mean drain
 review_hours_247: [9, 18]    # 24/7 rails are reviewed twice a day, every day
+# Approval tiers of the agent's queue (amount ≤ max): T1 auto-approved, T2 one approver,
+# T3 two distinct approvers; above T3_dual_max a proposal is blocked (T4_blocked).
+tiers: {T1_auto_max: 50000, T2_single_max: 250000, T3_dual_max: 1000000}

@@ -108,8 +108,8 @@ class SegmentLGBM:
     ``predict`` simulates ``n_paths`` node paths (``montecarlo.simulate_paths``), sums them to
     partners, adds each partner's ``confirmed_<partner>`` from the drivers once per path (the
     target excludes it), stores ``last_paths`` ``[n_paths, n_dates, n_partners]``,
-    ``partner_index`` (partner of each path column) and ``last_dates``, and returns the paths'
-    quantiles at ``QUANTILES``.
+    ``partner_index`` (partner of each path column), ``last_dates`` and the node means read by
+    ``last_node_means``, and returns the paths' quantiles at ``QUANTILES``.
     """
 
     def __init__(
@@ -128,6 +128,23 @@ class SegmentLGBM:
         self.last_paths: np.ndarray | None = None
         self.last_dates: pd.DatetimeIndex | None = None
         self.partner_index: list[str] = []
+        self._last_mu: np.ndarray | None = None
+
+    @property
+    def last_node_means(self) -> pd.DataFrame:
+        """Node means of the last ``predict``: ``date, segment, product, partner, mu, cv``, one row
+        per date × node. ``mu`` is the residual mean (confirmed outflows excluded) and ``cv`` the
+        node's noise coefficient of variation."""
+        if self._last_mu is None or self.last_dates is None:
+            raise RuntimeError("predict before reading last_node_means")
+        n_dates, n_nodes = self._last_mu.shape
+        segment, product, partner = (np.array([node[k] for node in self._nodes]) for k in range(3))
+        return pd.DataFrame({
+            "date": np.repeat(self.last_dates, n_nodes),
+            "segment": np.tile(segment, n_dates), "product": np.tile(product, n_dates),
+            "partner": np.tile(partner, n_dates),
+            "mu": self._last_mu.reshape(-1), "cv": np.tile(self._cv, n_dates),
+        })
 
     def _design(self, dates: pd.DatetimeIndex, drivers: pd.DataFrame) -> tuple[pd.DataFrame, np.ndarray]:
         """Node-major long design matrix for ``dates`` and the baseline ``[n_dates, n_nodes]``."""
@@ -203,7 +220,7 @@ class SegmentLGBM:
         )
         confirmed = drivers.set_index("date").reindex(dates)
         paths += confirmed[[f"confirmed_{p}" for p in self.partner_index]].to_numpy()[None]
-        self.last_paths, self.last_dates = paths, dates
+        self.last_paths, self.last_dates, self._last_mu = paths, dates, mu
         q = np.quantile(paths, list(QUANTILES), axis=0)  # [n_q, n_dates, n_partners]
         frame = pd.DataFrame(
             {"date": np.repeat(dates, len(self.partner_index)), "partner": np.tile(self.partner_index, len(dates))}
