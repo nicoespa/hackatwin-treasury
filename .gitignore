@@ -1,0 +1,5 @@
+data/
+.superpowers/
+.venv/
+__pycache__/
+*.parquet
