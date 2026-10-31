@@ -12,6 +12,7 @@ dependencies = [
     "lightgbm",
     "pyyaml",
     "typer",
+    "scikit-learn>=1.9.1",
 ]
 
 [project.scripts]
