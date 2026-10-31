@@ -1,10 +1,17 @@
-# Argentine business calendar for 2026.
+# Argentine business calendar. Methods refuse dates outside `coverage`.
 #
 # holidays: Ley 27.399 feriados (fixed and movable) plus the Res. 164/2025
-# "días no laborables con fines turísticos" (puentes). Movable dates
+# "días no laborables con fines turísticos" (puentes) for 2026. Movable dates
 # (Güemes, Paso a la Inmortalidad de San Martín, Diversidad Cultural,
-# Soberanía Nacional) follow the official 2026 decree.
+# Soberanía Nacional) follow the official decree of each year. 2025 lists only
+# the feriados from 2025-11-01 onward; the 2025-11-21 día no laborable
+# (Decreto 1027/2024) is not included.
+coverage: {start: 2025-11-01, end: 2026-12-31}
+
 holidays:
+  - 2025-11-24  # Soberanía Nacional (moved to Monday, Decreto 1027/2024)
+  - 2025-12-08  # Inmaculada Concepción
+  - 2025-12-25  # Navidad
   - 2026-01-01  # Año Nuevo
   - 2026-02-16  # Carnaval
   - 2026-02-17  # Carnaval
@@ -27,12 +34,15 @@ holidays:
 
 # SAC (aguinaldo) payment windows, inclusive.
 sac_windows:
+  - {start: 2025-12-12, end: 2025-12-24}
   - {start: 2026-06-24, end: 2026-07-06}
   - {start: 2026-12-12, end: 2026-12-24}
 
 # ANSES payment windows, inclusive. Default hypothesis: payments fall on the
 # business days between the 9th and the 25th of each month.
 anses_windows:
+  - {start: 2025-11-09, end: 2025-11-25}
+  - {start: 2025-12-09, end: 2025-12-25}
   - {start: 2026-01-09, end: 2026-01-25}
   - {start: 2026-02-09, end: 2026-02-25}
   - {start: 2026-03-09, end: 2026-03-25}

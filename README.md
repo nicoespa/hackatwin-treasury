@@ -14,5 +14,5 @@ Python is pinned to 3.12 (`.python-version`); `uv sync` downloads it if needed.
 
 ## Layout
 
-- `config/calendar_ar_2026.yaml`: Argentine 2026 holidays, SAC (aguinaldo) and ANSES payment windows.
+- `config/calendar_ar.yaml`: Argentine holidays (2025-11-01 to 2026-12-31), SAC (aguinaldo) and ANSES payment windows.
 - `src/treasury/calendar.py`: business-day calendar built from that YAML.
