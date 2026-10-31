@@ -139,18 +139,24 @@ def agent_propose(
     no_llm: bool = typer.Option(False, "--no-llm", help="Templated rationales, no API call."),
     queue: Path = QUEUE,
     n_paths: int = 2000,
+    start_balances: str = typer.Option("target", help="Opening balances: 'target' (the policy's own target at the "
+                                       "previous day's review) or 'fixed' (fixed_buffer_days of trailing mean drain)."),
 ) -> None:
     """Fit the segment model on data before AS_OF, queue one proposal per partner the policy funds.
 
-    Balances are the fixed-buffer targets at AS_OF (demo). Without --no-llm, ANTHROPIC_API_KEY
-    must be set; the LLM only writes the rationale and may flag an exception."""
+    Balances start at the policy's own target for the day before AS_OF (--start-balances target,
+    the default) or at the fixed-buffer target (fixed), with nothing in transit (demo). Without
+    --no-llm, ANTHROPIC_API_KEY must be set; the LLM only writes the rationale and may flag an
+    exception."""
     import logging
     import os
 
     from treasury.agent.queue import ApprovalQueue
-    from treasury.agent.run import build_context, propose_for_day
+    from treasury.agent.run import START_BALANCES, build_context, propose_for_day
     from treasury.backtest import Dataset
 
+    if start_balances not in START_BALANCES:
+        raise typer.BadParameter(f"--start-balances must be one of {', '.join(START_BALANCES)}")
     logging.basicConfig(format="%(levelname)s %(message)s")
     client = None
     if not no_llm:
@@ -160,7 +166,8 @@ def agent_propose(
         import anthropic
 
         client = anthropic.Anthropic(api_key=key)
-    ctx = build_context(Dataset.load(data), as_of, ApprovalQueue(queue), n_paths=n_paths)
+    ctx = build_context(Dataset.load(data), as_of, ApprovalQueue(queue), n_paths=n_paths, rail=rail,
+                        start_balances=start_balances)
     for proposal in propose_for_day(ctx, client=client, rail=rail):
         _show(proposal)
 

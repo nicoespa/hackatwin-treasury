@@ -135,7 +135,8 @@ def propose_transfer(
                          f"by more than one lot ({lot:,.0f})")
     if any(p.partner == partner and p.forecast_run_id == ctx.forecast_run_id for p in ctx.queue.list()):
         raise ValueError(f"{partner} already has a proposal for forecast run {ctx.forecast_run_id}")
-    return asdict(ctx.queue.propose(partner, rail_used.name, decision.amount, rationale, ctx.forecast_run_id, exception))
+    return asdict(ctx.queue.propose(partner, rail_used.name, decision.amount, rationale, ctx.forecast_run_id, exception,
+                                    seed=ctx.model.seed, n_paths=ctx.model.n_paths))
 
 
 TOOLS: dict[str, Callable[..., dict]] = {

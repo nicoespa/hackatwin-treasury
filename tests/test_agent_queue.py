@@ -59,3 +59,17 @@ def test_queue_roundtrip_and_tiers(tmp_path):
     assert len(path.read_text().splitlines()) == 8
     with pytest.raises(KeyError):
         reloaded.get("missing")
+
+
+def test_proposal_keeps_forecast_seed_and_paths_and_old_records_load(tmp_path):
+    import json
+
+    path = tmp_path / "queue.jsonl"
+    queue = ApprovalQueue(path, tiers=TIERS)
+    new = queue.propose("remittance", "stablecoin", 1_000, "r", "run-1", seed=0, n_paths=2000)
+    old = {k: v for k, v in json.loads(path.read_text()).items() if k not in ("seed", "n_paths")} | {"id": "old"}
+    with path.open("a") as f:
+        f.write(json.dumps(old) + "\n")
+    reloaded = ApprovalQueue(path, tiers=TIERS)
+    assert (reloaded.get(new.id).seed, reloaded.get(new.id).n_paths) == (0, 2000)
+    assert (reloaded.get("old").seed, reloaded.get("old").n_paths) == (None, None)

@@ -78,7 +78,59 @@ def test_surprise_summary_reads_pooled_rows():
     assert set(out["label"]) == {"(c)", "(d)"}
     assert set(out["variant"]) == {"announced", "surprise"}
     row = out[(out["label"] == "(d)") & (out["variant"] == "surprise")].iloc[0]
-    assert row["capital_total_mean"] == pytest.approx(1750455824.7397926)
+    assert row["capital_total_mean"] == pytest.approx(1750455875.1419373)
+
+
+def test_every_dashboard_table_is_in_the_reports():
+    assert "designed_to_lose" in data.EXPERIMENT_TABLES
+    assert all((REPORTS / f"{t}.csv").exists() for t in data.EXPERIMENT_TABLES)
+
+
+def test_designed_to_lose_sentence_from_the_csv():
+    table = pd.read_csv(REPORTS / "designed_to_lose.csv")
+    rows = table.set_index("label")
+    gaps = data.designed_to_lose_gaps(table)
+    assert gaps["pinball_q90"] == pytest.approx(rows.loc["(d)", "pinball_q90"] / rows.loc["(c)", "pinball_q90"] - 1)
+    assert gaps["crps"] == pytest.approx(rows.loc["(d)", "crps"] / rows.loc["(c)", "crps"] - 1)
+    assert round(gaps["pinball_q90"], 2) == 0.13 and round(gaps["crps"], 2) == -0.12
+    assert data.designed_to_lose_sentence(table) == "(d) es 13 % peor que (c) en pinball_q90 y 12 % mejor en CRPS"
+    flipped = table.assign(crps=table["crps"][::-1].to_numpy())  # (d) now worse on CRPS too
+    assert data.designed_to_lose_sentence(flipped).endswith("14 % peor en CRPS")
+
+
+def test_unknown_scenarios_text_from_the_experiment_constants():
+    from datetime import date
+
+    assert data.unknown_scenarios_text() == "Campaña de tarjeta (×1,8, 5–7 oct) y ola de 3.000 usuarios young_heavy (15 sep)"
+    other = data.unknown_scenarios_text(Campaign(date(2026, 1, 30), date(2026, 2, 2), ("bill_payment",), 1.25),
+                                        CohortWave(date(2026, 3, 1), 12_500, "salaried_formal"))
+    assert other == "Campaña de pago de facturas (×1,25, 30 ene–2 feb) y ola de 12.500 usuarios salaried_formal (1 mar)"
+
+
+def test_config_cells_of_the_reports_match_config():
+    """The dashboard labels the factorial's config cells from config/policy.yaml: the CSVs must
+    have been generated with it."""
+    from treasury.backtest import CONFIG
+    from treasury.policy import load_policy
+
+    cfg = load_policy(CONFIG / "policy.yaml")
+    factorial = pd.read_csv(REPORTS / "factorial.csv")
+    assert (factorial.loc[factorial["cell"] == "reference", "buffer_days"] == cfg.fixed_buffer_days).all()
+    assert data.config_alpha(factorial) == cfg.alpha
+
+
+def test_zero_shortfall_alpha_per_rail():
+    from treasury.experiments import zero_shortfall_alpha
+
+    assert zero_shortfall_alpha(pd.read_csv(REPORTS / "frontier.csv")) == {"wire": 0.9, "stablecoin": 0.99}
+    frontier = pd.DataFrame([
+        {"rail": "wire", "policy": "forecast", "param": 0.9, "shortfall_rate": 0.0},
+        {"rail": "wire", "policy": "forecast", "param": 0.99, "shortfall_rate": 0.01},  # not 0 from 0.9 on
+        {"rail": "stablecoin", "policy": "forecast", "param": 0.9, "shortfall_rate": 0.02},
+        {"rail": "stablecoin", "policy": "forecast", "param": 0.99, "shortfall_rate": 0.0},
+    ])
+    assert zero_shortfall_alpha(frontier) == {"wire": None, "stablecoin": 0.99}
+    assert zero_shortfall_alpha(frontier.assign(shortfall_rate=0.5)) == {"wire": None, "stablecoin": None}
 
 
 def test_pit_values_in_unit_interval_per_model(dataset):

@@ -9,7 +9,7 @@ import pytest
 
 from treasury.agent import tools
 from treasury.agent.queue import ApprovalQueue, Tiers, tier_for
-from treasury.agent.run import MODEL, propose_for_day, validate_rationale
+from treasury.agent.run import MODEL, build_context, propose_for_day, validate_rationale
 
 
 def _queue(ctx, name: str, tiers=None):
@@ -133,3 +133,15 @@ def test_propose_for_day_skips_blocked(ctx, funded, caplog):
         proposals = propose_for_day(strict, client=None)
     assert not {p.partner for p in proposals} & set(blocked)
     assert all(pid in caplog.text for pid in blocked) and "blocked" in caplog.text
+
+
+def test_target_start_leaves_funded_partners_resolvable(ctx, funded):
+    """Starting at the policy's own target of 2026-10-25 (the default), no funded partner is likely
+    to run short before its deposit lands (a 3-day fixed-buffer start gave 0.82-0.98 on wire)."""
+    assert all(d["p_unresolvable"] <= 0.05 for d in funded.values()), {p: d["p_unresolvable"] for p, d in funded.items()}
+    assert all(ctx.balances[pid] > 0 for pid in ctx.partners)
+
+
+def test_build_context_rejects_unknown_start_balances(dataset, ctx):
+    with pytest.raises(ValueError, match="start_balances"):
+        build_context(dataset, "2026-10-26", ctx.queue, start_balances="zero")

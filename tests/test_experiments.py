@@ -49,7 +49,7 @@ def test_factorial_table_has_four_cells(dataset):
     assert "fci_custodian=wire" in stable and "cash_network=wire" in stable
     cells = table.set_index(["rail", "cell"])
     for rail in ("wire", "stablecoin"):
-        assert cells.loc[(rail, "reference"), "buffer_days"] == 3
+        assert cells.loc[(rail, "reference"), "buffer_days"] == 5
         assert cells.loc[(rail, "reference_matched"), "shortfall_rate"] <= cells.loc[(rail, "proposed"), "shortfall_rate"]
         assert cells.loc[(rail, "reference_matched"), "buffer_days"] > 0
 

@@ -230,7 +230,8 @@ def run(
     Metrics cover the partner-days from ``start + warmup_days`` (default ``default_warmup_days``,
     the same for every policy and rail) to the end; the warm-up's shortfalls are reported apart as
     ``warmup_shortfall_windows`` and ``warmup_shortfall_amount``. Capital, transfers, fees and
-    ``p_unresolvable_mean`` also count only the evaluated period.
+    ``p_unresolvable_mean`` also count only the evaluated period. ``p_unresolvable_mean`` also
+    leaves out the structural no-op reviews (``structural_noop``).
     """
     cal = Calendar.from_yaml(CONFIG / "calendar_ar.yaml")
     partners, rails = load_partners(CONFIG / "partners.yaml"), load_rails(CONFIG / "rails.yaml")
@@ -306,11 +307,23 @@ def run(
     )
 
 
+def structural_noop(decisions: pd.DataFrame) -> pd.Series:
+    """Reviews that deposit nothing because their window holds no flow a deposit could cover:
+    ``amount == 0`` and ``window_end`` before the next day's 00:00, where the next day's outflow is
+    placed. That is the morning review of a 24/7 rail (its window closes when the evening order
+    lands); the day's own outflow sits at the review, before any deposit lands."""
+    window_end = pd.to_datetime(decisions["window_end"])
+    next_day = pd.to_datetime(decisions["at"]).dt.normalize() + pd.Timedelta(days=1)
+    return (decisions["amount"] == 0) & (window_end < next_day)
+
+
 def _metrics(
     table: pd.DataFrame, decisions: pd.DataFrame, cfg: PolicyConfig, central_reserve: float, n_days: int, warmup_days: int,
 ) -> dict:
+    """``p_unresolvable_mean`` is the mean over the evaluated forecast reviews except the
+    ``structural_noop`` ones (NaN for the fixed buffer, which has no ``p_unresolvable``)."""
     durations = [d for ds in table["durations"] for d in ds]
-    p_unres = decisions["p_unresolvable"].dropna()
+    p_unres = decisions.loc[~structural_noop(decisions), "p_unresolvable"].dropna()
     capital = float(table["capital_mean"].sum()) + central_reserve
     fees, short_amount = float(table["fees"].sum()), float(table["shortfall_amount"].sum())
     return {

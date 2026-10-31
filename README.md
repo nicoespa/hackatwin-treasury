@@ -7,10 +7,18 @@ prefunded balance a fintech keeps at each one.
 
 ```bash
 uv sync
-uv run pytest
+export PYTHONPATH=src   # every shell: makes `treasury` importable for the CLI, pytest and streamlit
+uv run pytest -q -W error
 ```
 
 Python is pinned to 3.12 (`.python-version`); `uv sync` downloads it if needed.
+
+On macOS `uv sync` leaves the editable-install `.pth` files in `.venv/lib/python3.12/site-packages/`
+with the `hidden` flag, which Python skips, so without `PYTHONPATH=src` every `uv run treasury …`,
+`uv run pytest` and `uv run streamlit run …` fails with `ModuleNotFoundError: treasury`. The
+alternative is to clear the flag after each `uv sync`:
+`chflags nohidden .venv/lib/python3.12/site-packages/*.pth`. The commands below assume
+`export PYTHONPATH=src` in the shell.
 
 ## Layout
 
@@ -35,25 +43,31 @@ ANTHROPIC_API_KEY=... uv run treasury agent propose --as-of 2026-10-26   # LLM w
 ```
 
 The five things the jury must see, one tab each after the **Resumen** headline (capital saved at
-equal service per rail: 19 % on wire, 39 % on stablecoin, from `reports/experiments/factorial.csv`):
+equal service per rail: 19 % on wire, 39 % on stablecoin, from `reports/experiments/factorial.csv`;
+the dashboard reads them off the CSV):
 
 1. **Ablación**: forecast scores of (a) seasonal naive → (d) segment × product with common factor
    and (d-) without it, pooled or per partner, and PIT histograms per model (flat = calibrated; (d-)
-   is U-shaped: without the common factor its intervals are too narrow).
+   is U-shaped: without the common factor its intervals are too narrow). An expander shows
+   `designed_to_lose.csv`, the case built for the bottom-up model to lose (five identical segments).
 2. **Factorial**: fixed buffer vs proposed policy × wire vs stablecoin, plus the `reference_matched`
    row (the fixed buffer with the fewest days at the proposed policy's service level). The
-   config-value cells (3-day buffer, α = 0.99) are not at the same service level; proposed vs
-   matched is the comparison that answers the criterion.
+   config-value cells (`fixed_buffer_days` = 5, α = 0.99, from `config/policy.yaml`) are not at the
+   same service level (the 5-day buffer is short on 28 % of wire and 10 % of stablecoin partner-days);
+   proposed vs matched is the comparison that answers the criterion.
 3. **Frontera**: capital vs realized shortfall rate per rail, the proposed policy's α sweep against
    the fixed buffer's days sweep; the α slider picks the row compared in the table.
 4. **Estrés**: sliders for a campaign, a cohort wave, an FX jump, a partner outage and the payday
-   hypothesis. "Recalcular" re-simulates the last 60 days with the saved seed (< 1 s), re-forecasts
-   the last week with (d) and shows per partner the target balance and deposit against the run
-   without scenarios, plus the forecast's decomposition (confirmed autodebits, residual by segment,
-   predicted recurring payments, common-factor share). Campaign lift 1.5 on `bill_payment` raises
+   hypothesis. "Recalcular" simulates a new week with the same population and seed (60 days ending
+   2026-10-31, < 1 s; the simulator draws them from another stretch of its random stream, so they
+   are not the base history's last days), forecasts its last week with (d) and shows per partner
+   the target balance and deposit against the run without scenarios, plus the forecast's
+   decomposition (confirmed autodebits, residual by segment, predicted recurring payments detected in
+   the training history, common-factor share). Campaign lift 1.5 on `bill_payment` raises
    `bills_aggregator`'s deposit; the other partners do not move.
 5. **Aprobaciones**: the approval queue (`data/queue.jsonl`) with approve / reject, and "Proponer
    hoy" with or without the LLM (the LLM button is enabled only when `ANTHROPIC_API_KEY` is set).
+   Partners start at the policy's own target of the day before (see the agent section).
 
 How the stress tab works, and what it cannot show:
 
@@ -117,15 +131,32 @@ uv run treasury agent approve <id> --approver ana
 uv run treasury agent reject <id> --approver beto --reason "balance already enough"
 ```
 
-The demo fits the model on the data before `--as-of` and starts every partner at its
-fixed-buffer target (3 days of trailing mean drain) with nothing in transit. Re-running the same
-day queues nothing new: one proposal per partner and forecast run. On the base data at
-2026-10-26 with `--rail stablecoin`, the policy funds fci_custodian (≈ 320M, T3) and
-cash_network (≈ 180M, T2), both on wire, their only rail; every other partner needs nothing.
+The demo fits the model on the data before `--as-of`, with nothing in transit. By default
+(`--start-balances target`) every partner starts at the policy's own target at the last review of
+the day before (18:00 on a 24/7 rail, 09:00 on wire), as a treasury already running the policy would;
+`--start-balances fixed` starts at the fixed-buffer target (`fixed_buffer_days` of trailing mean
+drain), which on wire leaves many paths short before the deposit lands. Each proposal records the
+forecast's `seed` and `n_paths`. Re-running the same day queues nothing new: one proposal per partner
+and forecast run. On the base data at 2026-10-26 (2000 paths) every partner's `p_unresolvable` is at
+most 0.015; with `--rail stablecoin` the policy funds fci_custodian (≈ 86M, T2) and cash_network
+(≈ 51M, T2), both on wire, their only rail; with `--rail wire` it also funds card_network (≈ 319M,
+T3) and bills_aggregator (≈ 32M, T1).
 
 The LLM path is covered by offline tests with a scripted fake client only. A run against the
 real API is still owed: it needs `ANTHROPIC_API_KEY`, which was not available when this was built.
 
+## Checklist pre-demo
+
+1. `export PYTHONPATH=src` in the shell that runs the demo (or `chflags nohidden
+   .venv/lib/python3.12/site-packages/*.pth` after the last `uv sync`).
+2. If `data/sim/base/` or `reports/experiments/*.csv` are missing or `config/policy.yaml` changed,
+   regenerate (steps 1 and 2 of the Demo) and run `uv run streamlit cache clear`: the PIT histograms
+   are cached on disk and would show the old data.
+3. Run the agent once against the real API (`ANTHROPIC_API_KEY=... uv run treasury agent propose
+   --as-of 2026-10-26`) and read the rationales; that run is still owed.
+4. Start the dashboard and click through the six tabs (Resumen, Ablación with its expander,
+   Factorial, Frontera, Estrés with one "Recalcular", Aprobaciones with one "Proponer hoy").
+
 ## Troubleshooting
 
-- `ModuleNotFoundError: treasury` after `uv sync`/`uv add` on macOS: the editable-install `.pth` got the hidden flag, which Python skips; run `chflags nohidden .venv/lib/python3.12/site-packages/*.pth`.
+- `ModuleNotFoundError: treasury` after `uv sync`/`uv add` on macOS: the editable-install `.pth` got the hidden flag, which Python skips; `export PYTHONPATH=src`, or run `chflags nohidden .venv/lib/python3.12/site-packages/*.pth`.

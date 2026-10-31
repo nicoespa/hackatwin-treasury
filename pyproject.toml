@@ -36,5 +36,4 @@ packages = ["src/treasury"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-m 'not slow'"
-markers = ["slow: full-size experiment runs (several minutes); run with -m slow"]
+markers = ["slow: full-size experiment runs (about 20 s together); informational, they run by default"]

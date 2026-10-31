@@ -279,23 +279,44 @@ TABLE_CONTENTS = {
     "unknown_scenario": "(c) and (d) under an unseen card campaign and cohort wave, announced vs surprise, "
     "scored pooled and on the affected partner-days",
 }
-NOTES = [
-    "**The config-value cells of `factorial.csv` (`reference` = 3-day buffer, `proposed` = alpha 0.99) are NOT at",
-    "the same service level.** `reference_matched` is the fixed buffer with the fewest days whose post-warm-up",
-    "shortfall rate is at most the proposed policy's; `reference_matched` vs `proposed` is the comparison that",
-    "answers the success criterion (less capital at the same service level).",
-    "",
-    "Metrics exclude a warm-up (`warmup_days`, the same for every policy and rail): the days until the first",
-    "order on the slowest rail (wire) can land, during which every balance runs on its opening alone. The",
-    "warm-up's shortfalls are reported apart as `warmup_shortfall_windows`.",
-    "",
-    "Amounts are in the simulation's currency (ARS). Shortfall windows are partner-days: a window is short",
-    "when the realized balance goes below 0 in it, and its shortfall amount is `max(0, -min balance)`;",
-    "`realized_service = 1 - shortfall_rate`. `capital_total_mean` is the time-weighted mean of every",
-    "partner's non-negative available balance plus the deposits in transit, plus the central reserve (0 here);",
-    "`cost_total` charges it at `cost_of_capital_annual` over the evaluated days, plus rail fees and",
-    "`cost_per_usd_rejected` per unit short.",
-]
+
+
+def _notes(cfg: PolicyConfig) -> list[str]:
+    return [
+        f"**The config-value cells of `factorial.csv` (`reference` = {cfg.fixed_buffer_days:g}-day buffer, `proposed` = "
+        f"alpha {cfg.alpha:g}) are NOT at",
+        "the same service level.** `reference_matched` is the fixed buffer with the fewest days whose post-warm-up",
+        "shortfall rate is at most the proposed policy's; `reference_matched` vs `proposed` is the comparison that",
+        "answers the success criterion (less capital at the same service level).",
+        "",
+        "Metrics exclude a warm-up (`warmup_days`, the same for every policy and rail): the days until the first",
+        "order on the slowest rail (wire) can land, during which every balance runs on its opening alone. The",
+        "warm-up's shortfalls are reported apart as `warmup_shortfall_windows`.",
+        "",
+        "Amounts are in the simulation's currency (ARS). Shortfall windows are partner-days: a window is short",
+        "when the realized balance goes below 0 in it, and its shortfall amount is `max(0, -min balance)`;",
+        "`realized_service = 1 - shortfall_rate`. `capital_total_mean` is the time-weighted mean of every",
+        "partner's non-negative available balance plus the deposits in transit, plus the central reserve (0 here);",
+        "`cost_total` charges it at `cost_of_capital_annual` over the evaluated days, plus rail fees and",
+        "`cost_per_usd_rejected` per unit short.",
+        "",
+        "`p_unresolvable_mean` averages the forecast policy's `p_unresolvable` over the evaluated reviews except",
+        "the structural no-ops (`backtest.structural_noop`): reviews with no deposit whose window closes before the",
+        f"next day's outflow, i.e. the {min(cfg.review_hours_247):02d}:00 review of a 24/7 rail, which can never deposit "
+        "anything.",
+    ]
+
+
+def zero_shortfall_alpha(frontier_table: pd.DataFrame) -> dict[str, float | None]:
+    """Per rail the smallest alpha of the proposed policy's sweep from which every alpha has a 0 %
+    post-warm-up shortfall rate; None when the sweep has no such alpha."""
+    forecast = frontier_table[frontier_table["policy"] == "forecast"]
+    out: dict[str, float | None] = {}
+    for rail, g in forecast.groupby("rail", sort=False):
+        zero = g.loc[g["shortfall_rate"] == 0, "param"]
+        ok = len(zero) and (g.loc[g["param"] >= zero.min(), "shortfall_rate"] == 0).all()
+        out[rail] = float(zero.min()) if ok else None
+    return out
 
 
 def _service_section(factorial: pd.DataFrame, frontier_table: pd.DataFrame) -> list[str]:
@@ -316,10 +337,8 @@ def _service_section(factorial: pd.DataFrame, frontier_table: pd.DataFrame) -> l
         lines.append(f"| {r['rail']} | {r['param']:g} | {r['realized_service']:.2%} | {r['shortfall_rate']:.2%} | "
                      f"{r['capital_total_mean']:.3e} |")
     lines.append("")
-    for rail, g in forecast.groupby("rail", sort=False):
-        zero = g.loc[g["shortfall_rate"] == 0, "param"]
-        lines.append(f"- {rail}: post-warm-up shortfall rate is 0 % for alpha >= {zero.min():g}." if len(zero)
-                     and (g.loc[g["param"] >= zero.min(), "shortfall_rate"] == 0).all()
+    for rail, alpha in zero_shortfall_alpha(frontier_table).items():
+        lines.append(f"- {rail}: post-warm-up shortfall rate is 0 % for alpha >= {alpha:g}." if alpha is not None
                      else f"- {rail}: no alpha in the sweep reaches a 0 % post-warm-up shortfall rate.")
     lines += [
         "",
@@ -346,7 +365,7 @@ def _write_readme(
         "|---|---|---|",
         *(f"| {name}.csv | {TABLE_CONTENTS[name]} | {seconds} |" for name, seconds in timings.items()),
         "",
-        *NOTES,
+        *_notes(_policy(None)),
         "",
         *_service_section(factorial, frontier_table),
         f"Source dataset `{data / 'params.json'}`:",

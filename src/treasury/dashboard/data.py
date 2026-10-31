@@ -1,9 +1,11 @@
 """Tables the dashboard shows, built only from existing functions; no Streamlit here.
 
-The stress rerun re-simulates the last ``STRESS_DAYS`` of the base population with the saved
-seed and the chosen scenarios, forecasts the last ``FORECAST_DAYS`` with a ``SegmentLGBM`` fitted
-before them, and reads the policy's decision at the evening review of that week's first day (the
-last of ``review_hours_247``). On a 24/7 rail that is the review that funds the next day: at the
+The stress rerun simulates ``STRESS_DAYS`` days ending at the base's last day for the base
+population with the saved seed and the chosen scenarios. The simulator draws them from the start
+of its random stream, not from where the base history's draws for those dates were, so it is a new
+stretch of the same population and seed, not a replay of the history's last days. It forecasts the
+last ``FORECAST_DAYS`` with a ``SegmentLGBM`` fitted before them and reads the policy's decision at
+the evening review of that week's first day (the last of ``review_hours_247``). On a 24/7 rail that is the review that funds the next day: at the
 morning one the whole day's forecast outflow is placed at the review, before any deposit can land,
 so the deposit is always 0. On a business-day rail an order from that review lands when the next
 business day's review would.
@@ -11,7 +13,8 @@ business day's review would.
 The model is fitted on the base population re-simulated over its whole period with
 ``experiments.PAST_CAMPAIGNS`` (same users, seed and parameters): on the base data every
 ``campaign_lift`` is 1, so a model fitted there cannot learn what a campaign does and would ignore
-the campaign and FX sliders.
+the campaign and FX sliders. The predicted recurring payments of the components come from the
+streams ``detect_recurring`` found in that training history, not from the re-simulated bills.
 """
 
 from __future__ import annotations
@@ -29,7 +32,7 @@ from treasury.agent.queue import APPROVALS_NEEDED, Proposal
 from treasury.agent.tools import ToolContext, explain_components, get_policy_decision
 from treasury.backtest import CONFIG, HORIZON, Dataset
 from treasury.calendar import Calendar
-from treasury.experiments import LABELS, MODEL_FACTORIES, PAST_CAMPAIGNS, RAILS, factory
+from treasury.experiments import LABELS, MODEL_FACTORIES, PAST_CAMPAIGNS, RAILS, TEST_CAMPAIGN, TEST_WAVE, factory
 from treasury.features import build_drivers
 from treasury.harness import default_origins, rolling_origin
 from treasury.metrics import pit
@@ -58,7 +61,8 @@ STRESS_DAYS = 60
 FORECAST_DAYS = 7
 FX_DAYS = 3
 STRESS_RAIL = "stablecoin"
-EXPERIMENT_TABLES = ("ablation_pooled", "ablation_by_partner", "factorial", "frontier", "unknown_scenario")
+EXPERIMENT_TABLES = ("ablation_pooled", "ablation_by_partner", "factorial", "frontier", "designed_to_lose",
+                     "unknown_scenario")
 ABLATION_COLUMNS = ["label", "model", "wape_q50", "pinball_q90", "cov_90", "pit_ks"]
 FACTORIAL_COLUMNS = ["rail", "cell", "policy", "buffer_days", "capital_total_mean", "shortfall_rate", "cost_total",
                      "n_transfers", "rail_note"]
@@ -137,6 +141,36 @@ def surprise_summary(unknown: pd.DataFrame) -> pd.DataFrame:
     (c) and (d) when the test campaign and cohort wave are announced and when they are a surprise."""
     cols = ["label", "model", "variant", "pinball_q90", "cov_90", "capital_total_mean", "shortfall_rate"]
     return unknown[unknown["scope"] == "pooled"][cols].reset_index(drop=True)
+
+
+def designed_to_lose_gaps(table: pd.DataFrame, metrics: Sequence[str] = ("pinball_q90", "crps")) -> dict[str, float]:
+    """Per metric of ``designed_to_lose.csv`` how much worse (d) scores than (c): ``d / c - 1``
+    (positive = (d) worse, these scores are lower-is-better)."""
+    rows = table.set_index("label")
+    return {m: float(rows.loc["(d)", m] / rows.loc["(c)", m] - 1) for m in metrics}
+
+
+def designed_to_lose_sentence(table: pd.DataFrame) -> str:
+    """``(d) es 13 % peor que (c) en pinball_q90 y 12 % mejor en CRPS``, read off the CSV."""
+    parts = [f"{abs(gap):.0%} {'peor' if gap > 0 else 'mejor'}" for gap in designed_to_lose_gaps(table).values()]
+    return f"(d) es {parts[0]} que (c) en pinball_q90 y {parts[1]} en CRPS".replace("%", " %")
+
+
+PRODUCT_NAMES = {"card_purchase": "tarjeta", "bill_payment": "pago de facturas", "crypto_buy": "compra de crypto"}
+MONTHS = ("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
+
+
+def _day(d: date) -> str:
+    return f"{d.day} {MONTHS[d.month - 1]}"
+
+
+def unknown_scenarios_text(campaign: Campaign = TEST_CAMPAIGN, wave: CohortWave = TEST_WAVE) -> str:
+    """``Campaña de tarjeta (×1,8, 5–7 oct) y ola de 3.000 usuarios young_heavy (15 sep)``."""
+    products = " y ".join(PRODUCT_NAMES.get(p, p) for p in campaign.products)
+    days = (f"{campaign.start.day}–{_day(campaign.end)}" if campaign.start.month == campaign.end.month
+            else f"{_day(campaign.start)}–{_day(campaign.end)}")
+    lift, users = f"{campaign.lift:g}".replace(".", ","), f"{wave.n_users:,}".replace(",", ".")
+    return f"Campaña de {products} (×{lift}, {days}) y ola de {users} usuarios {wave.segment} ({_day(wave.start)})"
 
 
 def pit_values(

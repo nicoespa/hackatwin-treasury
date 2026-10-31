@@ -43,7 +43,8 @@ def tier_for(amount: float, tiers: Tiers) -> str:
 class Proposal:
     """One state of a proposed transfer. ``status`` is ``auto_approved``, ``pending``, ``approved``
     or ``rejected``; ``approvals`` holds ``{approver, at}`` and ``rejection`` ``{approver, reason,
-    at}``; ``exception`` is the anomaly the LLM flagged for the approver, if any."""
+    at}``; ``exception`` is the anomaly the LLM flagged for the approver, if any. ``seed`` and
+    ``n_paths`` are those of the forecast run (None on records written before they were kept)."""
 
     id: str
     created_at: str
@@ -57,6 +58,8 @@ class Proposal:
     approvals: list[dict] = field(default_factory=list)
     rejection: dict | None = None
     exception: str | None = None
+    seed: int | None = None
+    n_paths: int | None = None
 
 
 class ApprovalQueue:
@@ -84,7 +87,7 @@ class ApprovalQueue:
 
     def propose(
         self, partner: str, rail: str, amount: float, rationale: str, forecast_run_id: str,
-        exception: str | None = None,
+        exception: str | None = None, seed: int | None = None, n_paths: int | None = None,
     ) -> Proposal:
         tier = tier_for(amount, self.tiers)
         if tier == "T4_blocked":
@@ -92,7 +95,7 @@ class ApprovalQueue:
         return self._append(Proposal(
             id=uuid4().hex, created_at=_now(), partner=partner, rail=rail,
             amount=float(amount), tier=tier, rationale=rationale, forecast_run_id=forecast_run_id,
-            status="auto_approved" if tier == "T1" else "pending", exception=exception,
+            status="auto_approved" if tier == "T1" else "pending", exception=exception, seed=seed, n_paths=n_paths,
         ))
 
     def get(self, id: str) -> Proposal:

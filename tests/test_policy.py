@@ -39,7 +39,7 @@ def _decide(rail: str, review_at: str, opening: float, partner: Partner = PARTNE
 
 def test_policy_config_values():
     assert (CFG.alpha, CFG.cost_of_capital_annual, CFG.cost_per_usd_rejected) == (0.99, 0.12, 0.05)
-    assert (CFG.lot_size, CFG.review_hour, CFG.fixed_buffer_days) == (1000, 9, 3)
+    assert (CFG.lot_size, CFG.review_hour, CFG.fixed_buffer_days) == (1000, 9, 5)
 
 
 def test_target_balance_is_quantile():

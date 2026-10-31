@@ -13,6 +13,7 @@ import logging
 import math
 import re
 from collections.abc import Sequence
+from typing import Literal
 
 import anthropic
 import numpy as np
@@ -21,14 +22,14 @@ import pandas as pd
 from treasury.agent import tools
 from treasury.agent.queue import ApprovalQueue, Proposal, tier_for
 from treasury.agent.tools import ToolContext
-from treasury.backtest import CONFIG, HORIZON, TRAILING_DAYS, Dataset
+from treasury.backtest import CONFIG, HORIZON, TRAILING_DAYS, Dataset, _rail_for
 from treasury.calendar import Calendar
 from treasury.models.base import daily_partner_table
 from treasury.models.seasonal_naive import seasonal_mean
 from treasury.models.segment_lgbm import SegmentLGBM
 from treasury.obligations import detect_recurring
-from treasury.policy import PolicyConfig, load_policy
-from treasury.rails import load_rails
+from treasury.policy import PolicyConfig, load_policy, recommend_deposit
+from treasury.rails import Rail, load_rails
 from treasury.routing import Partner, load_partners
 
 log = logging.getLogger(__name__)
@@ -227,11 +228,43 @@ def fixed_buffer_balances(dataset: Dataset, partners: dict[str, Partner], as_of:
     return {pid: float(cfg.fixed_buffer_days * max(drain.get(pid, 0.0), 0.0)) for pid in partners}
 
 
+def target_balances(model: SegmentLGBM, dataset: Dataset, partners: dict[str, Partner], rails: dict[str, Rail],
+                    rail: str, day: pd.Timestamp, last_date: pd.Timestamp, cal: Calendar,
+                    cfg: PolicyConfig) -> dict[str, float]:
+    """The policy's own ``target`` per partner at the last review of ``day`` on ``rail`` (or the
+    partner's only rail): ``review_hour`` on business-day rails, the last of ``review_hours_247``
+    on 24/7 ones, whose evening window covers the next day. ``model``'s paths run from ``day`` to
+    ``last_date``; this overwrites its last prediction."""
+    history, drivers = dataset.history, dataset.drivers
+    day = pd.Timestamp(day).normalize()
+    dates = pd.date_range(day, last_date, freq="D")
+    model.predict(dates, drivers[drivers["date"] <= last_date])
+    past = daily_partner_table(history[history["date"] < day]).pivot(index="date", columns="partner", values="inflow")
+    out = {}
+    for pid, p in partners.items():
+        rail_used = _rail_for(p, rails, rail)
+        hour = cfg.review_hour if rail_used.business_days_only else max(cfg.review_hours_247)
+        paths = model.last_paths[:, :, model.partner_index.index(pid)]
+        out[pid] = recommend_deposit(paths, dates, p, rail_used, 0.0, [], day + pd.Timedelta(hours=hour), cal, cfg,
+                                     inflow_forecast=np.nan_to_num(seasonal_mean(past[pid], dates))).target
+    return out
+
+
+START_BALANCES = ("target", "fixed")
+
+
 def build_context(dataset: Dataset, as_of: pd.Timestamp, queue: ApprovalQueue, n_paths: int = 2000,
-                  horizon: int = HORIZON) -> ToolContext:
+                  horizon: int = HORIZON, rail: str = "stablecoin",
+                  start_balances: Literal["target", "fixed"] = "target") -> ToolContext:
     """Fit ``SegmentLGBM`` on the data before ``as_of``, forecast up to ``horizon`` days (no further
-    than the drivers reach) and review at ``review_hour`` on ``as_of`` with fixed-buffer balances
-    and nothing in transit."""
+    than the drivers reach) and review at ``review_hour`` on ``as_of`` with nothing in transit.
+
+    ``start_balances="target"`` starts each partner at the policy's own target at the last review of
+    the day before (``target_balances`` on ``rail``, same fitted model): a treasury already running
+    the policy. ``"fixed"`` starts at ``fixed_buffer_balances``, which on wire partners leaves many
+    paths short before the deposit instructed on ``as_of`` lands."""
+    if start_balances not in START_BALANCES:
+        raise ValueError(f"start_balances must be one of {START_BALANCES}, got {start_balances!r}")
     as_of = pd.Timestamp(as_of).normalize()
     cal, cfg = Calendar.from_yaml(CONFIG / "calendar_ar.yaml"), load_policy(CONFIG / "policy.yaml")
     partners, rails = load_partners(CONFIG / "partners.yaml"), load_rails(CONFIG / "rails.yaml")
@@ -239,12 +272,17 @@ def build_context(dataset: Dataset, as_of: pd.Timestamp, queue: ApprovalQueue, n
     dates = pd.date_range(as_of, min(as_of + pd.Timedelta(days=horizon - 1), drivers["date"].max()), freq="D")
     model = SegmentLGBM(n_paths=n_paths)
     model.fit(history[history["date"] < as_of], drivers[drivers["date"] < as_of])
+    if start_balances == "target":
+        balances = target_balances(model, dataset, partners, rails, rail, as_of - pd.Timedelta(days=1), dates[-1], cal,
+                                   cfg)
+    else:
+        balances = fixed_buffer_balances(dataset, partners, as_of, cfg)
     model.predict(dates, drivers[drivers["date"] <= dates[-1]])
     past = daily_partner_table(history[history["date"] < as_of]).pivot(index="date", columns="partner", values="inflow")
     events = dataset.events
     return ToolContext(
         model=model, dataset=dataset, partners=partners, rails=rails, cal=cal, policy_cfg=cfg,
-        balances=fixed_buffer_balances(dataset, partners, as_of, cfg),
+        balances=balances,
         pending_credits={pid: [] for pid in partners},
         review_at=as_of + pd.Timedelta(hours=cfg.review_hour),
         forecast_run_id=f"{model.name}@{as_of.date()}",

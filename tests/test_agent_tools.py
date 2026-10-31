@@ -22,6 +22,7 @@ def test_propose_transfer_tool_only_enqueues(ctx, funded):
     json.dumps(out)
     assert out["amount"] == decision["amount"]  # the policy amount is what gets queued
     assert (out["partner"], out["rail"], out["forecast_run_id"]) == (pid, decision["rail_used"], ctx.forecast_run_id)
+    assert (out["seed"], out["n_paths"]) == (ctx.model.seed, ctx.model.n_paths) == (0, 300)
     assert len(ctx.queue.list()) == 1
     with pytest.raises(ValueError, match="already"):
         tools.propose_transfer(ctx, pid, "stablecoin", decision["amount"], "twice")

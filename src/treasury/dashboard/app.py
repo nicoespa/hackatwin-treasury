@@ -18,8 +18,10 @@ import streamlit as st
 
 from treasury.agent.queue import ApprovalQueue
 from treasury.agent.run import build_context, propose_for_day
-from treasury.backtest import Dataset
+from treasury.backtest import CONFIG, Dataset
 from treasury.dashboard import data
+from treasury.experiments import zero_shortfall_alpha
+from treasury.policy import PolicyConfig, load_policy
 from treasury.simulate import PAYDAY_HYPOTHESES
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -32,9 +34,8 @@ MODEL_NAMES = {
     "(a)": "naive estacional", "(b)": "LightGBM agregado + drivers", "(c)": "(b) + obligaciones conocidas",
     "(d)": "segmento × producto + factor común", "(d-)": "(d) sin factor común",
 }
-CELL_NAMES = {"reference": "buffer fijo (config: 3 días)", "proposed": "propuesto (d), α = 0,99",
-              "reference_matched": "buffer fijo al mismo servicio"}
 RAIL_NAMES = {"wire": "Transferencia (wire)", "stablecoin": "Stablecoin"}
+POLICY = load_policy(CONFIG / "policy.yaml")
 
 
 def ars(x: float) -> str:
@@ -59,6 +60,11 @@ def num(x: float) -> str:
 
 def signed_ars(x: float) -> str:
     return ars(0.0) if abs(x) < 5e4 else ("+" if x > 0 else "−") + ars(abs(x))
+
+
+def cell_names(cfg: PolicyConfig) -> dict[str, str]:
+    return {"reference": f"buffer fijo (config: {num(cfg.fixed_buffer_days)} días)",
+            "proposed": f"propuesto (d), α = {num(cfg.alpha)}", "reference_matched": "buffer fijo al mismo servicio"}
 
 
 @st.cache_data
@@ -106,8 +112,8 @@ def summary_tab(tables: dict[str, pd.DataFrame]) -> None:
         "modelo": sur["modelo"], "escenario": sur["escenario"], "capital medio": sur["capital_total_mean"].map(ars),
         "tasa de faltantes": sur["shortfall_rate"].map(lambda x: pct(x, 2)), "cobertura 90 %": sur["cov_90"].map(pct),
     }), hide_index=True)
-    st.caption("Campaña de tarjeta (×1,8, 5–7 oct) y ola de 3.000 usuarios young_heavy (15 sep) que no están en la "
-               "historia. 'Sorpresa' = los drivers no los traen. Riel stablecoin, política de pronóstico.")
+    st.caption(f"{data.unknown_scenarios_text()} que no están en la historia. 'Sorpresa' = los drivers no los traen. "
+               "Riel stablecoin, política de pronóstico.")
     st.subheader("Cómo leer esto")
     st.markdown(
         "Cada partner (red de tarjetas, agregador de facturas, exchange…) necesita saldo prefondeado para pagar lo que "
@@ -155,17 +161,30 @@ def ablation_tab(tables: dict[str, pd.DataFrame]) -> None:
     fig.update_layout(height=320, margin={"t": 40, "b": 10}, yaxis_title="densidad", bargap=0.05)
     fig.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig)
+    with st.expander("Caso diseñado para que el bottom-up pierda"):
+        lose = tables["designed_to_lose"]
+        md(f"Cinco segmentos idénticos (copias de `salaried_formal`), 4 orígenes: partir por segmento no aporta "
+           f"información. **{data.designed_to_lose_sentence(lose)}.**")
+        st.dataframe(lose.assign(descripcion=lose["label"].map(MODEL_NAMES))[
+            ["label", "descripcion", "wape_q50", "pinball_q90", "crps", "cov_90", "pit_ks"]].style.format(
+            {"wape_q50": "{:.3f}", "pinball_q90": lambda x: ars(x), "crps": lambda x: ars(x), "cov_90": "{:.3f}",
+             "pit_ks": "{:.3f}"}), hide_index=True)
 
 
 def factorial_tab(tables: dict[str, pd.DataFrame]) -> None:
-    st.warning("Las celdas con los valores de config (**buffer fijo de 3 días** y **propuesto con α = 0,99**) **no "
-               "están al mismo nivel de servicio**: el buffer de 3 días tiene muchos más faltantes. La comparación que "
-               "responde al criterio de éxito es *propuesto* vs *buffer fijo al mismo servicio*.")
     view = data.factorial_view(tables["factorial"])
+    days, alpha = num(POLICY.fixed_buffer_days), num(POLICY.alpha)
+    rates = "; ".join(
+        f"{rail}: {pct(g.loc[g['cell'] == 'reference', 'shortfall_rate'].iloc[0], 1)} el buffer, "
+        f"{pct(g.loc[g['cell'] == 'proposed', 'shortfall_rate'].iloc[0], 1)} el propuesto"
+        for rail, g in view.groupby("rail", sort=False))
+    st.warning(f"Las celdas con los valores de config (**buffer fijo de {days} días** y **propuesto con α = {alpha}**) "
+               f"**no están al mismo nivel de servicio** (tasa de faltantes {rates}). La comparación que responde al "
+               "criterio de éxito es *propuesto* vs *buffer fijo al mismo servicio*.")
     for rail, g in view.groupby("rail", sort=False):
         st.subheader(RAIL_NAMES[rail])
         st.dataframe(pd.DataFrame({
-            "celda": g["cell"].map(CELL_NAMES),
+            "celda": g["cell"].map(cell_names(POLICY)),
             "días de buffer": g["buffer_days"].map(lambda x: "—" if pd.isna(x) else num(x)),
             "capital medio inmovilizado": g["capital_total_mean"].map(ars),
             "tasa de faltantes": g["shortfall_rate"].map(lambda x: pct(x, 2)),
@@ -190,10 +209,15 @@ def frontier_tab(tables: dict[str, pd.DataFrame]) -> None:
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
     fig.update_layout(height=460, legend={"title_text": "", "orientation": "h", "y": -0.2}, margin={"t": 40})
     st.plotly_chart(fig)
-    st.caption("Abajo a la izquierda es mejor: menos capital y menos faltantes. α no es el servicio realizado: con "
-               "α ≥ 0,9 en wire y α ≥ 0,99 en stablecoin la tasa de faltantes post-arranque ya es 0 %.")
+    zero = zero_shortfall_alpha(fr)
+    reached = " y ".join(f"α ≥ {num(a)} en {rail}" for rail, a in zero.items() if a is not None)
+    missing = ", ".join(rail for rail, a in zero.items() if a is None)
+    st.caption("Abajo a la izquierda es mejor: menos capital y menos faltantes. α no es el servicio realizado"
+               + (f": con {reached} la tasa de faltantes post-arranque ya es 0 %" if reached else "")
+               + (f"; en {missing} ningún α del barrido llega a 0 %" if missing else "") + ".")
     alphas = sorted(fr.loc[fr["policy"] == "forecast", "param"].unique())
-    alpha = st.select_slider("α", options=alphas, value=0.99 if 0.99 in alphas else alphas[-1], format_func=num)
+    alpha = st.select_slider("α", options=alphas, value=POLICY.alpha if POLICY.alpha in alphas else alphas[-1],
+                             format_func=num)
     at = data.frontier_at_alpha(tables["frontier"], alpha, tables["factorial"])
     st.dataframe(pd.DataFrame({
         "riel": at["rail"].map(RAIL_NAMES), "capital propuesto": at["proposed_capital"].map(ars),
@@ -246,9 +270,11 @@ def _stress_form(sb: data.StressBase) -> data.StressSpec | None:
 def stress_tab() -> None:
     sb, base = stress_base(), baseline_run()
     st.markdown(
-        f"Re-simula los últimos **{data.STRESS_DAYS} días** de la población base (misma semilla) con los escenarios "
-        f"elegidos, que cubren la semana **{sb.dates[0].date()} – {sb.dates[-1].date()}**. El modelo (d), ajustado con la "
-        f"historia anterior, pronostica esa semana y la política decide en la revisión de las "
+        f"Simula **una semana nueva con la misma población y semilla** que la base ({data.STRESS_DAYS} días que "
+        f"terminan el **{sb.dates[-1].date()}**, con los escenarios elegidos sobre la semana **{sb.dates[0].date()} – "
+        f"{sb.dates[-1].date()}**): el simulador consume otro tramo de su generador aleatorio, así que no repite los "
+        "últimos días de la historia base. El modelo (d), ajustado con la historia anterior, pronostica esa semana y "
+        f"la política decide en la revisión de las "
         f"**{data.review_at(sb.as_of):%H:%M} del {sb.as_of.date()}**, sobre stablecoin (o el único riel del partner). "
         "Cada partner parte con el objetivo de la corrida base: el depósito es lo que el escenario agrega. "
         "Este modelo se ajusta sobre la población base re-simulada con tres campañas pasadas (feb, abr, jun), porque "
@@ -288,14 +314,16 @@ def stress_tab() -> None:
     segs = [c for c in comp.columns if c.startswith("segment:")]
     fig = go.Figure([go.Bar(name="confirmado (débitos automáticos)", x=comp["date"], y=comp["confirmed"] / 1e6)]
                     + [go.Bar(name=s.removeprefix("segment:"), x=comp["date"], y=comp[s] / 1e6) for s in segs]
-                    + [go.Scatter(name="recurrente predicho (parte del residuo)", x=comp["date"],
+                    + [go.Scatter(name="recurrente predicho, detectado en la historia (parte del residuo)",
+                                  x=comp["date"],
                                   y=comp["predicted_recurring"] / 1e6, mode="markers", marker_symbol="diamond",
                                   marker_size=10)])
     fig.update_layout(barmode="stack", height=380, yaxis_title="media pronosticada (M ARS)", margin={"t": 20})
     st.plotly_chart(fig)
     st.dataframe(pd.DataFrame({
         "fecha": comp["date"], "confirmado": comp["confirmed"].map(ars),
-        "recurrente predicho": comp["predicted_recurring"].map(ars), "residuo": comp["residual_total"].map(ars),
+        "recurrente predicho (detectado en la historia)": comp["predicted_recurring"].map(ars),
+        "residuo": comp["residual_total"].map(ars),
         "participación del factor común": comp["factor_share"].map(pct),
     }), hide_index=True)
 
@@ -310,6 +338,9 @@ def approvals_tab() -> None:
     queue = ApprovalQueue(QUEUE)
     st.caption(f"Cola `{QUEUE.relative_to(ROOT)}`. La política decide el monto, el LLM solo lo explica y una persona "
                "aprueba por tramo (T1 automático, T2 una firma, T3 dos firmas distintas). Nada ejecuta un pago.")
+    st.caption(f"Saldo inicial de cada partner: el objetivo que la propia política fijó en la última revisión del día "
+               f"anterior ({max(POLICY.review_hours_247):02d}:00 en stablecoin, {POLICY.review_hour:02d}:00 en wire), "
+               "con el mismo modelo y nada en tránsito.")
     c1, c2, c3, c4 = st.columns([2, 2, 2, 2], vertical_alignment="bottom")
     as_of = c1.date_input("Fecha de la revisión", date(2026, 10, 26))
     rail = c2.selectbox("Riel preferido", ["stablecoin", "wire"])
@@ -320,7 +351,7 @@ def approvals_tab() -> None:
     if offline or online:
         try:
             with st.spinner("Ajustando el modelo y proponiendo…"):
-                ctx = build_context(base_dataset(), pd.Timestamp(as_of), queue)
+                ctx = build_context(base_dataset(), pd.Timestamp(as_of), queue, rail=rail, start_balances="target")
                 made = propose_for_day(ctx, client=_llm_client() if online else None, rail=rail)
             st.success(f"{len(made)} propuestas para {ctx.forecast_run_id} (las ya existentes no se duplican).")
         except Exception as e:  # noqa: BLE001 - a demo button: any failure (data, API, network) is shown, not raised
@@ -370,9 +401,9 @@ def main() -> None:
                if not (BASE / f).exists()]
     missing += [f"reports/experiments/{t}.csv" for t in data.EXPERIMENT_TABLES if not (REPORTS / f"{t}.csv").exists()]
     if missing:
-        st.error(f"Faltan datos: {', '.join(missing)}. Corré `uv run treasury simulate --users 20000 --start "
-                 "2025-11-01 --end 2026-10-31 --seed 42 --out data/sim/base` y después `uv run treasury experiments "
-                 "--data data/sim/base --out reports/experiments`.")
+        st.error(f"Faltan datos: {', '.join(missing)}. Corré `PYTHONPATH=src uv run treasury simulate --users 20000 "
+                 "--start 2025-11-01 --end 2026-10-31 --seed 42 --out data/sim/base` y después `PYTHONPATH=src uv run "
+                 "treasury experiments --data data/sim/base --out reports/experiments`.")
         st.stop()
     tables = experiments()
     names = ["Resumen", "Ablación", "Factorial", "Frontera", "Estrés", "Aprobaciones"]
