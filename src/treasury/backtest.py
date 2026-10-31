@@ -147,9 +147,10 @@ def time_weighted_mean(at: pd.Series, value: np.ndarray, initial: float, start: 
     return float(np.dot(np.diff(edges), np.concatenate([[initial], value])) / (stop.value - start.value))
 
 
-def _shortfalls(log: pd.DataFrame, initial: float, start: pd.Timestamp, n_days: int) -> dict:
+def _shortfalls(log: pd.DataFrame, initial: float, start: pd.Timestamp, n_days: int, warmup_days: int) -> dict:
     """Per partner-day window: any negative balance, and ``max(0, -min balance)`` in the window
-    (the balance carried in at the window's start included); plus negative-episode durations."""
+    (the balance carried in at the window's start included), split into the first ``warmup_days``
+    windows and the rest; plus the durations of negative episodes that begin after the warm-up."""
     at, balance = pd.DatetimeIndex(log["at"]), log["balance"].to_numpy()
     starts = start + pd.to_timedelta(np.arange(n_days), unit="D")
     before = np.searchsorted(at.asi8, starts.asi8, "left")
@@ -157,12 +158,21 @@ def _shortfalls(log: pd.DataFrame, initial: float, start: pd.Timestamp, n_days: 
     day = ((at - start) // pd.Timedelta(days=1)).to_numpy()
     inside = pd.Series(balance).groupby(day).min().reindex(range(n_days)).to_numpy()
     low = np.fmin(carried, inside)
+    short, amount = low < 0, np.maximum(0.0, -low)
     negative = balance < 0
     begins = np.flatnonzero(negative & ~np.concatenate([[initial < 0], negative[:-1]]))
     ends = [np.flatnonzero(~negative[b:])[:1] for b in begins]
     stop = start + pd.Timedelta(days=n_days)
-    durations = [((at[b + e[0]] if len(e) else stop) - at[b]) / pd.Timedelta(hours=1) for b, e in zip(begins, ends)]
-    return {"windows": int((low < 0).sum()), "amount": float(np.maximum(0.0, -low).sum()), "durations": durations}
+    evaluated = start + pd.Timedelta(days=warmup_days)
+    durations = [
+        ((at[b + e[0]] if len(e) else stop) - at[b]) / pd.Timedelta(hours=1)
+        for b, e in zip(begins, ends) if at[b] >= evaluated
+    ]
+    return {
+        "windows": int(short[warmup_days:].sum()), "amount": float(amount[warmup_days:].sum()),
+        "warmup_windows": int(short[:warmup_days].sum()), "warmup_amount": float(amount[:warmup_days].sum()),
+        "durations": durations,
+    }
 
 
 def _realized(dataset: Dataset, partner: Partner, start: pd.Timestamp, stop: pd.Timestamp) -> tuple[np.ndarray, np.ndarray]:
@@ -179,6 +189,13 @@ def _sum_before(times: np.ndarray, cumulative: np.ndarray, t: pd.Timestamp) -> f
     """``cumulative`` up to the last of ``times`` strictly before ``t`` (0 if none)."""
     i = np.searchsorted(times, t.to_datetime64(), "left")
     return float(cumulative[i - 1]) if i else 0.0
+
+
+def default_warmup_days(start: pd.Timestamp, rails: dict[str, Rail], cal: Calendar, cfg: PolicyConfig) -> int:
+    """Calendar days from ``start`` until the first order on the slowest rail can land (the day it
+    lands included): until then a balance depends only on its opening, whatever the policy."""
+    first = [arrival_time(r, review_times(r, start, start + pd.Timedelta(days=14), cal, cfg)[0], cal) for r in rails.values()]
+    return int(np.ceil((max(first) - start) / pd.Timedelta(days=1)))
 
 
 def _rail_for(partner: Partner, rails: dict[str, Rail], preferred: str) -> Rail:
@@ -200,6 +217,7 @@ def run(
     n_paths: int = 1000,
     seed: int = 0,
     horizon: int = HORIZON,
+    warmup_days: int | None = None,
 ) -> BacktestResult:
     """Backtest ``policy`` from the first origin to one step after the last.
 
@@ -207,13 +225,22 @@ def run(
     buffer's target at the first origin. At each review the available balance is the realized one
     (deposits landed, flows settled before the review); ``fixed`` tops the balance plus deposits in
     transit up to ``fixed_buffer_days`` of the trailing 28-day mean drain, ``forecast`` calls
-    ``recommend_deposit`` on the latest origin's paths. Metrics are over partner-day windows.
+    ``recommend_deposit`` on the latest origin's paths.
+
+    Metrics cover the partner-days from ``start + warmup_days`` (default ``default_warmup_days``,
+    the same for every policy and rail) to the end; the warm-up's shortfalls are reported apart as
+    ``warmup_shortfall_windows`` and ``warmup_shortfall_amount``. Capital, transfers, fees and
+    ``p_unresolvable_mean`` also count only the evaluated period.
     """
     cal = Calendar.from_yaml(CONFIG / "calendar_ar.yaml")
     partners, rails = load_partners(CONFIG / "partners.yaml"), load_rails(CONFIG / "rails.yaml")
     step = pd.Timedelta(days=(origins[1] - origins[0]).days if len(origins) > 1 else 7)
     start, stop = pd.Timestamp(origins[0]), pd.Timestamp(origins[-1]) + step
     n_days = (stop - start).days
+    warmup_days = default_warmup_days(start, rails, cal, policy_cfg) if warmup_days is None else warmup_days
+    if not 0 <= warmup_days < n_days:
+        raise ValueError(f"warmup_days={warmup_days} must be in [0, {n_days})")
+    evaluated = start + pd.Timedelta(days=warmup_days)
     forecasts = walk_forward(dataset, model_factory, origins, horizon, n_paths, seed) if policy == "forecast" else []
     daily = daily_partner_table(dataset.history)
     daily["drain"] = daily["outflow"] - daily["inflow"] * daily["partner"].map({p: q.nets_inflows for p, q in partners.items()})
@@ -255,14 +282,16 @@ def run(
                                     ((0, "datetime64[ns]"), (1, "datetime64[ns]"), (2, float)))
         log = partner_ledger(initial[pid], flow_at, signed, instruct, arrive, amount)
         log = log[log["at"] < stop.to_datetime64()].assign(partner=pid)
-        short = _shortfalls(log, initial[pid], start, n_days)
+        short = _shortfalls(log, initial[pid], start, n_days, warmup_days)
         capital = np.maximum(log["balance"].to_numpy(), 0.0) + log["in_transit"].to_numpy()
+        counted = [a for t, _, a in sent if t >= evaluated]
         by_partner.append({
             "partner": pid, "rail_used": rail.name, "initial": initial[pid],
-            "capital_mean": time_weighted_mean(log["at"], capital, initial[pid], start, stop),
+            "capital_mean": time_weighted_mean(log["at"], capital, initial[pid], evaluated, stop),
             "shortfall_windows": short["windows"], "shortfall_amount": short["amount"],
-            "durations": short["durations"], "n_transfers": len(sent),
-            "fees": float(sum(rail.fixed_fee + rail.bps / 1e4 * a for _, _, a in sent)),
+            "warmup_shortfall_windows": short["warmup_windows"], "warmup_shortfall_amount": short["warmup_amount"],
+            "durations": short["durations"], "n_transfers": len(counted),
+            "fees": float(sum(rail.fixed_fee + rail.bps / 1e4 * a for a in counted)),
         })
         logs.append(log)
     partner_table = pd.DataFrame(by_partner)
@@ -270,13 +299,16 @@ def run(
     return BacktestResult(
         ledger_log=pd.concat(logs, ignore_index=True)[["at", "partner", "balance", "in_transit"]],
         decisions=decisions,
-        metrics=_metrics(partner_table, decisions, policy_cfg, central_reserve, n_days),
+        metrics=_metrics(partner_table, decisions[decisions["at"] >= evaluated], policy_cfg, central_reserve,
+                         n_days - warmup_days, warmup_days),
         by_partner=partner_table.drop(columns="durations"),
         initial=initial,
     )
 
 
-def _metrics(table: pd.DataFrame, decisions: pd.DataFrame, cfg: PolicyConfig, central_reserve: float, n_days: int) -> dict:
+def _metrics(
+    table: pd.DataFrame, decisions: pd.DataFrame, cfg: PolicyConfig, central_reserve: float, n_days: int, warmup_days: int,
+) -> dict:
     durations = [d for ds in table["durations"] for d in ds]
     p_unres = decisions["p_unresolvable"].dropna()
     capital = float(table["capital_mean"].sum()) + central_reserve
@@ -292,5 +324,8 @@ def _metrics(table: pd.DataFrame, decisions: pd.DataFrame, cfg: PolicyConfig, ce
         "cost_total": cfg.cost_of_capital_annual * capital * n_days / 365 + fees + cfg.cost_per_usd_rejected * short_amount,
         "p_unresolvable_mean": float(p_unres.mean()) if len(p_unres) else float("nan"),
         "n_days": n_days,
+        "warmup_days": warmup_days,
+        "warmup_shortfall_windows": int(table["warmup_shortfall_windows"].sum()),
+        "warmup_shortfall_amount": float(table["warmup_shortfall_amount"].sum()),
         "rail_used": dict(zip(table["partner"], table["rail_used"])),
     }

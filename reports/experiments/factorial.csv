@@ -1,5 +1,7 @@
-cell,rail,model,policy,capital_total_mean,shortfall_rate,shortfall_amount_total,cost_total,n_transfers,p_unresolvable_mean,rail_note
-reference,wire,none,fixed_3d,1319364927.3395371,0.6041666666666666,32142074977.25593,1632449110.3195686,305,,crypto_exchange=stablecoin
-proposed,wire,segment_factor,forecast_a0.99,3210755006.767501,0.011904761904761904,90771085.78428541,64694188.769974835,238,0.0568957654723127,crypto_exchange=stablecoin
-reference,stablecoin,none,fixed_3d,1291273466.6396189,0.2767857142857143,7247805207.723945,406009809.1144664,465,,"fci_custodian=wire, cash_network=wire"
-proposed,stablecoin,segment_factor,forecast_a0.99,1678397526.7600951,0.002976190476190476,10902408.368214265,50382890.30835,265,0.015336501901140685,"fci_custodian=wire, cash_network=wire"
+cell,rail,model,policy,buffer_days,capital_total_mean,shortfall_rate,shortfall_amount_total,cost_total,n_transfers,realized_service,p_unresolvable_mean,warmup_days,warmup_shortfall_windows,rail_note
+reference,wire,none,fixed,3.0,1330890005.63463,0.6282051282051282,31658714421.921295,1606684955.781435,284,0.3717948717948718,,4,7,crypto_exchange=stablecoin
+proposed,wire,segment_factor,forecast_a0.99,,3256105318.081323,0.0,0.0,56607890.68445878,221,1.0,0.007503521126760564,4,4,crypto_exchange=stablecoin
+reference_matched,wire,none,fixed,10.0,4011209047.2599597,0.0,0.0,69580796.28740315,282,1.0,,4,0,crypto_exchange=stablecoin
+reference,stablecoin,none,fixed,3.0,1289990688.7731354,0.28846153846153844,7182225237.451444,399543828.3189951,433,0.7115384615384616,,4,3,"fci_custodian=wire, cash_network=wire"
+proposed,stablecoin,segment_factor,forecast_a0.99,,1680491176.2544024,0.0,0.0,46046814.98582868,242,1.0,0.0034528688524590166,4,1,"fci_custodian=wire, cash_network=wire"
+reference_matched,stablecoin,none,fixed,6.5,2765021231.949485,0.0,0.0,65691181.96538297,430,1.0,,4,0,"fci_custodian=wire, cash_network=wire"

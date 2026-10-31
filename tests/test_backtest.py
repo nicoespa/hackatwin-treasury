@@ -48,8 +48,10 @@ def test_backtest_on_base_data(dataset, policy):
     assert m["rail_used"]["fci_custodian"] == "wire" and m["rail_used"]["cash_network"] == "wire"
     assert m["rail_used"]["crypto_exchange"] == "stablecoin" and m["rail_used"]["card_network"] == "stablecoin"
     assert m["capital_total_mean"] > 1e6 and 0 <= m["shortfall_rate"] <= 1
-    assert m["n_days"] == 21 and m["shortfall_windows"] <= 6 * 21
-    assert m["n_transfers"] == int((result.decisions["amount"] > 0).sum()) > 0
+    assert m["warmup_days"] == 4  # start Sunday 10-04: Monday's wire lands Wednesday 10-07 10:00
+    assert m["n_days"] == 21 - 4 and m["shortfall_windows"] <= 6 * m["n_days"]
+    evaluated = result.decisions[result.decisions["at"] >= pd.Timestamp("2026-10-08")]
+    assert m["n_transfers"] == int((evaluated["amount"] > 0).sum()) > 0
     wire = result.decisions[result.decisions["rail_used"] == "wire"]
     assert (wire["at"].dt.hour == 9).all() and (wire["at"].dt.day_of_week < 5).all()
     coin = result.decisions[result.decisions["rail_used"] == "stablecoin"]
@@ -59,7 +61,7 @@ def test_backtest_on_base_data(dataset, policy):
         assert (result.decisions["window_end"] > result.decisions["arrival_at"]).all()
     else:
         assert np.isnan(m["p_unresolvable_mean"])
-    k = CFG.cost_of_capital_annual * m["capital_total_mean"] * 21 / 365
+    k = CFG.cost_of_capital_annual * m["capital_total_mean"] * m["n_days"] / 365
     assert m["cost_total"] == pytest.approx(k + m["fees"] + CFG.cost_per_usd_rejected * m["shortfall_amount_total"])
 
 
@@ -80,3 +82,13 @@ def test_higher_alpha_holds_more_capital(dataset):
     hi = run(dataset, SeasonalNaive, "forecast", "stablecoin", replace(CFG, alpha=0.995), ORIGINS, 0.0, n_paths=200)
     assert hi.metrics["capital_total_mean"] > lo.metrics["capital_total_mean"]
     assert hi.metrics["shortfall_rate"] <= lo.metrics["shortfall_rate"]
+
+
+def test_warmup_windows_are_reported_apart(dataset):
+    default = run(dataset, None, "fixed", "wire", CFG, ORIGINS).metrics
+    full = run(dataset, None, "fixed", "wire", CFG, ORIGINS, warmup_days=0).metrics
+    assert full["n_days"] == 21 and full["warmup_shortfall_windows"] == 0
+    assert full["shortfall_windows"] == default["shortfall_windows"] + default["warmup_shortfall_windows"]
+    assert full["shortfall_amount_total"] == pytest.approx(
+        default["shortfall_amount_total"] + default["warmup_shortfall_amount"]
+    )

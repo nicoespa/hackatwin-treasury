@@ -91,3 +91,12 @@ def test_paths_from_quantiles_rho_raises_weekly_sum_variance():
     corr = paths_from_quantiles(frame, n_paths=5000, seed=1, rho=0.9)[0]
     assert (corr[:, :7].sum(axis=1).var(axis=0) > 3 * iid[:, :7].sum(axis=1).var(axis=0)).all()
     assert np.quantile(corr[:, 3, 0], 0.5) == pytest.approx(100, rel=0.03)
+
+
+def test_paths_from_quantiles_lower_tail_matches_pit_extrapolation():
+    # anchor 2*q05 - q10 = -20: the CDF reaches 0.05 at q05 = 10 linearly from (−20, 0); P(x = 0) = 0.05 * 20 / 30
+    q = np.array([10.0, 40, 50, 60, 70, 80, 90, 100])
+    frame = pd.DataFrame([{"date": pd.Timestamp("2026-10-01"), "partner": "a", **dict(zip(QCOLS, q))}])
+    paths = paths_from_quantiles(frame, n_paths=200_000, seed=3)[0][:, 0, 0]
+    assert (paths == 0).mean() == pytest.approx(0.05 * 20 / 30, abs=0.003)
+    assert np.quantile(paths, 0.05) == pytest.approx(10.0, abs=0.5)

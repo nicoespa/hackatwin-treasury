@@ -79,3 +79,27 @@ def test_common_factor_guards():
     gappy = actual.copy()
     gappy[::2] = 0.0  # no two consecutive usable days: no pair for the autocorrelation
     assert common_factor(gappy, r_hat * base)[2] == 0.0
+
+
+def test_weekday_only_node_forecasts_exact_zero_on_weekends():
+    rng = np.random.default_rng(0)
+    days = pd.date_range("2026-03-02", periods=154, freq="D")  # Monday .. Sunday 2026-08-02
+    weekday = days.day_of_week < 5
+    nodes = {("s", "p", "card_network"): np.where(weekday, rng.gamma(20, 5, len(days)), 0.0),
+             ("s", "q", "bills_aggregator"): rng.gamma(20, 5, len(days))}
+    history = pd.concat([
+        pd.DataFrame({"date": days, "segment": s, "product": p, "partner": partner, "outflow": y,
+                      "inflow": 0.0, "confirmed_outflow": 0.0})
+        for (s, p, partner), y in nodes.items()
+    ], ignore_index=True)
+    ahead = pd.date_range("2026-08-03", periods=7, freq="D")
+    all_days = days.append(ahead)
+    drivers = pd.DataFrame({"date": all_days, "n_active_s": 1000, "n_new_30d_s": 0, "campaign_lift_p": 1.0,
+                            "campaign_lift_q": 1.0, "confirmed_bills_aggregator": 0.0, "confirmed_card_network": 0.0})
+    model = SegmentLGBM(n_paths=500)
+    model.fit(history, drivers[drivers["date"] < ahead[0]])
+    pred = model.predict(ahead, drivers)
+    card = pred[pred["partner"] == "card_network"].set_index("date")[list(QCOLS)]
+    assert (card.loc[ahead[5:]].to_numpy() == 0).all()  # Saturday, Sunday
+    assert (card.loc[ahead[:5], "q05"] > 0).all()
+    assert (pred.loc[pred["partner"] == "bills_aggregator", "q05"] > 0).all()

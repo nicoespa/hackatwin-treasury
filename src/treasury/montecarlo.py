@@ -97,9 +97,10 @@ def paths_from_quantiles(
     """Sample paths ``[n_paths, n_dates, n_partners]`` from per-day quantile forecasts.
 
     ``quantile_df`` has ``date, partner, q05..q99`` for every date × partner. Each (date,
-    partner) marginal is the piecewise-linear quantile function through the ``QUANTILES`` grid:
-    below ``q05`` the q05-q10 segment is extended linearly down to probability 0 and clipped at
-    0, above ``q99`` it holds ``q99``. Uniforms come from a Gaussian copula that is AR(1) across
+    partner) marginal inverts the piecewise-linear CDF ``metrics.pit`` uses: linear between grid
+    quantiles, below ``q05`` the q05-q10 segment extended down to probability 0 at ``2·q05 - q10``,
+    above ``q99`` held at ``q99``. Draws are then clipped at 0, so an anchor below 0 leaves a point
+    mass at 0 of probability ``0.05 · (q10 - 2·q05) / (q10 - q05)``. Uniforms come from a Gaussian copula that is AR(1) across
     consecutive days with correlation ``rho``, independent across partners.
 
     A quantile-only model says nothing about how its errors persist from day to day, so the
@@ -115,7 +116,7 @@ def paths_from_quantiles(
     if np.isnan(q).any():
         raise ValueError("quantile_df must have every quantile for every date x partner")
     q = q.reshape(len(dates), len(partners), len(QCOLS))
-    lower = np.maximum(0.0, 2 * q[..., :1] - q[..., 1:2])
+    lower = 2 * q[..., :1] - q[..., 1:2]
     x = np.concatenate([lower, q, q[..., -1:]], axis=-1)  # [n_dates, n_partners, n_grid]
     grid = np.array([0.0, *QUANTILES, 1.0])
 
@@ -129,4 +130,4 @@ def paths_from_quantiles(
     x0 = np.take_along_axis(xb, (k - 1)[..., None], axis=-1)[..., 0]
     x1 = np.take_along_axis(xb, k[..., None], axis=-1)[..., 0]
     frac = (u - grid[k - 1]) / (grid[k] - grid[k - 1])
-    return x0 + frac * (x1 - x0), partners, dates
+    return np.maximum(0.0, x0 + frac * (x1 - x0)), partners, dates

@@ -34,9 +34,12 @@ _OWN_DRIVERS = ("n_active_ratio_", "n_new_ratio_", "campaign_lift_")
 
 def node_baseline(series: pd.Series, dates: pd.DatetimeIndex) -> np.ndarray:
     """``seasonal_mean`` floored at ``FLOOR_SHARE`` of the ``trailing_level`` where the seasonal
-    mean is positive; where it is 0 or NaN (an intermittent node) the ``trailing_level`` itself."""
+    mean is positive. A seasonal mean of exactly 0 (every observed same-weekday value is 0, as on
+    weekends for partners that settle on business days) is a structural zero: the baseline is 0,
+    so ``mu`` and the paths are exactly 0. Only a NaN seasonal mean (too little history) falls back
+    to the ``trailing_level``."""
     seasonal, level = seasonal_mean(series, dates), trailing_level(series, dates)
-    return np.where(seasonal > 0, np.fmax(seasonal, FLOOR_SHARE * level), level)
+    return np.where(seasonal > 0, np.fmax(seasonal, FLOOR_SHARE * level), np.where(seasonal == 0, 0.0, level))
 
 
 def node_ratio(y: np.ndarray, base: np.ndarray) -> np.ndarray:

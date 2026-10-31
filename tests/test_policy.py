@@ -114,3 +114,20 @@ def test_review_cadence():
     assert next_review(coin, pd.Timestamp("2026-10-09 09:00"), CFG) == pd.Timestamp("2026-10-09 18:00")
     assert next_review(coin, pd.Timestamp("2026-10-09 18:00"), CFG) == pd.Timestamp("2026-10-10 09:00")
     assert next_review(wire, pd.Timestamp("2026-10-09 09:00"), CFG) == pd.Timestamp("2026-10-10 09:00")
+
+
+@pytest.mark.parametrize(
+    ("friday", "arrival", "window_end"),
+    [
+        ("2026-09-04", "2026-09-08 10:00", "2026-09-09 10:00"),
+        ("2026-10-09", "2026-10-14 10:00", "2026-10-15 10:00"),  # Monday 10-12 is a holiday
+    ],
+)
+def test_friday_wire_lands_after_the_weekend(friday, arrival, window_end):
+    dates = pd.date_range(friday, periods=14, freq="D")
+    decision = recommend_deposit(
+        np.full((5, 14), DAILY), dates, PARTNER, RAILS["wire"], 0.0, [], pd.Timestamp(f"{friday} 09:00"), CAL, CFG
+    )
+    assert decision.arrival_at == pd.Timestamp(arrival)
+    assert decision.window_end == pd.Timestamp(window_end)
+    assert decision.p_unresolvable == 1.0
