@@ -1,0 +1,44 @@
+# External partners where the wallet keeps a prefunded balance, and when a user
+# event on each product settles against that balance.
+bills_aggregator:
+  products: [bill_payment, mobile_topup]
+  settle_lag_business_days: 0
+  settle_cutoff_hour: 15
+  same_day_before_cutoff: true
+  nets_inflows: false
+  accepts_rails: [wire, stablecoin]
+card_network:
+  products: [card_purchase, card_refund]
+  settle_lag_business_days: 1
+  settle_cutoff_hour: 17
+  same_day_before_cutoff: false
+  nets_inflows: true  # refunds
+  accepts_rails: [wire, stablecoin]
+fci_custodian:
+  products: [fci_subscription, fci_redemption]
+  settle_lag_business_days: 0
+  settle_cutoff_hour: 17
+  same_day_before_cutoff: true
+  nets_inflows: true
+  accepts_rails: [wire]
+crypto_exchange:
+  products: [crypto_buy, crypto_sell]
+  settle_lag_business_days: 0
+  settle_cutoff_hour: 23
+  same_day_before_cutoff: true
+  nets_inflows: true
+  accepts_rails: [stablecoin]
+cash_network:
+  products: [cash_out, cash_in]
+  settle_lag_business_days: 1
+  settle_cutoff_hour: 18
+  same_day_before_cutoff: false
+  nets_inflows: true
+  accepts_rails: [wire]
+remittance:
+  products: [remittance_out]
+  settle_lag_business_days: 0
+  settle_cutoff_hour: 14
+  same_day_before_cutoff: true
+  nets_inflows: false
+  accepts_rails: [wire, stablecoin]
