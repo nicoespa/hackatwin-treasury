@@ -1,0 +1,17 @@
+{
+  "sigma_m": 0.15,
+  "phi": 0.7,
+  "payday_hypothesis": "late",
+  "inflation_monthly": 0.02,
+  "seed": 42,
+  "n_users": 20000,
+  "start": "2025-11-01",
+  "end": "2026-10-31",
+  "n_events": 4258211,
+  "validation": {
+    "dispersion_index": 789.4040964079118,
+    "acf7_gt_acf3": true,
+    "salaried_argmax_in_bd1_5": true,
+    "p99_over_median": 1.7946579185899207
+  }
+}

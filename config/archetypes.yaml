@@ -1,0 +1,123 @@
+# Synthetic user population for the simulator. Amounts are ARS at the start of
+# the simulation (drifted by SimParams.inflation_monthly); rates are expected
+# events per adopting user per day before seasonality and the macro factor.
+# Each product: adoption (share of the segment that uses it), base_rate_per_day,
+# amount_median and amount_sigma (lognormal). bills_mean is the Poisson mean of
+# recurring bills per user (capped at 6).
+
+# Weight of each hour 0..23 when an event happens; shared by every archetype.
+hour_profiles:
+  bill_payment:     [1, 1, 1, 1, 1, 2, 4, 8, 12, 14, 14, 12, 10, 10, 9, 8, 7, 7, 7, 6, 5, 4, 3, 2]
+  mobile_topup:     [2, 1, 1, 1, 1, 1, 2, 4, 6, 7, 7, 7, 8, 8, 7, 7, 7, 8, 9, 10, 10, 8, 6, 4]
+  card_purchase:    [2, 1, 1, 1, 1, 1, 2, 4, 6, 7, 8, 10, 12, 12, 9, 8, 8, 9, 10, 12, 12, 10, 7, 4]
+  card_refund:      [1, 1, 1, 1, 1, 1, 2, 4, 8, 10, 11, 11, 10, 10, 10, 9, 8, 7, 5, 4, 3, 2, 2, 1]
+  fci_subscription: [1, 1, 1, 1, 1, 1, 2, 4, 8, 14, 14, 13, 12, 12, 12, 11, 9, 5, 4, 3, 3, 2, 2, 1]
+  fci_redemption:   [1, 1, 1, 1, 1, 1, 2, 4, 8, 14, 14, 13, 12, 12, 12, 11, 9, 5, 4, 3, 3, 2, 2, 1]
+  crypto_buy:       [4, 3, 2, 2, 2, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 8, 8, 8, 7, 5]
+  crypto_sell:      [4, 3, 2, 2, 2, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 8, 8, 8, 7, 5]
+  cash_out:         [1, 1, 1, 1, 1, 1, 2, 4, 7, 10, 11, 12, 12, 11, 10, 10, 10, 10, 9, 7, 5, 3, 2, 1]
+  cash_in:          [1, 1, 1, 1, 1, 1, 2, 3, 6, 9, 11, 12, 12, 11, 11, 11, 11, 11, 10, 8, 5, 3, 2, 1]
+  remittance_out:   [1, 1, 1, 1, 1, 1, 2, 3, 6, 10, 12, 12, 11, 11, 11, 11, 10, 8, 6, 5, 4, 3, 2, 1]
+
+# Day-of-week intensity multipliers, Monday..Sunday.
+dow_mult:
+  bill_payment:     [1.15, 1.10, 1.05, 1.05, 1.00, 0.65, 0.50]
+  mobile_topup:     [1.00, 1.00, 1.00, 1.00, 1.10, 1.10, 0.90]
+  card_purchase:    [0.90, 0.92, 0.97, 1.00, 1.15, 1.20, 0.70]
+  card_refund:      [1.05, 1.00, 1.00, 1.00, 1.00, 0.95, 0.85]
+  fci_subscription: [1.15, 1.05, 1.05, 1.05, 1.05, 0.50, 0.40]
+  fci_redemption:   [1.15, 1.05, 1.05, 1.05, 1.10, 0.50, 0.40]
+  crypto_buy:       [1.00, 1.00, 1.00, 1.00, 1.05, 1.00, 0.95]
+  crypto_sell:      [1.00, 1.00, 1.00, 1.00, 1.05, 1.00, 0.95]
+  cash_out:         [1.00, 0.95, 0.95, 1.00, 1.15, 1.00, 0.65]
+  cash_in:          [1.05, 1.00, 1.00, 1.00, 1.05, 0.90, 0.70]
+  remittance_out:   [1.00, 1.00, 1.00, 1.00, 1.10, 0.90, 0.80]
+
+archetypes:
+  salaried_formal:
+    share: 0.35
+    bills_mean: 1.5
+    products:
+      bill_payment:     {adoption: 0.85, base_rate_per_day: 0.08,  amount_median: 28000,  amount_sigma: 0.7}
+      mobile_topup:     {adoption: 0.60, base_rate_per_day: 0.06,  amount_median: 4000,   amount_sigma: 0.5}
+      card_purchase:    {adoption: 0.90, base_rate_per_day: 0.60,  amount_median: 20000,  amount_sigma: 0.9}
+      card_refund:      {adoption: 0.90, base_rate_per_day: 0.04,  amount_median: 12000,  amount_sigma: 0.8}
+      fci_subscription: {adoption: 0.40, base_rate_per_day: 0.05,  amount_median: 90000,  amount_sigma: 1.0}
+      fci_redemption:   {adoption: 0.40, base_rate_per_day: 0.012, amount_median: 70000,  amount_sigma: 1.0}
+      crypto_buy:       {adoption: 0.10, base_rate_per_day: 0.02,  amount_median: 50000,  amount_sigma: 1.0}
+      crypto_sell:      {adoption: 0.10, base_rate_per_day: 0.005, amount_median: 50000,  amount_sigma: 1.0}
+      cash_out:         {adoption: 0.30, base_rate_per_day: 0.04,  amount_median: 35000,  amount_sigma: 0.6}
+      cash_in:          {adoption: 0.30, base_rate_per_day: 0.008, amount_median: 30000,  amount_sigma: 0.6}
+      remittance_out:   {adoption: 0.05, base_rate_per_day: 0.01,  amount_median: 120000, amount_sigma: 0.8}
+  informal:
+    share: 0.20
+    bills_mean: 1.0
+    products:
+      bill_payment:     {adoption: 0.70, base_rate_per_day: 0.05,  amount_median: 18000,  amount_sigma: 0.7}
+      mobile_topup:     {adoption: 0.80, base_rate_per_day: 0.12,  amount_median: 3000,   amount_sigma: 0.5}
+      card_purchase:    {adoption: 0.60, base_rate_per_day: 0.30,  amount_median: 12000,   amount_sigma: 0.9}
+      card_refund:      {adoption: 0.60, base_rate_per_day: 0.02,  amount_median: 8000,   amount_sigma: 0.8}
+      crypto_buy:       {adoption: 0.05, base_rate_per_day: 0.02,  amount_median: 30000,  amount_sigma: 1.0}
+      crypto_sell:      {adoption: 0.05, base_rate_per_day: 0.005, amount_median: 30000,  amount_sigma: 1.0}
+      cash_out:         {adoption: 0.80, base_rate_per_day: 0.15,  amount_median: 25000,  amount_sigma: 0.7}
+      cash_in:          {adoption: 0.80, base_rate_per_day: 0.04,  amount_median: 30000,  amount_sigma: 0.7}
+      remittance_out:   {adoption: 0.10, base_rate_per_day: 0.01,  amount_median: 80000,  amount_sigma: 0.8}
+  anses_beneficiary:
+    share: 0.12
+    bills_mean: 1.2
+    products:
+      bill_payment:     {adoption: 0.80, base_rate_per_day: 0.06,  amount_median: 15000,  amount_sigma: 0.6}
+      mobile_topup:     {adoption: 0.50, base_rate_per_day: 0.05,  amount_median: 2500,   amount_sigma: 0.5}
+      card_purchase:    {adoption: 0.50, base_rate_per_day: 0.15,  amount_median: 10000,   amount_sigma: 0.8}
+      card_refund:      {adoption: 0.50, base_rate_per_day: 0.01,  amount_median: 7000,   amount_sigma: 0.8}
+      cash_out:         {adoption: 0.90, base_rate_per_day: 0.08,  amount_median: 30000,  amount_sigma: 0.6}
+      cash_in:          {adoption: 0.90, base_rate_per_day: 0.008, amount_median: 15000,  amount_sigma: 0.6}
+  young_heavy:
+    share: 0.13
+    bills_mean: 0.8
+    products:
+      bill_payment:     {adoption: 0.50, base_rate_per_day: 0.03,  amount_median: 12000,  amount_sigma: 0.7}
+      mobile_topup:     {adoption: 0.90, base_rate_per_day: 0.15,  amount_median: 3500,   amount_sigma: 0.5}
+      card_purchase:    {adoption: 0.95, base_rate_per_day: 1.00,  amount_median: 11000,   amount_sigma: 0.9}
+      card_refund:      {adoption: 0.95, base_rate_per_day: 0.07,  amount_median: 7000,   amount_sigma: 0.8}
+      fci_subscription: {adoption: 0.20, base_rate_per_day: 0.03,  amount_median: 30000,  amount_sigma: 1.0}
+      fci_redemption:   {adoption: 0.20, base_rate_per_day: 0.008, amount_median: 25000,  amount_sigma: 1.0}
+      crypto_buy:       {adoption: 0.25, base_rate_per_day: 0.05,  amount_median: 25000,  amount_sigma: 1.0}
+      crypto_sell:      {adoption: 0.25, base_rate_per_day: 0.012, amount_median: 25000,  amount_sigma: 1.0}
+      cash_out:         {adoption: 0.20, base_rate_per_day: 0.03,  amount_median: 20000,  amount_sigma: 0.6}
+      cash_in:          {adoption: 0.20, base_rate_per_day: 0.006, amount_median: 20000,  amount_sigma: 0.6}
+  investor:
+    share: 0.08
+    bills_mean: 1.5
+    products:
+      bill_payment:     {adoption: 0.85, base_rate_per_day: 0.07,  amount_median: 40000,  amount_sigma: 0.7}
+      mobile_topup:     {adoption: 0.40, base_rate_per_day: 0.04,  amount_median: 5000,   amount_sigma: 0.5}
+      card_purchase:    {adoption: 0.90, base_rate_per_day: 0.60,  amount_median: 28000,  amount_sigma: 0.9}
+      card_refund:      {adoption: 0.90, base_rate_per_day: 0.04,  amount_median: 18000,  amount_sigma: 0.8}
+      fci_subscription: {adoption: 0.95, base_rate_per_day: 0.15,  amount_median: 150000, amount_sigma: 1.0}
+      fci_redemption:   {adoption: 0.95, base_rate_per_day: 0.04,  amount_median: 120000, amount_sigma: 1.0}
+      crypto_buy:       {adoption: 0.30, base_rate_per_day: 0.04,  amount_median: 80000,  amount_sigma: 1.0}
+      crypto_sell:      {adoption: 0.30, base_rate_per_day: 0.01,  amount_median: 80000,  amount_sigma: 1.0}
+      remittance_out:   {adoption: 0.05, base_rate_per_day: 0.01,  amount_median: 200000, amount_sigma: 0.8}
+  crypto_active:
+    share: 0.07
+    bills_mean: 1.0
+    products:
+      bill_payment:     {adoption: 0.60, base_rate_per_day: 0.04,  amount_median: 20000,  amount_sigma: 0.7}
+      mobile_topup:     {adoption: 0.60, base_rate_per_day: 0.08,  amount_median: 4000,   amount_sigma: 0.5}
+      card_purchase:    {adoption: 0.80, base_rate_per_day: 0.50,  amount_median: 16000,  amount_sigma: 0.9}
+      card_refund:      {adoption: 0.80, base_rate_per_day: 0.03,  amount_median: 10000,  amount_sigma: 0.8}
+      crypto_buy:       {adoption: 0.95, base_rate_per_day: 0.12,  amount_median: 60000,  amount_sigma: 1.1}
+      crypto_sell:      {adoption: 0.95, base_rate_per_day: 0.035, amount_median: 60000,  amount_sigma: 1.1}
+      remittance_out:   {adoption: 0.15, base_rate_per_day: 0.015, amount_median: 150000, amount_sigma: 0.8}
+  merchant:
+    share: 0.05
+    bills_mean: 1.5
+    products:
+      bill_payment:     {adoption: 0.90, base_rate_per_day: 0.12,  amount_median: 50000,  amount_sigma: 0.8}
+      mobile_topup:     {adoption: 0.50, base_rate_per_day: 0.05,  amount_median: 5000,   amount_sigma: 0.5}
+      card_purchase:    {adoption: 0.80, base_rate_per_day: 0.40,  amount_median: 40000,  amount_sigma: 1.0}
+      card_refund:      {adoption: 0.80, base_rate_per_day: 0.03,  amount_median: 25000,  amount_sigma: 0.9}
+      cash_out:         {adoption: 0.80, base_rate_per_day: 0.20,  amount_median: 60000,  amount_sigma: 0.7}
+      cash_in:          {adoption: 0.80, base_rate_per_day: 0.05,  amount_median: 40000,  amount_sigma: 0.7}
+      remittance_out:   {adoption: 0.20, base_rate_per_day: 0.03,  amount_median: 250000, amount_sigma: 0.8}
