@@ -5,12 +5,16 @@ from __future__ import annotations
 from collections.abc import Sequence
 from datetime import date
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 import yaml
 
 from treasury.simulate.scenarios import CohortWave, PaydayShift, Scenario
+
+if TYPE_CHECKING:
+    from treasury.simulate.events import SimParams
 
 # Probability that a salaried user is paid on business day 1, 2, 3 or 4 of the month.
 PAYDAY_HYPOTHESES: dict[str, tuple[float, ...]] = {
@@ -72,14 +76,15 @@ def generate_users(
     start: date,
     end: date,
     seed: int,
-    payday_hypothesis: str = "late",
+    params: SimParams,
 ) -> pd.DataFrame:
     """``n`` users with ``user_id, segment, activation_date, payday_bd, anses_day, n_bills, has_autodebit``.
 
     ``payday_bd`` is a business-day index (1..4) for salaried users; ``anses_day`` is a
-    calendar day of month (9..25) for ANSES beneficiaries.
+    calendar day of month (9..25) for ANSES beneficiaries. Paydays follow
+    ``params.payday_hypothesis``.
     """
-    payday_p = check_payday_hypothesis(payday_hypothesis)
+    payday_p = check_payday_hypothesis(params.payday_hypothesis)
     rng = np.random.default_rng(seed)
     specs = archetypes["archetypes"]
     names = list(specs)
@@ -111,7 +116,7 @@ def apply_cohort_waves(
     scenarios: Sequence[Scenario],
     archetypes: dict,
     seed: int,
-    payday_hypothesis: str = "late",
+    params: SimParams,
 ) -> pd.DataFrame:
     """Append each ``CohortWave``'s users, activating on its start, with ids after the last one."""
     frames = [users]
@@ -120,7 +125,7 @@ def apply_cohort_waves(
     for i, wave in enumerate(waves):
         n = wave.extra_users(wave.start)
         only = {**archetypes, "archetypes": {wave.segment: {**archetypes["archetypes"][wave.segment], "share": 1.0}}}
-        added = generate_users(n, only, wave.start, wave.start, seed + 1 + i, payday_hypothesis)
+        added = generate_users(n, only, wave.start, wave.start, seed + 1 + i, params)
         added["user_id"] += next_id
         next_id += n
         frames.append(added)

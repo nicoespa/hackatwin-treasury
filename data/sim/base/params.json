@@ -9,9 +9,10 @@
   "end": "2026-10-31",
   "n_events": 4260236,
   "validation": {
-    "dispersion_index": 784.0570734439733,
+    "dispersion_index": 495.1937857141958,
     "acf7_gt_acf3": true,
     "salaried_argmax_in_bd1_5": true,
-    "p99_over_median": 1.761708535243473
+    "p99_over_median": 1.761708535243473,
+    "detrended_outflow_cv": 0.22115715799438104
   }
 }

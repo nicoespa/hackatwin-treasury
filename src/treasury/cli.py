@@ -53,8 +53,8 @@ def simulate(
     first, last = start.date(), end.date()
     scenarios: list[Scenario] = []
 
-    population = generate_users(users, archetypes, first, last, seed, payday_hypothesis)
-    population = apply_cohort_waves(population, scenarios, archetypes, seed, payday_hypothesis)
+    population = generate_users(users, archetypes, first, last, seed, params)
+    population = apply_cohort_waves(population, scenarios, archetypes, seed, params)
     population = apply_payday_shift(population, scenarios)
     events, macro = simulate_events(population, archetypes, cal, first, last, params, scenarios, seed)
     routed = route_events(events, partners, cal, scenario_overrides(scenarios, partners))

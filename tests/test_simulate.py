@@ -72,7 +72,7 @@ def test_archetypes_config_is_consistent(archetypes, partners):
 
 def test_users_shares_and_payday_hypothesis(archetypes):
     end = date(2026, 10, 31)
-    late = generate_users(20_000, archetypes, START, end, seed=1, payday_hypothesis="late")
+    late = generate_users(20_000, archetypes, START, end, seed=1, params=SimParams(payday_hypothesis="late"))
     shares = late["segment"].value_counts(normalize=True)
     for segment, spec in archetypes["archetypes"].items():
         assert abs(shares[segment] - spec["share"]) <= 0.02
@@ -87,16 +87,52 @@ def test_users_shares_and_payday_hypothesis(archetypes):
     assert (late["activation_date"] == pd.Timestamp(START)).mean() == pytest.approx(0.6, abs=0.01)
     assert not late.loc[late["n_bills"] == 0, "has_autodebit"].any()
 
-    uniform = generate_users(20_000, archetypes, START, end, seed=1, payday_hypothesis="uniform")
+    uniform = generate_users(20_000, archetypes, START, end, seed=1, params=SimParams(payday_hypothesis="uniform"))
     assert uniform.loc[uniform["segment"] == "salaried_formal", "payday_bd"].mean() == pytest.approx(2.5, abs=0.1)
 
     with pytest.raises(ValueError):
         SimParams(payday_hypothesis="weekly")
 
 
+def test_payday_hypothesis_changes_series(archetypes, cal):
+    end = date(2026, 1, 31)
+
+    def run(hypothesis: str) -> tuple[pd.DataFrame, pd.Series]:
+        params = SimParams(payday_hypothesis=hypothesis)
+        users = generate_users(5_000, archetypes, START, end, seed=17, params=params)
+        events, _ = simulate_events(users, archetypes, cal, START, end, params, [], seed=17)
+        rows = (events["segment"] == "salaried_formal") & events["product"].isin(["fci_subscription", "bill_payment"])
+        daily = events[rows].groupby(events.loc[rows, "at"].dt.normalize())["amount"].sum()
+        return users, daily.reindex(pd.date_range(START, end), fill_value=0.0)
+
+    late_users, late_daily = run("late")
+    bimodal_users, bimodal_daily = run("bimodal")
+    late_bd = late_users.loc[late_users["segment"] == "salaried_formal", "payday_bd"]
+    bimodal_bd = bimodal_users.loc[bimodal_users["segment"] == "salaried_formal", "payday_bd"]
+    assert late_bd.mean() > 2.8
+    assert bimodal_bd.mean() == pytest.approx(2.5, abs=0.1)
+    assert (bimodal_bd == 1).mean() >= 0.40
+    assert not np.allclose(late_daily.to_numpy(), bimodal_daily.to_numpy())
+
+
+def test_same_seed_is_deterministic(archetypes, cal):
+    end = date(2025, 12, 31)
+    params = SimParams()
+
+    def run(seed: int) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        users = generate_users(1_000, archetypes, START, end, seed=seed, params=params)
+        events, macro = simulate_events(users, archetypes, cal, START, end, params, [], seed=seed)
+        return users, events, macro
+
+    first, second, other = run(21), run(21), run(22)
+    for a, b in zip(first, second, strict=True):
+        pd.testing.assert_frame_equal(a, b)
+    assert not first[1].equals(other[1])
+
+
 def test_macro_factor_autocorrelation(archetypes, cal):
     end = date(2026, 10, 31)
-    users = generate_users(200, archetypes, START, end, seed=3)
+    users = generate_users(200, archetypes, START, end, seed=3, params=SimParams())
     _, macro = simulate_events(users, archetypes, cal, START, end, SimParams(), [], seed=3)
     assert len(macro) == 365
     log_m = np.log(macro["m_t"].to_numpy())
@@ -105,7 +141,7 @@ def test_macro_factor_autocorrelation(archetypes, cal):
 
 def test_events_have_confirmed_only_for_autodebit(archetypes, cal):
     end = date(2025, 12, 31)
-    users = generate_users(2_000, archetypes, START, end, seed=5)
+    users = generate_users(2_000, archetypes, START, end, seed=5, params=SimParams())
     events, _ = simulate_events(users, archetypes, cal, START, end, SimParams(), [], seed=5)
     assert list(events.columns) == ["at", "user_id", "segment", "product", "amount", "confirmed", "counterparty"]
     autodebit = set(users.loc[users["has_autodebit"], "user_id"])
@@ -124,7 +160,7 @@ def test_events_have_confirmed_only_for_autodebit(archetypes, cal):
 
 def test_campaign_raises_volume(archetypes, cal):
     end = date(2025, 11, 30)
-    users = generate_users(2_000, archetypes, START, end, seed=7)
+    users = generate_users(2_000, archetypes, START, end, seed=7, params=SimParams())
     window = (date(2025, 11, 15), date(2025, 11, 21))
     campaign = Campaign(start=window[0], end=window[1], products=("bill_payment",), lift=1.5)
 
@@ -138,9 +174,9 @@ def test_campaign_raises_volume(archetypes, cal):
 
 
 def test_scenarios(archetypes, partners):
-    users = generate_users(1_000, archetypes, START, date(2026, 4, 30), seed=9)
+    users = generate_users(1_000, archetypes, START, date(2026, 4, 30), seed=9, params=SimParams())
     wave = CohortWave(start=date(2026, 2, 1), n_users=300, segment="young_heavy")
-    grown = apply_cohort_waves(users, [wave, PaydayShift(delta_bd=1)], archetypes, seed=9)
+    grown = apply_cohort_waves(users, [wave, PaydayShift(delta_bd=1)], archetypes, seed=9, params=SimParams())
     added = grown.iloc[len(users) :]
     assert len(added) == 300
     assert added["user_id"].tolist() == list(range(users["user_id"].max() + 1, users["user_id"].max() + 301))
@@ -209,7 +245,7 @@ def test_anses_boost_reaches_every_beneficiary_each_month(archetypes, cal):
         },
     }
     end = date(2025, 12, 31)
-    users = generate_users(300, anses_only, START, START, seed=13)
+    users = generate_users(300, anses_only, START, START, seed=13, params=SimParams())
     events, _ = simulate_events(users, anses_only, cal, START, end, SimParams(sigma_m=0.0), [], seed=13)
     daily = events.assign(day=events["at"].dt.normalize()).groupby(["user_id", "day"]).size()
     for month in [date(2025, 11, 1), date(2025, 12, 1)]:
@@ -222,9 +258,9 @@ def test_anses_boost_reaches_every_beneficiary_each_month(archetypes, cal):
 
 def test_cohort_wave_users_reach_the_table_and_start_on_wave_day(archetypes, cal):
     end = date(2026, 1, 31)
-    users = generate_users(2_000, archetypes, START, end, seed=15)
+    users = generate_users(2_000, archetypes, START, end, seed=15, params=SimParams())
     wave = CohortWave(start=date(2026, 1, 10), n_users=500, segment="young_heavy")
-    prepared = apply_payday_shift(apply_cohort_waves(users, [wave], archetypes, seed=15), [wave])
+    prepared = apply_payday_shift(apply_cohort_waves(users, [wave], archetypes, seed=15, params=SimParams()), [wave])
     assert len(prepared) == len(users) + 500
     events, _ = simulate_events(prepared, archetypes, cal, START, end, SimParams(), [wave], seed=15)
     wave_ids = set(prepared["user_id"].iloc[len(users) :])
@@ -236,10 +272,11 @@ def test_cohort_wave_users_reach_the_table_and_start_on_wave_day(archetypes, cal
 
 def test_validate_flags(archetypes, cal, partners):
     end = date(2026, 4, 30)
-    users = generate_users(20_000, archetypes, START, end, seed=11)
+    users = generate_users(20_000, archetypes, START, end, seed=11, params=SimParams())
     events, _ = simulate_events(users, archetypes, cal, START, end, SimParams(), [], seed=11)
     flags = validate(route_events(events, partners, cal), cal)
     assert flags["dispersion_index"] > 1.5
     assert flags["salaried_argmax_in_bd1_5"] is True
     assert flags["acf7_gt_acf3"] is True
     assert flags["p99_over_median"] > 1.0
+    assert 0.10 <= flags["detrended_outflow_cv"] <= 0.25

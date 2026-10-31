@@ -27,6 +27,8 @@ BILL_PAY_OFFSETS = (-2, 3)  # manual bills are paid on a day in [due - 2, due + 
 
 @dataclass(frozen=True)
 class SimParams:
+    """Simulation knobs; ``payday_hypothesis`` is read by ``generate_users`` and ``apply_cohort_waves``."""
+
     sigma_m: float = 0.15
     phi: float = 0.7
     payday_hypothesis: Literal["late", "uniform", "bimodal"] = "late"
