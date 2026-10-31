@@ -1,41 +1,15 @@
 import time
 from datetime import date
-from pathlib import Path
 
 import pandas as pd
-import pytest
 
 from treasury.harness import default_origins, rolling_origin
 from treasury.metrics import summarize
 from treasury.models.aggregate_lgbm import AggregateLGBM
-from treasury.models.base import QCOLS, daily_node_table, daily_partner_table
+from treasury.models.base import QCOLS, daily_partner_table
 from treasury.models.seasonal_naive import SeasonalNaive
-from treasury.features import build_drivers
 
-ROOT = Path(__file__).resolve().parents[1]
-SIM = ROOT / "data" / "sim" / "base"
 END = date(2026, 10, 31)
-
-
-@pytest.fixture(scope="module")
-def sim() -> tuple[pd.DataFrame, pd.DataFrame]:
-    if not (SIM / "events.parquet").exists():
-        from treasury.cli import simulate
-
-        simulate(users=20_000, start=pd.Timestamp("2025-11-01").to_pydatetime(),
-                 end=pd.Timestamp("2026-10-31").to_pydatetime(), seed=42, out=SIM,
-                 payday_hypothesis="late", sigma_m=0.15, phi=0.7)
-    return pd.read_parquet(SIM / "users.parquet"), pd.read_parquet(SIM / "events.parquet")
-
-
-@pytest.fixture(scope="module")
-def history(sim) -> pd.DataFrame:
-    return daily_node_table(sim[1])
-
-
-@pytest.fixture(scope="module")
-def drivers(sim) -> pd.DataFrame:
-    return build_drivers(*sim, pd.date_range("2025-11-01", END, freq="D"))
 
 
 def test_aggregate_lgbm_beats_naive_on_sim(history, drivers):

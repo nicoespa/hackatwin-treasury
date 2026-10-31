@@ -22,6 +22,7 @@ LAGS = (7, 14)
 HOLDOUT_DAYS = 56
 MIN_TRAIN_DAYS = 56  # before the holdout
 MIN_HOLDOUT_POINTS = 28
+MIN_FACTOR_DAYS = 14
 CV_RANGE = (0.05, 2.0)
 PHI_RANGE = (0.0, 0.95)
 TWEEDIE_PARAMS = {
@@ -44,6 +45,45 @@ def node_ratio(y: np.ndarray, base: np.ndarray) -> np.ndarray:
         return np.where(base > 0, y / base, np.where(y == 0, 0.0, np.nan))
 
 
+def common_factor(actual: np.ndarray, mu: np.ndarray) -> tuple[np.ndarray, float, float]:
+    """``(g, sigma_f, phi_f)`` from holdout ``actual`` and ``mu`` (``[n_days, n_nodes]``).
+
+    ``g_d = log(Σ actual_d / Σ mu_d)`` over the nodes with a finite ``mu`` that day (0 on a day
+    where either total is not positive); ``sigma_f = std(g)`` over the kept days and ``phi_f`` its
+    lag-1 autocorrelation over pairs of consecutive kept days, clipped to ``PHI_RANGE``. With
+    fewer than ``MIN_FACTOR_DAYS`` kept days the factor cannot be told from noise, so it returns
+    ``g = 0, sigma_f = 0, phi_f = 0`` and the nodes carry the whole dispersion.
+    """
+    known = np.isfinite(mu)
+    total_actual = np.where(known, actual, 0.0).sum(axis=1)
+    total_mu = np.where(known, mu, 0.0).sum(axis=1)
+    keep = (total_actual > 0) & (total_mu > 0)
+    g = np.zeros(len(keep))
+    if keep.sum() < MIN_FACTOR_DAYS:
+        return g, 0.0, 0.0
+    g[keep] = np.log(total_actual[keep] / total_mu[keep])
+    pairs = keep[1:] & keep[:-1]
+    prev, curr = g[:-1][pairs], g[1:][pairs]
+    phi = np.corrcoef(prev, curr)[0, 1] if len(prev) > 2 and prev.std() > 0 and curr.std() > 0 else 0.0
+    return g, float(np.std(g[keep])), float(np.clip(phi, *PHI_RANGE))
+
+
+def node_cv(r: np.ndarray, r_hat: np.ndarray, g: np.ndarray, products: list[str]) -> np.ndarray:
+    """Per node ``std(r - r_hat·exp(g)) / mean(r_hat)`` over the holdout days with a finite ``r``
+    (``[n_days, n_nodes]``; ``g`` is ``[n_days]``, zeros for the raw error), clipped to
+    ``CV_RANGE``. A node with under ``MIN_HOLDOUT_POINTS`` finite days takes the median cv of the
+    other nodes of its product (else of all nodes, else the upper clip)."""
+    finite = np.isfinite(r)
+    ok = finite.sum(axis=0) >= MIN_HOLDOUT_POINTS
+    err = np.where(finite, r - r_hat * np.exp(g)[:, None], np.nan)[:, ok]
+    with np.errstate(divide="ignore", invalid="ignore"):
+        raw = np.nanstd(err, axis=0) / np.nanmean(np.where(finite, r_hat, np.nan)[:, ok], axis=0)
+    cv = pd.Series(np.nan, index=range(r.shape[1]))
+    cv[ok] = np.clip(np.nan_to_num(raw, nan=CV_RANGE[1]), *CV_RANGE)
+    by_product = cv.groupby(pd.Series(products, index=cv.index)).transform("median")
+    return cv.fillna(by_product).fillna(cv.median()).fillna(CV_RANGE[1]).to_numpy()
+
+
 class SegmentLGBM:
     """One global ``LGBMRegressor(**TWEEDIE_PARAMS)`` on the ratio ``r = residual / baseline`` of
     every node with a positive ``outflow_residual`` (``split_residual``), ``baseline`` per
@@ -53,12 +93,14 @@ class SegmentLGBM:
 
     Noise, estimated in ``fit`` on an internal holdout (the last ``HOLDOUT_DAYS`` of history):
     the model is first fit on the days before it and predicts the holdout days (features lag
-    the target by ≥ 7 days, as in ``predict``). Per node ``cv = std(r - r_hat) / mean(r_hat)``
-    clipped to ``CV_RANGE``; a node with under ``MIN_HOLDOUT_POINTS`` finite holdout ratios takes
-    its product's median cv. On the holdout daily totals over all nodes ``g_d = log(Σ actual_d /
+    the target by ≥ 7 days, as in ``predict``). Per node ``cv = std(error) / mean(r_hat)``
+    clipped to ``CV_RANGE`` (``node_cv``); a node with under ``MIN_HOLDOUT_POINTS`` finite
+    holdout ratios takes its product's median cv. On the holdout daily totals over all nodes ``g_d = log(Σ actual_d /
     Σ mu_d)``; ``sigma_f = std(g_d)`` and ``phi_f`` = lag-1 autocorrelation of ``g_d`` clipped to
-    ``PHI_RANGE``. ``use_factor=False`` sets ``sigma_f = 0``. The model is then refit on all
-    history.
+    ``PHI_RANGE`` (``common_factor``). The node error then has the common shock removed,
+    ``r - r_hat · exp(g_d)``, so it is not counted twice (once in ``cv``, once in ``f``).
+    ``use_factor=False`` sets ``sigma_f = 0`` and keeps the raw ``r - r_hat``, so the nodes carry
+    the full dispersion. The model is then refit on all history.
 
     ``predict`` simulates ``n_paths`` node paths (``montecarlo.simulate_paths``), sums them to
     partners, adds each partner's ``confirmed_<partner>`` from the drivers once per path (the
@@ -113,22 +155,10 @@ class SegmentLGBM:
         r_hat = self._fit_rows(X, y, ~np.tile(hold, n_nodes)).predict(X).reshape(n_nodes, n_dates).T
         r = y.reshape(n_nodes, n_dates).T
         r_hat, r, base = r_hat[hold], r[hold], base[hold]
-        finite = np.isfinite(r)
-        err = np.where(finite, r - r_hat, np.nan)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            cv = np.nanstd(err, axis=0) / np.nanmean(np.where(finite, r_hat, np.nan), axis=0)
-        cv = pd.Series(np.clip(np.nan_to_num(cv, nan=CV_RANGE[1]), *CV_RANGE))
-        products = pd.Series([product for _, product, _ in self._nodes])
-        few = finite.sum(axis=0) < MIN_HOLDOUT_POINTS
-        cv[few] = cv[~few].groupby(products[~few]).median().reindex(products[few]).fillna(cv.median()).to_numpy()
-        self._cv = cv.to_numpy()
-
-        actual = self._target.to_numpy()[hold].sum(axis=1)
-        mu = np.nansum(r_hat * base, axis=1)
-        g = np.log(actual / mu)[(actual > 0) & (mu > 0)]
-        self.sigma_f = float(np.std(g)) if self.use_factor else 0.0
-        phi = np.corrcoef(g[:-1], g[1:])[0, 1] if len(g) > 2 else 0.0
-        self.phi_f = float(np.clip(np.nan_to_num(phi), *PHI_RANGE))
+        g, sigma_f, self.phi_f = common_factor(self._target.to_numpy()[hold], r_hat * base)
+        self.sigma_f = sigma_f if self.use_factor else 0.0
+        products = [product for _, product, _ in self._nodes]
+        self._cv = node_cv(r, r_hat, g if self.use_factor else np.zeros_like(g), products)
 
     def fit(self, history: pd.DataFrame, drivers: pd.DataFrame | None) -> None:
         if drivers is None:
