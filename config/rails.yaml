@@ -1,0 +1,15 @@
+# Replenishment rails: how a deposit reaches a partner and what it costs.
+wire:
+  lead_time_hours: 48
+  business_days_only: true
+  instruct_cutoff_hour: 15
+  credit_hour: 10
+  fixed_fee: 30
+  bps: 0
+stablecoin:
+  lead_time_hours: 0.5
+  business_days_only: false
+  instruct_cutoff_hour: null
+  credit_hour: null
+  fixed_fee: 2
+  bps: 10
