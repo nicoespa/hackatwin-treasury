@@ -10,13 +10,14 @@ import pandas as pd
 from treasury.models.base import QCOLS, Forecaster, daily_partner_table
 
 
-def default_origins(end: date, n: int = 8, step_days: int = 7) -> list[date]:
-    """``end - step_days * k`` for ``k = n..1``, oldest first.
+def default_origins(end: date, n: int = 8, step_days: int = 7, horizon: int = 7) -> list[date]:
+    """``n`` origins ``step_days`` apart, oldest first, the last one at ``end - horizon + 1``.
 
-    ``end`` is the last complete date of the data. With ``step_days >= horizon`` every origin's
-    horizon ends before ``end``, so the forecast windows never run past the data.
+    ``end`` is the last complete date of the data: the final window ends exactly on it and every
+    window ends on or before it (windows overlap when ``horizon > step_days``).
     """
-    return [end - timedelta(days=step_days * k) for k in range(n, 0, -1)]
+    last = end - timedelta(days=horizon - 1)
+    return [last - timedelta(days=step_days * k) for k in range(n - 1, -1, -1)]
 
 
 def rolling_origin(

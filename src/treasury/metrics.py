@@ -41,17 +41,20 @@ def _cdf(y: np.ndarray, x: np.ndarray, side: str) -> np.ndarray:
     return np.where(j == 0, 0.0, np.where(j == x.shape[1], _GRID_P[-1], p))
 
 
-def pit(y: np.ndarray, quantile_df: pd.DataFrame) -> np.ndarray:
-    """Probability integral transform of ``y`` under each row's quantile forecast.
+def pit(y: np.ndarray, quantile_df: pd.DataFrame, *, seed: int = 0) -> np.ndarray:
+    """Randomized probability integral transform of ``y`` under each row's quantile forecast.
 
     The CDF is linear between grid quantiles. Below ``q05`` the first segment (q05-q10) is
-    extrapolated down to probability 0 and clipped there; above ``q99`` the PIT is 1. Where several
-    quantiles coincide with ``y`` (a point mass) the PIT is the midpoint of the CDF jump.
+    extrapolated down to probability 0 and clipped there; above ``q99`` the PIT is 1. Each row's
+    PIT is drawn from Uniform(F(y-), F(y)), the left and right limits of that CDF at ``y``, with
+    ``numpy.random.default_rng(seed)``. The limits coincide unless several quantiles equal ``y``
+    (an atom), so continuous cases are deterministic and a correct point forecast is still uniform.
     """
     y = np.asarray(y, float)
     q = quantile_df[list(QCOLS)].to_numpy(float)
     x = np.column_stack([2 * q[:, 0] - q[:, 1], q])
-    value = (_cdf(y, x, "left") + _cdf(y, x, "right")) / 2
+    lo, hi = _cdf(y, x, "left"), _cdf(y, x, "right")
+    value = lo + np.random.default_rng(seed).uniform(size=len(y)) * (hi - lo)
     return np.where(y > q[:, -1], 1.0, value)
 
 
@@ -69,7 +72,7 @@ def crps_from_quantiles(y: np.ndarray, quantile_df: pd.DataFrame) -> float:
     return float(np.mean([2 * pinball(y, quantile_df[c].to_numpy(), t) for t, c in zip(QUANTILES, QCOLS)]))
 
 
-def _scores(g: pd.DataFrame) -> pd.Series:
+def _scores(g: pd.DataFrame, seed: int) -> pd.Series:
     y = g["actual"].to_numpy(float)
     return pd.Series(
         {
@@ -79,13 +82,23 @@ def _scores(g: pd.DataFrame) -> pd.Series:
             "cov_90": coverage(y, g["q05"].to_numpy(), g["q95"].to_numpy()),
             "cov_99": float(np.mean(y <= g["q99"].to_numpy())),
             "crps": crps_from_quantiles(y, g),
-            "pit_ks": pit_ks(pit(y, g)),
+            "pit_ks": pit_ks(pit(y, g, seed=seed)),
         }
     )
 
 
-def summarize(preds: pd.DataFrame, actual: pd.DataFrame) -> pd.DataFrame:
-    """Scores per ``model, partner, horizon``.
+def summarize(
+    preds: pd.DataFrame,
+    actual: pd.DataFrame,
+    by: tuple[str, ...] = ("model", "partner", "horizon"),
+    *,
+    seed: int = 0,
+) -> pd.DataFrame:
+    """Scores per group of ``by`` (default ``model, partner, horizon``).
+
+    A default cell holds one observation per origin, too few for calibration metrics; pass a
+    coarser ``by`` such as ``("model", "partner")`` or ``("model",)`` to pool them. ``seed`` is
+    passed to ``pit``.
 
     ``preds`` has ``model, origin, date, horizon, partner, q05..q99``; ``actual`` has ``date,
     partner, outflow`` and is joined on ``(date, partner)``; predictions without an actual are
@@ -95,5 +108,5 @@ def summarize(preds: pd.DataFrame, actual: pd.DataFrame) -> pd.DataFrame:
     joined = preds.drop(columns="actual", errors="ignore").merge(
         truth, on=["date", "partner"], how="inner", validate="many_to_one"
     )
-    groups = joined.groupby(["model", "partner", "horizon"])[[*QCOLS, "actual"]]
-    return groups.apply(_scores).reset_index()
+    groups = joined.groupby(list(by))[[*QCOLS, "actual"]]
+    return groups.apply(_scores, seed=seed).reset_index()

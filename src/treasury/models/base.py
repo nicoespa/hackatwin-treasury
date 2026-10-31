@@ -69,7 +69,9 @@ class Forecaster(Protocol):
 
     ``history`` is the node table (``daily_node_table``) up to the forecast origin; ``drivers``
     is an optional frame keyed by ``date``. ``predict`` returns ``date, partner, q05..q99`` with
-    quantiles passed through ``enforce_quantiles``.
+    quantiles passed through ``enforce_quantiles``. ``predict`` receives drivers up to the last
+    target date, so a model must only use drivers knowable at the origin (calendar, planned cohorts,
+    campaign flags), never realized values.
     """
 
     name: str

@@ -16,6 +16,18 @@ def test_pit_uniform_for_calibrated_gaussian():
     assert pit_ks(pit(y, _gaussian_quantiles(len(y)))) < 0.05
 
 
+def test_pit_uniform_for_perfect_zero_forecast():
+    q = pd.DataFrame(np.zeros((2000, len(QCOLS))), columns=list(QCOLS))
+    assert pit_ks(pit(np.zeros(2000), q)) < 0.05
+
+
+def test_pit_is_reproducible_by_seed():
+    q = pd.DataFrame(np.zeros((50, len(QCOLS))), columns=list(QCOLS))
+    y = np.zeros(50)
+    assert np.array_equal(pit(y, q, seed=3), pit(y, q, seed=3))
+    assert not np.array_equal(pit(y, q, seed=3), pit(y, q, seed=4))
+
+
 def test_pit_detects_overconfident_forecast():
     y = 3 * np.random.default_rng(1).standard_normal(2000)
     assert pit_ks(pit(y, _gaussian_quantiles(len(y)))) > 0.2
@@ -23,7 +35,9 @@ def test_pit_detects_overconfident_forecast():
 
 def test_pit_tails_and_point_mass():
     q = pd.DataFrame([[1.0, 2, 3, 4, 5, 6, 7, 8], [0.0] * 8], columns=list(QCOLS))
-    assert pit(np.array([9.0, 0.0]), q) == pytest.approx([1.0, (0.0 + 0.99) / 2])
+    above, atom = pit(np.array([9.0, 0.0]), q)
+    assert above == 1.0
+    assert 0.0 <= atom <= 0.99
     assert pit(np.array([4.5, -0.5]), q) == pytest.approx([(0.50 + 0.75) / 2, 0.0])
     # below q05 the first grid segment is extrapolated down to probability 0
     assert pit(np.array([0.5, -1.0]), q.iloc[[0, 0]]) == pytest.approx([0.025, 0.0])

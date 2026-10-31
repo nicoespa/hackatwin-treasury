@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from treasury.harness import default_origins, rolling_origin
-from treasury.metrics import summarize
+from treasury.metrics import summarize, wape
 from treasury.models.base import QCOLS, daily_partner_table
 from treasury.models.seasonal_naive import SeasonalNaive
 
@@ -29,8 +29,10 @@ def history() -> pd.DataFrame:
 
 def test_default_origins_leave_a_full_week_inside_the_data():
     origins = default_origins(END)
-    assert origins == [date(2026, 5, 5) + timedelta(days=7 * k) for k in range(8)]
-    assert max(origins) + timedelta(days=6) <= END
+    assert origins == [date(2026, 5, 6) + timedelta(days=7 * k) for k in range(8)]
+    assert max(origins) + timedelta(days=6) == END
+    overlapping = default_origins(END, n=3, step_days=1, horizon=7)
+    assert overlapping == [date(2026, 6, 22), date(2026, 6, 23), date(2026, 6, 24)]
 
 
 def test_rolling_origin_shapes(history):
@@ -69,3 +71,14 @@ def test_summarize_keys_and_exact_baseline(history):
     assert len(summary) == 6 * 7
     assert np.allclose(summary["wape_q50"], 0.0)
     assert (summary["cov_99"] == 1.0).all()
+
+
+def test_summarize_pools_by_coarser_keys(history):
+    preds = rolling_origin(history, None, SeasonalNaive, default_origins(END))
+    preds["q50"] *= 1.1  # make the point error non-zero
+    actual = daily_partner_table(history)[["date", "partner", "outflow"]]
+    pooled = summarize(preds, actual, by=("model",))
+    assert list(pooled.columns[:2]) == ["model", "wape_q50"]
+    assert len(pooled) == 1
+    assert pooled.loc[0, "wape_q50"] == pytest.approx(wape(preds["actual"].to_numpy(), preds["q50"].to_numpy()))
+    assert len(summarize(preds, actual, by=("model", "partner"))) == 6
