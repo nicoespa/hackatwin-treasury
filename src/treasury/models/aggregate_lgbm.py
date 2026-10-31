@@ -31,6 +31,49 @@ DEFAULT_PARAMS: Mapping[str, float] = {
 }
 
 
+def trailing_level(series: pd.Series, dates: pd.DatetimeIndex) -> np.ndarray:
+    """``series``' trailing ``LEVEL_DAYS``-day mean ending 7 days before each date (the last
+    observed day when that is later), so it is known at any horizon up to 7 days."""
+    level = series.rolling(LEVEL_DAYS, min_periods=7).mean()
+    week_back, last = dates - pd.Timedelta(days=7), series.index.max()
+    return level.reindex(week_back.where(week_back <= last, last)).to_numpy()
+
+
+def seasonal_baseline(series: pd.Series, dates: pd.DatetimeIndex) -> np.ndarray:
+    """``seasonal_mean`` floored at ``FLOOR_SHARE`` of the ``trailing_level``."""
+    return np.fmax(seasonal_mean(series, dates), FLOOR_SHARE * trailing_level(series, dates))
+
+
+def ratio_to_baseline(series: pd.Series, base: np.ndarray) -> np.ndarray:
+    """``y / base``; 1 where ``base`` is 0 and NaN where it is NaN."""
+    y = series.to_numpy(dtype=float)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        return np.where(base > 0, y / base, np.where(np.isnan(base), np.nan, 1.0))
+
+
+def driver_features(
+    dates: pd.DatetimeIndex, drivers: pd.DataFrame, cal: Calendar, payday_hypothesis: str
+) -> pd.DataFrame:
+    """Float features indexed by ``dates``: ``calendar_features``, per segment
+    ``n_active_ratio_<seg>`` and ``n_new_ratio_<seg>``, and every ``campaign_lift_*``.
+    ``ValueError`` when ``drivers`` lacks one of ``dates``."""
+    drv = drivers.set_index("date").sort_index()
+    missing = dates.difference(drv.index)
+    if len(missing):
+        raise ValueError(f"drivers missing for {len(missing)} dates, first {missing[0].date()}")
+    stationary = {}
+    for col in [c for c in drv if c.startswith("n_active_")]:
+        segment = col.removeprefix("n_active_")
+        active = drv[col].astype(float)
+        trailing = active.rolling(LEVEL_DAYS, min_periods=1).mean()
+        stationary[f"n_active_ratio_{segment}"] = (active / trailing).where(trailing > 0, 1.0)
+        stationary[f"n_new_ratio_{segment}"] = (drv[f"n_new_30d_{segment}"] / active).where(active > 0, 0.0)
+    lifts = drv[[c for c in drv if c.startswith("campaign_lift_")]]
+    cal_df = calendar_features(dates, cal, payday_hypothesis).set_index("date")
+    return pd.concat([cal_df, pd.DataFrame(stationary).reindex(dates), lifts.reindex(dates)], axis=1).astype(float)
+
+
+
 class AggregateLGBM:
     """One ``LGBMRegressor(objective="quantile", alpha=tau)`` per partner and quantile level,
     fitted on the ratio ``r = y / baseline``.
@@ -79,36 +122,6 @@ class AggregateLGBM:
         days = pd.date_range(wide.index.min(), wide.index.max(), freq="D", name="date")
         return wide.reindex(days).fillna(0.0)
 
-    @staticmethod
-    def _baseline(series: pd.Series, dates: pd.DatetimeIndex) -> np.ndarray:
-        level = series.rolling(LEVEL_DAYS, min_periods=7).mean()
-        week_back, last = dates - pd.Timedelta(days=7), series.index.max()
-        src = week_back.where(week_back <= last, last)
-        floor = FLOOR_SHARE * level.reindex(src).to_numpy()
-        return np.fmax(seasonal_mean(series, dates), floor)
-
-    @staticmethod
-    def _ratio_of(series: pd.Series, base: np.ndarray) -> np.ndarray:
-        y = series.to_numpy(dtype=float)
-        with np.errstate(divide="ignore", invalid="ignore"):
-            return np.where(base > 0, y / base, np.where(np.isnan(base), np.nan, 1.0))
-
-    def _shared_features(self, dates: pd.DatetimeIndex, drivers: pd.DataFrame) -> pd.DataFrame:
-        drv = drivers.set_index("date").sort_index()
-        missing = dates.difference(drv.index)
-        if len(missing):
-            raise ValueError(f"drivers missing for {len(missing)} dates, first {missing[0].date()}")
-        stationary = {}
-        for col in [c for c in drv if c.startswith("n_active_")]:
-            segment = col.removeprefix("n_active_")
-            active = drv[col].astype(float)
-            trailing = active.rolling(LEVEL_DAYS, min_periods=1).mean()
-            stationary[f"n_active_ratio_{segment}"] = (active / trailing).where(trailing > 0, 1.0)
-            stationary[f"n_new_ratio_{segment}"] = (drv[f"n_new_30d_{segment}"] / active).where(active > 0, 0.0)
-        lifts = drv[[c for c in drv if c.startswith("campaign_lift_")]]
-        cal = calendar_features(dates, self._cal, self.payday_hypothesis).set_index("date")
-        return pd.concat([cal, pd.DataFrame(stationary).reindex(dates), lifts.reindex(dates)], axis=1).astype(float)
-
     def _partner_features(self, shared: pd.DataFrame, partner: str) -> pd.DataFrame:
         lifts = {f"campaign_lift_{p}" for p in self._products[partner]}
         X = shared[[c for c in shared if not c.startswith("campaign_lift_") or c in lifts]].copy()
@@ -122,10 +135,10 @@ class AggregateLGBM:
         self._target = self._target_table(history)
         days = self._target.index
         self._ratio = pd.DataFrame(
-            {p: self._ratio_of(self._target[p], self._baseline(self._target[p], days)) for p in self._target},
+            {p: ratio_to_baseline(self._target[p], seasonal_baseline(self._target[p], days)) for p in self._target},
             index=days,
         )
-        shared = self._shared_features(days, drivers)
+        shared = driver_features(days, drivers, self._cal, self.payday_hypothesis)
         self._models = {}
         for partner in self._target.columns:
             X = self._partner_features(shared, partner)
@@ -144,11 +157,11 @@ class AggregateLGBM:
         if drivers is None:
             raise ValueError(f"{self.name} needs drivers")
         dates = pd.DatetimeIndex(dates)
-        shared = self._shared_features(dates, drivers)
+        shared = driver_features(dates, drivers, self._cal, self.payday_hypothesis)
         frames = []
         for partner, models in self._models.items():
             X = self._partner_features(shared, partner)
-            base = self._baseline(self._target[partner], dates)
+            base = seasonal_baseline(self._target[partner], dates)
             q = np.column_stack([m.predict(X) for m in models]) * base[:, None]
             frames.append(pd.DataFrame(q, columns=list(QCOLS)).assign(date=dates, partner=partner))
         pred = enforce_quantiles(pd.concat(frames, ignore_index=True))
