@@ -23,6 +23,7 @@ def _readme_saved() -> dict[str, int]:
 
 
 def test_headline_numbers_from_factorial():
+    assert set(_readme_saved()) == {"wire", "stablecoin"}
     table = data.headline(pd.read_csv(REPORTS / "factorial.csv"))
     assert list(table["rail"]) == ["wire", "stablecoin"]
     for rail, saved in _readme_saved().items():
@@ -56,6 +57,19 @@ def test_frontier_at_alpha_picks_cheapest_buffer_at_least_as_safe():
     assert strict["fixed_days"] == 8.0
     frontier.loc[4, "shortfall_rate"] = 0.02  # no buffer in the sweep is as safe as alpha 0.99
     assert np.isnan(data.frontier_at_alpha(frontier, 0.99).iloc[0]["fixed_capital"])
+
+
+def test_frontier_at_config_alpha_uses_the_factorial_matched_row():
+    factorial = pd.read_csv(REPORTS / "factorial.csv")
+    at = data.frontier_at_alpha(pd.read_csv(REPORTS / "frontier.csv"), 0.99, factorial).set_index("rail")
+    head = data.headline(factorial).set_index("rail")
+    for rail in ("wire", "stablecoin"):
+        assert at.loc[rail, "source"] == "factorial"
+        assert at.loc[rail, "fixed_days"] == head.loc[rail, "matched_buffer_days"]
+        assert at.loc[rail, "fixed_capital"] == head.loc[rail, "matched_capital"]
+        assert at.loc[rail, "capital_saved"] == pytest.approx(head.loc[rail, "capital_saved"])
+    other = data.frontier_at_alpha(pd.read_csv(REPORTS / "frontier.csv"), 0.9, factorial)
+    assert set(other["source"]) == {"sweep"}
 
 
 def test_surprise_summary_reads_pooled_rows():

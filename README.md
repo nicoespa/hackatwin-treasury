@@ -27,7 +27,7 @@ model does not know in advance.
 uv run treasury simulate --users 20000 --start 2025-11-01 --end 2026-10-31 --seed 42 --out data/sim/base
 # 2. experiments (≈ 1 min): ablation, factorial, frontier, designed-to-lose, unknown-scenario CSVs + README
 uv run treasury experiments --data data/sim/base --out reports/experiments
-# 3. dashboard (Spanish UI), http://localhost:8501
+# 3. dashboard (Spanish UI), http://localhost:8501, bound to 127.0.0.1 by .streamlit/config.toml
 uv run streamlit run src/treasury/dashboard/app.py
 # 4. agent from the command line (the dashboard's Aprobaciones tab does the same)
 uv run treasury agent propose --as-of 2026-10-26 --no-llm   # templated rationales
@@ -79,6 +79,10 @@ Known limitations:
 - **Realized vs nominal service.** α is a per-decision quantile, not the service level; the policy
   is conservative and its realized service sits above α (see Frontera and
   `reports/experiments/README.md`).
+- **Approvals are not authenticated.** The approver is a typed name, so two-person control on T3
+  is only nominal in the demo. `.streamlit/config.toml` binds the dashboard to `127.0.0.1`; do not
+  expose it beyond localhost as it is (in production the approver comes from the authenticated
+  identity).
 - **LLM run owed.** The agent's LLM path is tested only with a scripted fake client; a run against
   the real API is still owed.
 

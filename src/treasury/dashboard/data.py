@@ -58,6 +58,7 @@ STRESS_DAYS = 60
 FORECAST_DAYS = 7
 FX_DAYS = 3
 STRESS_RAIL = "stablecoin"
+EXPERIMENT_TABLES = ("ablation_pooled", "ablation_by_partner", "factorial", "frontier", "unknown_scenario")
 ABLATION_COLUMNS = ["label", "model", "wape_q50", "pinball_q90", "cov_90", "pit_ks"]
 FACTORIAL_COLUMNS = ["rail", "cell", "policy", "buffer_days", "capital_total_mean", "shortfall_rate", "cost_total",
                      "n_transfers", "rail_note"]
@@ -94,9 +95,27 @@ def factorial_view(factorial: pd.DataFrame) -> pd.DataFrame:
     return view.assign(equal_service=view["cell"] != "reference")
 
 
-def frontier_at_alpha(frontier: pd.DataFrame, alpha: float) -> pd.DataFrame:
+def config_alpha(factorial: pd.DataFrame) -> float:
+    """The alpha of the factorial's ``proposed`` cells (``policy`` is ``forecast_a<alpha>``)."""
+    policy = factorial.loc[factorial["cell"] == "proposed", "policy"].iloc[0]
+    return float(policy.removeprefix("forecast_a"))
+
+
+def frontier_at_alpha(frontier: pd.DataFrame, alpha: float, factorial: pd.DataFrame | None = None) -> pd.DataFrame:
     """Per rail the proposed policy at ``alpha`` and the cheapest fixed buffer of the sweep whose
-    shortfall rate is at most the proposed one's (NaN when none is)."""
+    shortfall rate is at most the proposed one's (NaN when none is); ``source = "sweep"``.
+
+    At the factorial's ``config_alpha`` (when ``factorial`` is given) the rows are the factorial's
+    ``proposed`` and ``reference_matched`` cells instead (``source = "factorial"``): the buffer found
+    by bisection, so the saving matches ``headline``."""
+    if factorial is not None and np.isclose(alpha, config_alpha(factorial)):
+        head = headline(factorial)
+        return pd.DataFrame({
+            "rail": head["rail"], "alpha": alpha, "proposed_capital": head["proposed_capital"],
+            "proposed_shortfall_rate": head["proposed_shortfall_rate"], "fixed_days": head["matched_buffer_days"],
+            "fixed_capital": head["matched_capital"], "fixed_shortfall_rate": head["matched_shortfall_rate"],
+            "capital_saved": head["capital_saved"], "source": "factorial",
+        })
     rows = []
     for rail, g in frontier.groupby("rail", sort=False):
         prop = g[(g["policy"] == "forecast") & np.isclose(g["param"], alpha)].iloc[0]
@@ -108,7 +127,7 @@ def frontier_at_alpha(frontier: pd.DataFrame, alpha: float) -> pd.DataFrame:
             "proposed_shortfall_rate": prop["shortfall_rate"],
             "fixed_days": best["param"] if best is not None else np.nan, "fixed_capital": fixed_capital,
             "fixed_shortfall_rate": best["shortfall_rate"] if best is not None else np.nan,
-            "capital_saved": 1 - prop["capital_total_mean"] / fixed_capital,
+            "capital_saved": 1 - prop["capital_total_mean"] / fixed_capital, "source": "sweep",
         })
     return pd.DataFrame(rows)
 

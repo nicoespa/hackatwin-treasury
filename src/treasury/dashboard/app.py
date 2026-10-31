@@ -96,6 +96,8 @@ def summary_tab(tables: dict[str, pd.DataFrame]) -> None:
             md(f"Propuesto **{ars(row.proposed_capital)}** (faltantes {pct(row.proposed_shortfall_rate, 2)}) vs "
                f"buffer fijo de **{num(row.matched_buffer_days)} días** **{ars(row.matched_capital)}** (faltantes "
                f"{pct(row.matched_shortfall_rate, 2)}).")
+    st.caption("Backtest walk-forward sobre datos sintéticos: muestra mecanismo y sensibilidad bajo supuestos, no ahorro "
+               "real.")
     st.subheader("Cuando el escenario no estaba anunciado")
     sur = data.surprise_summary(tables["unknown_scenario"])
     sur = sur.assign(modelo=sur["label"] + " " + sur["label"].map(MODEL_NAMES),
@@ -192,7 +194,7 @@ def frontier_tab(tables: dict[str, pd.DataFrame]) -> None:
                "α ≥ 0,9 en wire y α ≥ 0,99 en stablecoin la tasa de faltantes post-arranque ya es 0 %.")
     alphas = sorted(fr.loc[fr["policy"] == "forecast", "param"].unique())
     alpha = st.select_slider("α", options=alphas, value=0.99 if 0.99 in alphas else alphas[-1], format_func=num)
-    at = data.frontier_at_alpha(tables["frontier"], alpha)
+    at = data.frontier_at_alpha(tables["frontier"], alpha, tables["factorial"])
     st.dataframe(pd.DataFrame({
         "riel": at["rail"].map(RAIL_NAMES), "capital propuesto": at["proposed_capital"].map(ars),
         "faltantes propuesto": at["proposed_shortfall_rate"].map(lambda x: pct(x, 2)),
@@ -201,7 +203,12 @@ def frontier_tab(tables: dict[str, pd.DataFrame]) -> None:
         "faltantes buffer": at["fixed_shortfall_rate"].map(lambda x: pct(x, 2)),
         "capital ahorrado": at["capital_saved"].map(lambda x: pct(x, 0)),
     }), hide_index=True)
-    st.caption("El buffer sale del barrido grueso de la frontera (2–10 días); el Factorial lo busca fino por bisección.")
+    if (at["source"] == "factorial").all():
+        st.caption(f"En α = {num(alpha)} (el de la config) el buffer es el del Factorial, buscado fino por bisección: "
+                   "el mismo ahorro que el Resumen.")
+    else:
+        st.caption("En este α el buffer sale del barrido grueso de la frontera (2–10 días), no de la bisección del "
+                   "Factorial: el ahorro es aproximado.")
 
 
 def _stress_form(sb: data.StressBase) -> data.StressSpec | None:
@@ -243,7 +250,10 @@ def stress_tab() -> None:
         f"elegidos, que cubren la semana **{sb.dates[0].date()} – {sb.dates[-1].date()}**. El modelo (d), ajustado con la "
         f"historia anterior, pronostica esa semana y la política decide en la revisión de las "
         f"**{data.review_at(sb.as_of):%H:%M} del {sb.as_of.date()}**, sobre stablecoin (o el único riel del partner). "
-        "Cada partner parte con el objetivo de la corrida base: el depósito es lo que el escenario agrega."
+        "Cada partner parte con el objetivo de la corrida base: el depósito es lo que el escenario agrega. "
+        "Este modelo se ajusta sobre la población base re-simulada con tres campañas pasadas (feb, abr, jun), porque "
+        "los datos base no tienen campañas y sin ellas no podría aprender su efecto; **no es el modelo de las otras "
+        "pestañas**."
     )
     spec = _stress_form(sb)
     if spec is not None:
@@ -313,8 +323,8 @@ def approvals_tab() -> None:
                 ctx = build_context(base_dataset(), pd.Timestamp(as_of), queue)
                 made = propose_for_day(ctx, client=_llm_client() if online else None, rail=rail)
             st.success(f"{len(made)} propuestas para {ctx.forecast_run_id} (las ya existentes no se duplican).")
-        except ValueError as e:
-            st.error(f"No se pudo proponer para {as_of}: {e}")
+        except Exception as e:  # noqa: BLE001 - a demo button: any failure (data, API, network) is shown, not raised
+            st.error(f"No se pudo proponer para {as_of}: {type(e).__name__}: {e}")
     status = st.segmented_control("Estado", ["todas", "pending", "approved", "rejected", "auto_approved"],
                                   default="todas")
     proposals = queue.list(None if status in (None, "todas") else status)
@@ -330,10 +340,13 @@ def approvals_tab() -> None:
     }), hide_index=True)
     for p in sorted((p for p in proposals if p.status == "pending"), key=lambda p: p.created_at, reverse=True):
         with st.expander(f"{p.partner} · {ars(p.amount)} · {p.tier} · {p.forecast_run_id} · {p.id[:8]}"):
-            st.write(p.rationale)
+            st.caption("Salida del modelo (no verificada)")
+            st.text(p.rationale)
             if p.exception:
-                st.warning(f"Excepción marcada por el LLM: {p.exception}")
-            who = st.text_input("Nombre de quien firma", key=f"who-{p.id}")
+                st.caption("Excepción marcada por el LLM, salida del modelo (no verificada)")
+                st.text(p.exception)
+            who = st.text_input("Nombre de quien firma (demo: en producción viene de la identidad autenticada)",
+                                key=f"who-{p.id}")
             reason = st.text_input("Motivo (para rechazar)", key=f"why-{p.id}")
             a, r = st.columns(2)
             try:
@@ -353,9 +366,13 @@ def main() -> None:
     st.set_page_config(page_title="Tesorería predictiva", layout="wide")
     st.title("Tesorería predictiva")
     st.caption("Cuánto saldo prefondeado tener en cada partner: pronóstico probabilístico + política + aprobación humana.")
-    if not (BASE / "events.parquet").exists() or not (REPORTS / "factorial.csv").exists():
-        st.error("Faltan datos. Corré `uv run treasury simulate --users 20000 --start 2025-11-01 --end 2026-10-31 "
-                 "--seed 42 --out data/sim/base` y `uv run treasury experiments`.")
+    missing = [f"data/sim/base/{f}" for f in ("users.parquet", "events.parquet", "macro.parquet", "params.json")
+               if not (BASE / f).exists()]
+    missing += [f"reports/experiments/{t}.csv" for t in data.EXPERIMENT_TABLES if not (REPORTS / f"{t}.csv").exists()]
+    if missing:
+        st.error(f"Faltan datos: {', '.join(missing)}. Corré `uv run treasury simulate --users 20000 --start "
+                 "2025-11-01 --end 2026-10-31 --seed 42 --out data/sim/base` y después `uv run treasury experiments "
+                 "--data data/sim/base --out reports/experiments`.")
         st.stop()
     tables = experiments()
     names = ["Resumen", "Ablación", "Factorial", "Frontera", "Estrés", "Aprobaciones"]

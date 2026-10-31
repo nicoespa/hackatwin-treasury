@@ -1,0 +1,8 @@
+# Local-only: approvals are not authenticated (the approver is a typed name), so the
+# dashboard must not be reachable beyond this machine as it is.
+[server]
+address = "127.0.0.1"
+headless = true
+
+[browser]
+gatherUsageStats = false
