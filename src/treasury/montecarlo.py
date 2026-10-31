@@ -11,6 +11,9 @@ from collections.abc import Sequence
 
 import numpy as np
 import pandas as pd
+from scipy import stats
+
+from treasury.models.base import QCOLS, QUANTILES
 
 
 def _log_factor(rng: np.random.Generator, n_paths: int, n_dates: int, sigma_f: float, phi_f: float) -> np.ndarray:
@@ -86,3 +89,44 @@ def cumulative_quantiles(
     for tau, values in zip(taus, q):
         out[_qcol(tau)] = values.reshape(-1)
     return out
+
+
+def paths_from_quantiles(
+    quantile_df: pd.DataFrame, n_paths: int, seed: int, rho: float = 0.0
+) -> tuple[np.ndarray, list[str], pd.DatetimeIndex]:
+    """Sample paths ``[n_paths, n_dates, n_partners]`` from per-day quantile forecasts.
+
+    ``quantile_df`` has ``date, partner, q05..q99`` for every date × partner. Each (date,
+    partner) marginal is the piecewise-linear quantile function through the ``QUANTILES`` grid:
+    below ``q05`` the q05-q10 segment is extended linearly down to probability 0 and clipped at
+    0, above ``q99`` it holds ``q99``. Uniforms come from a Gaussian copula that is AR(1) across
+    consecutive days with correlation ``rho``, independent across partners.
+
+    A quantile-only model says nothing about how its errors persist from day to day, so the
+    default ``rho=0`` draws days independently: a multi-day sum then concentrates and its tail
+    is understated whenever the real errors are serially correlated. The segment model does not
+    have this limitation; its shared AR(1) factor carries the persistence into its paths.
+    Returns ``(paths, partners, dates)`` with partners and dates sorted.
+    """
+    partners = sorted(quantile_df["partner"].unique())
+    dates = pd.DatetimeIndex(sorted(quantile_df["date"].unique()))
+    grid_index = pd.MultiIndex.from_product([dates, partners])
+    q = quantile_df.set_index(["date", "partner"])[list(QCOLS)].reindex(grid_index).to_numpy(float)
+    if np.isnan(q).any():
+        raise ValueError("quantile_df must have every quantile for every date x partner")
+    q = q.reshape(len(dates), len(partners), len(QCOLS))
+    lower = np.maximum(0.0, 2 * q[..., :1] - q[..., 1:2])
+    x = np.concatenate([lower, q, q[..., -1:]], axis=-1)  # [n_dates, n_partners, n_grid]
+    grid = np.array([0.0, *QUANTILES, 1.0])
+
+    rng = np.random.default_rng(seed)
+    z = rng.standard_normal((n_paths, len(dates), len(partners)))
+    for t in range(1, len(dates)):
+        z[:, t] = rho * z[:, t - 1] + np.sqrt(1.0 - rho**2) * z[:, t]
+    u = stats.norm.cdf(z)
+    k = np.clip(np.searchsorted(grid, u, side="right"), 1, len(grid) - 1)
+    xb = np.broadcast_to(x, (n_paths, *x.shape))
+    x0 = np.take_along_axis(xb, (k - 1)[..., None], axis=-1)[..., 0]
+    x1 = np.take_along_axis(xb, k[..., None], axis=-1)[..., 0]
+    frac = (u - grid[k - 1]) / (grid[k] - grid[k - 1])
+    return x0 + frac * (x1 - x0), partners, dates

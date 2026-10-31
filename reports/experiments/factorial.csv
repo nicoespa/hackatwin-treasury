@@ -1,0 +1,5 @@
+cell,rail,model,policy,capital_total_mean,shortfall_rate,shortfall_amount_total,cost_total,n_transfers,p_unresolvable_mean,rail_note
+reference,wire,none,fixed_3d,1319364927.3395371,0.6041666666666666,32142074977.25593,1632449110.3195686,305,,crypto_exchange=stablecoin
+proposed,wire,segment_factor,forecast_a0.99,3210755006.767501,0.011904761904761904,90771085.78428541,64694188.769974835,238,0.0568957654723127,crypto_exchange=stablecoin
+reference,stablecoin,none,fixed_3d,1291273466.6396189,0.2767857142857143,7247805207.723945,406009809.1144664,465,,"fci_custodian=wire, cash_network=wire"
+proposed,stablecoin,segment_factor,forecast_a0.99,1678397526.7600951,0.002976190476190476,10902408.368214265,50382890.30835,265,0.015336501901140685,"fci_custodian=wire, cash_network=wire"

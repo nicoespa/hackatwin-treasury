@@ -1,27 +1,21 @@
-"""Command-line entry point: ``treasury simulate`` builds a routed synthetic dataset."""
+"""Command-line entry point: ``simulate`` a routed dataset, ``backtest`` a policy, run the ``experiments``."""
 
 from __future__ import annotations
 
 import json
+import math
 import time
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from datetime import datetime
 from pathlib import Path
 
 import typer
 
 from treasury.calendar import Calendar
-from treasury.routing import load_partners, route_events
-from treasury.simulate import (
-    SimParams,
-    apply_cohort_waves,
-    apply_payday_shift,
-    generate_users,
-    load_archetypes,
-    simulate_events,
-    validate,
-)
-from treasury.simulate.scenarios import Scenario, scenario_overrides
+from treasury.routing import load_partners
+from treasury.simulate import SimParams, load_archetypes, validate
+from treasury.simulate.pipeline import simulate_routed
+from treasury.simulate.scenarios import Scenario
 
 CONFIG = Path(__file__).resolve().parents[2] / "config"
 
@@ -53,11 +47,7 @@ def simulate(
     first, last = start.date(), end.date()
     scenarios: list[Scenario] = []
 
-    population = generate_users(users, archetypes, first, last, seed, params)
-    population = apply_cohort_waves(population, scenarios, archetypes, seed, params)
-    population = apply_payday_shift(population, scenarios)
-    events, macro = simulate_events(population, archetypes, cal, first, last, params, scenarios, seed)
-    routed = route_events(events, partners, cal, scenario_overrides(scenarios, partners))
+    population, routed, macro = simulate_routed(users, archetypes, cal, partners, first, last, seed, params, scenarios)
     checks = validate(routed, cal)
 
     out.mkdir(parents=True, exist_ok=True)
@@ -76,3 +66,45 @@ def simulate(
     (out / "params.json").write_text(json.dumps(meta, indent=2) + "\n")
     typer.echo(f"{len(routed):,} events for {len(population):,} users in {time.perf_counter() - began:.1f}s -> {out}")
     typer.echo(json.dumps(checks))
+
+
+@app.command()
+def backtest(
+    data: Path = Path("data/sim/base"),
+    model: str = "segment_factor",
+    rail: str = "stablecoin",
+    policy: str = typer.Option("forecast", help="forecast or fixed"),
+    alpha: float | None = None,
+    n_paths: int = 1000,
+    n_origins: int = 8,
+    central_reserve: float = 0.0,
+) -> None:
+    """Walk-forward backtest of one policy and rail; prints its metrics as JSON."""
+    from treasury.backtest import HORIZON, Dataset, run
+    from treasury.experiments import MODEL_FACTORIES, factory
+    from treasury.harness import default_origins
+    from treasury.policy import load_policy
+
+    if policy not in ("forecast", "fixed"):
+        raise typer.BadParameter(f"policy must be forecast or fixed, got {policy!r}")
+    if model not in MODEL_FACTORIES:
+        raise typer.BadParameter(f"model must be one of {list(MODEL_FACTORIES)}, got {model!r}")
+    cfg = load_policy(CONFIG / "policy.yaml")
+    cfg = cfg if alpha is None else replace(cfg, alpha=alpha)
+    dataset = Dataset.load(data)
+    origins = default_origins(dataset.end, n=n_origins, step_days=7, horizon=HORIZON)
+    result = run(dataset, factory(model, n_paths) if policy == "forecast" else None, policy, rail, cfg, origins,
+                 central_reserve=central_reserve, n_paths=n_paths)
+    metrics = {k: None if isinstance(v, float) and math.isnan(v) else v for k, v in result.metrics.items()}
+    typer.echo(json.dumps(metrics, indent=2))
+
+
+@app.command()
+def experiments(data: Path = Path("data/sim/base"), out: Path = Path("reports/experiments"), n_paths: int = 1000) -> None:
+    """Write the ablation, factorial, frontier, designed-to-lose and unknown-scenario CSVs to OUT."""
+    from treasury.experiments import run_all
+
+    began = time.perf_counter()
+    timings = run_all(data, out, n_paths)
+    typer.echo(json.dumps(timings))
+    typer.echo(f"experiments written to {out} in {time.perf_counter() - began:.0f}s")

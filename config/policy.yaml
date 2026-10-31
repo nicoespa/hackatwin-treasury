@@ -1,0 +1,8 @@
+# Funding policy and the costs the backtest charges it.
+alpha: 0.99                  # service level: quantile of the Monte Carlo deposit amounts
+cost_of_capital_annual: 0.12 # k: yearly cost of each unit of capital immobilized
+cost_per_usd_rejected: 0.05  # penalty per unit of outflow the balance could not cover
+lot_size: 1000               # deposits are rounded up to a multiple of this
+review_hour: 9               # daily review for business-day rails (business days only)
+fixed_buffer_days: 3         # reference policy: top up to this many days of trailing mean drain
+review_hours_247: [9, 18]    # 24/7 rails are reviewed twice a day, every day

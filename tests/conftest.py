@@ -1,8 +1,10 @@
+import json
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
+from treasury.backtest import Dataset
 from treasury.features import build_drivers
 from treasury.models.base import daily_node_table
 
@@ -30,3 +32,8 @@ def history(sim) -> pd.DataFrame:
 @pytest.fixture(scope="session")
 def drivers(sim) -> pd.DataFrame:
     return build_drivers(*sim, pd.date_range(START, END, freq="D"))
+
+
+@pytest.fixture(scope="session")
+def dataset(sim) -> Dataset:
+    return Dataset.from_frames(*sim, params=json.loads((SIM / "params.json").read_text()))

@@ -1,7 +1,9 @@
 import numpy as np
+import pandas as pd
 import pytest
 
-from treasury.montecarlo import cumulative_quantiles, need_from_paths, simulate_paths
+from treasury.models.base import QCOLS, QUANTILES
+from treasury.montecarlo import cumulative_quantiles, need_from_paths, paths_from_quantiles, simulate_paths
 
 
 def _mu(n_dates: int, n_nodes: int, seed: int = 1) -> np.ndarray:
@@ -59,3 +61,33 @@ def test_cumulative_quantiles():
     assert (out["q10"] <= out["q50"]).all() and (out["q50"] <= out["q90"]).all()
     named = cumulative_quantiles(paths, (0.5,), partners=["a", "b"])
     assert set(named["partner"]) == {"a", "b"}
+
+
+def _quantile_frame(n_dates: int = 14) -> pd.DataFrame:
+    dates = pd.date_range("2026-10-01", periods=n_dates, freq="D")
+    rows = []
+    for d in dates:
+        for partner, scale in (("b", 2.0), ("a", 1.0)):
+            q = scale * np.array([60, 70, 85, 100, 115, 130, 140, 160], float)
+            rows.append({"date": d, "partner": partner, **dict(zip(QCOLS, q))})
+    return pd.DataFrame(rows)
+
+
+def test_paths_from_quantiles_marginals_match_quantiles():
+    frame = _quantile_frame()
+    paths, partners, dates = paths_from_quantiles(frame, n_paths=20_000, seed=0)
+    assert paths.shape == (20_000, 14, 2)
+    assert partners == ["a", "b"]
+    assert dates.equals(pd.DatetimeIndex(sorted(frame["date"].unique())))
+    expected = frame[frame["partner"] == "a"].iloc[0][list(QCOLS)].to_numpy(float)
+    np.testing.assert_allclose(np.quantile(paths[:, 3, 0], QUANTILES), expected, rtol=0.02)
+    np.testing.assert_allclose(np.quantile(paths[:, 3, 1], QUANTILES), 2 * expected, rtol=0.02)
+    assert paths.min() >= 0 and paths.max() <= 2 * 160 + 1e-9
+
+
+def test_paths_from_quantiles_rho_raises_weekly_sum_variance():
+    frame = _quantile_frame()
+    iid = paths_from_quantiles(frame, n_paths=5000, seed=1)[0]
+    corr = paths_from_quantiles(frame, n_paths=5000, seed=1, rho=0.9)[0]
+    assert (corr[:, :7].sum(axis=1).var(axis=0) > 3 * iid[:, :7].sum(axis=1).var(axis=0)).all()
+    assert np.quantile(corr[:, 3, 0], 0.5) == pytest.approx(100, rel=0.03)

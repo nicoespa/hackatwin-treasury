@@ -1,6 +1,8 @@
+import numpy as np
 import pandas as pd
+import pytest
 
-from treasury.ledger import Credit, Flow, balance_path, first_shortfall, max_need, min_deposit
+from treasury.ledger import Credit, Flow, balance_path, first_shortfall, max_need, min_deposit, min_deposit_paths
 
 DAY = "2026-11-02"
 
@@ -104,3 +106,23 @@ def test_empty_inputs():
     assert first_shortfall(path) is None
     result = min_deposit(25.0, [], [], arrival_at=ts("10:00"))
     assert (result.amount, result.unresolvable, result.first_shortfall) == (0, False, None)
+
+
+def test_min_deposit_paths_matches_min_deposit_per_path():
+    rng = np.random.default_rng(0)
+    flow_at = pd.DatetimeIndex([ts("00:00"), ts("08:00"), ts("09:30"), ts("12:00"), ts("12:00"), ts("20:00")])
+    signs = np.array([1, 1, 1, 1, -1, 1])
+    amounts = rng.uniform(0, 100, size=(50, len(flow_at))) * signs
+    credits = [Credit(ts("12:00"), 60.0), Credit(ts("18:00"), 40.0)]
+    result = min_deposit_paths(80.0, flow_at, amounts, credits, arrival_at=ts("09:30"))
+    for i, row in enumerate(amounts):
+        flows = [Flow(at, float(a)) for at, a in zip(flow_at, row)]
+        one = min_deposit(80.0, flows, credits, arrival_at=ts("09:30"))
+        assert result.amount[i] == pytest.approx(one.amount)
+        assert result.unresolvable[i] == one.unresolvable
+        assert result.need[i] == pytest.approx(max_need(balance_path(80.0, flows, []), 80.0))
+
+
+def test_min_deposit_paths_rejects_mixed_sign_columns():
+    with pytest.raises(ValueError):
+        min_deposit_paths(0.0, pd.DatetimeIndex([ts("10:00")]), np.array([[1.0], [-1.0]]), [], ts("09:00"))
