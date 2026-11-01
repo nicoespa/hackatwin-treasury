@@ -1,0 +1,539 @@
+<meta name="dash-one-writer">
+<style>
+.pf { display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); color: var(--color-fg); }
+.pf h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0 0 var(--cds-gap-xs); text-wrap: balance; }
+.pf h2 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
+.pf h3 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; }
+.pf p { margin: 0; max-width: 72ch; line-height: 1.5; }
+.pf .pf-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.pf .pf-lead b { font-weight: var(--cds-font-weight-medium); }
+.pf-sec { display: grid; gap: var(--cds-gap-md); }
+.pf-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr)); gap: var(--cds-gap-md); }
+.pf-tile, .pf-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); align-content: start; min-width: 0; }
+.pf-big { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); font-weight: 400; font-variant-numeric: tabular-nums; }
+.pf-tl { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+.pf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: var(--cds-gap-md); }
+.pf-chart { position: relative; min-height: 300px; min-width: 0; }
+.pf-chart.pf-short { min-height: 260px; }
+.pf-tablewrap { overflow: auto; max-width: 100%; }
+.pf-tablewrap.pf-tall { max-height: 30rem; }
+.pf table { border-collapse: collapse; width: 100%; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.pf th { text-align: left; font-weight: var(--cds-font-weight-medium); color: var(--color-fg-muted); padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); position: sticky; top: 0; background: var(--color-panel); vertical-align: bottom; }
+.pf td { padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); vertical-align: top; line-height: 1.4; }
+.pf td.pf-n, .pf th.pf-n { text-align: right; white-space: nowrap; }
+.pf a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.pf-chip { display: inline-block; white-space: nowrap; padding: 1px var(--cds-pad-xs); border-radius: var(--cds-radius); border: 1px solid currentColor; }
+.pf-chip.pf-pub { color: var(--color-ok); }
+.pf-chip.pf-reg { color: var(--color-fg-muted); }
+.pf-chip.pf-sup { color: var(--color-warn); }
+.pf-filters { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; }
+.pf button { font: inherit; font-size: var(--cds-font-size-caption); color: var(--color-fg); background: transparent; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-xs) var(--cds-pad-sm); cursor: pointer; }
+.pf button[aria-pressed="true"] { background: var(--color-fg); color: var(--color-bg); border-color: var(--color-fg); }
+.pf button:focus-visible, .pf input:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.pf-steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: var(--cds-gap-md); counter-reset: pf; }
+.pf-steps li { counter-increment: pf; background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-xs); align-content: start; }
+.pf-steps li::before { content: counter(pf); font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); color: var(--color-fg-muted); }
+.pf-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pf-legend span { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+.pf-sw { width: 0.75rem; height: 0.75rem; border-radius: 2px; display: inline-block; flex: none; }
+.pf-bars { display: grid; gap: var(--cds-gap-sm); }
+.pf-bar { display: grid; grid-template-columns: minmax(8rem, 11rem) 1fr; gap: var(--cds-gap-xs) var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); }
+.pf-track { display: flex; align-items: center; gap: var(--cds-gap-sm); min-width: 0; }
+.pf-fill { height: 1.5rem; border-radius: var(--cds-radius); min-width: 2px; flex: none; }
+.pf-stack { display: flex; height: 1.5rem; border-radius: var(--cds-radius); overflow: hidden; flex: none; }
+.pf-stack i { display: block; height: 100%; }
+.pf-val { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.pf-tip { position: absolute; z-index: 5; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); white-space: nowrap; }
+.pf-tip div { display: flex; align-items: center; gap: var(--cds-gap-xs); }
+.pf-tip .pf-tiph { color: var(--cds-text-secondary); }
+.pf-calc { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-lg); }
+.pf-controls { display: grid; gap: var(--cds-gap-md); align-content: start; }
+.pf-ctrl { display: grid; gap: var(--cds-gap-xs); }
+.pf-ctrl label { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.pf-ctrl label b { color: var(--color-fg); font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+.pf-ctrl input[type=range] { width: 100%; accent-color: var(--color-fg); margin: 0; }
+.pf-out { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); gap: var(--cds-gap-md); align-content: start; }
+.pf-out > div { display: grid; gap: 2px; align-content: start; }
+.pf-warn { color: var(--color-warn); font-size: var(--cds-font-size-caption); }
+.pf-list { margin: 0; padding-left: 1.2em; display: grid; gap: var(--cds-gap-xs); max-width: 76ch; line-height: 1.5; }
+.pf svg text { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-caption); }
+[data-dash-source-state=refreshing] { opacity: .5; }
+</style>
+
+<div class="pf">
+  <header id="inicio">
+    <h1>Prefondeo: cuánta plata queda inmovilizada</h1>
+    <p class="pf-lead">A igual seguridad, cada <b data-draw="v" data-source="constantes" data-field="n_ref_txt" data-where="clave=base">—</b> usuarios la regla de días fijos por banco deja quietos <b data-draw="v" data-source="resumen" data-field="hoy" data-where="n_users=100000">—</b>. La regla propuesta con stablecoin deja <b data-draw="v" data-source="resumen" data-field="stable" data-where="n_users=100000">—</b>, un <b data-draw="v" data-source="resumen" data-field="ahorro" data-where="n_users=100000">—</b> menos. Son datos simulados: sirven para entender la lógica y el orden de magnitud, no como ahorro real de una empresa.</p>
+  </header>
+
+  <section class="pf-tiles" id="titulares" aria-label="Capital inmovilizado a igual seguridad">
+    <div class="pf-tile"><span class="pf-tl">Regla fija + banco (como hoy)</span><span class="pf-big" data-draw="v" data-source="resumen" data-field="hoy" data-where="n_users=100000">—</span><span class="pf-tl"><span data-draw="v" data-source="resumen" data-field="hoy_usuario" data-where="n_users=100000">—</span> por usuario · <span data-draw="v" data-source="resumen" data-field="dias_hoy" data-where="n_users=100000">—</span> días de gasto</span></div>
+    <div class="pf-tile"><span class="pf-tl">Regla propuesta + banco</span><span class="pf-big" data-draw="v" data-source="resumen" data-field="banco" data-where="n_users=100000">—</span><span class="pf-tl"><span data-draw="v" data-source="resumen" data-field="banco_usuario" data-where="n_users=100000">—</span> por usuario · <span data-draw="v" data-source="resumen" data-field="dias_banco" data-where="n_users=100000">—</span> días de gasto</span></div>
+    <div class="pf-tile"><span class="pf-tl">Regla propuesta + stablecoin</span><span class="pf-big" data-draw="v" data-source="resumen" data-field="stable" data-where="n_users=100000">—</span><span class="pf-tl"><span data-draw="v" data-source="resumen" data-field="stable_usuario" data-where="n_users=100000">—</span> por usuario · <span data-draw="v" data-source="resumen" data-field="dias_stable" data-where="n_users=100000">—</span> días de gasto</span></div>
+    <div class="pf-tile"><span class="pf-tl">Plata que se libera</span><span class="pf-big" data-draw="v" data-source="resumen" data-field="libera" data-where="n_users=100000">—</span><span class="pf-tl">cerca de <span data-draw="v" data-source="resumen" data-field="libera_usd" data-where="n_users=100000">—</span> al dólar de <span data-draw="v" data-source="constantes" data-field="dolar_txt" data-where="clave=base">—</span></span></div>
+  </section>
+
+  <section class="pf-sec" id="supuestos">
+    <h2>Primero: los números que usamos</h2>
+    <p>Separamos lo que viene de una fuente pública de lo que elegimos nosotros. Hay <b data-draw="v" data-source="conteo" data-field="n" data-where="origen=Dato público">—</b> datos públicos, <b data-draw="v" data-source="conteo" data-field="n" data-where="origen=Regla o práctica">—</b> práctica de industria y <b data-draw="v" data-source="conteo" data-field="n" data-where="origen=Supuesto nuestro">—</b> supuestos nuestros. Lo que más mueve el monto final, el gasto por usuario y el shock común, es supuesto.</p>
+    <div class="pf-card" id="tabla-supuestos">
+      <div class="pf-filters" role="group" aria-label="Filtrar por origen">
+        <button class="pf-origen" data-origen="" type="button">Todos</button>
+        <button class="pf-origen" data-origen="Dato público" type="button">Datos públicos</button>
+        <button class="pf-origen" data-origen="Regla o práctica" type="button">Práctica de industria</button>
+        <button class="pf-origen" data-origen="Supuesto nuestro" type="button">Supuestos nuestros</button>
+      </div>
+      <div class="pf-tablewrap pf-tall">
+        <table data-source="supuestos" data-row-key="id">
+          <thead><tr><th data-field="grupo">Tema</th><th data-field="dato">Dato</th><th data-field="valor">Valor</th><th data-field="origen">Origen</th><th data-field="uso">Para qué sirve</th><th data-field="fuente">Fuente</th></tr></thead>
+          <tbody data-draw="t-supuestos"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="pf-card" id="usuario-simulado">
+      <h3>¿Se parece el usuario simulado a uno real?</h3>
+      <p class="pf-note">En ticket y frecuencia, sí. En gasto total se parece a alguien que usa esta billetera como principal. Una cuenta promedio mueve mucho menos, así que los montos de abajo son un techo razonable por usuario.</p>
+      <div class="pf-tablewrap">
+        <table data-source="sim_vs_publico" data-row-key="id">
+          <thead><tr><th data-field="metrica">Medida</th><th class="pf-n" data-field="simulado_txt">Simulado</th><th class="pf-n" data-field="publico_txt">Público</th><th data-field="referencia">Contra qué</th><th data-field="lectura">Lectura</th></tr></thead>
+          <tbody data-draw="t-sim"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="pf-sec" id="que-hicimos">
+    <h2>Qué hicimos</h2>
+    <ol class="pf-steps">
+      <li><h3>Simulamos una billetera</h3><p class="pf-note">Usuarios de varios tipos, con su día de cobro, sus facturas y sus hábitos, durante un año.</p></li>
+      <li><h3>Mandamos cada movimiento a su partner</h3><p class="pf-note">Cada pago descuenta del saldo adelantado en un partner, en el momento en que ese partner liquida.</p></li>
+      <li><h3>Pronosticamos cuánto va a salir</h3><p class="pf-note">No un número sino un rango de escenarios por partner, porque todos los usuarios reaccionan juntos al calendario.</p></li>
+      <li><h3>Decidimos cuánto depositar</h3><p class="pf-note">Lo justo para no quedar en rojo hasta que llegue la próxima reposición, según cuánto tarda cada riel.</p></li>
+      <li><h3>Lo probamos contra el pasado simulado</h3><p class="pf-note">Sin dejarle ver el futuro al modelo. Comparamos con una regla fija de días de gasto calibrada a la misma seguridad.</p></li>
+    </ol>
+  </section>
+
+  <section class="pf-sec" id="resultados">
+    <h2>Qué dio</h2>
+    <div class="pf-grid">
+      <div class="pf-card" id="ahorro-origen">
+        <h3>De dónde sale el ahorro</h3>
+        <p class="pf-note">Plata inmovilizada cada <span data-draw="v" data-source="constantes" data-field="n_ref_txt" data-where="clave=base">—</span> usuarios, sin faltantes en el período evaluado. Dentro de cada riel, la regla propuesta ahorra <span data-draw="v" data-source="resumen" data-field="ahorro_banco" data-where="n_users=100000">—</span> con banco y <span data-draw="v" data-source="resumen" data-field="ahorro_stable" data-where="n_users=100000">—</span> con stablecoin.</p>
+        <div class="pf-bars" data-draw="b-ahorro" data-source="resumen"></div>
+        <p class="pf-note">El escenario banco manda cripto por stablecoin, y el de stablecoin manda fondos y efectivo por banco, porque esos partners no aceptan el otro riel.</p>
+      </div>
+      <div class="pf-card" id="modelos">
+        <h3>Qué modelo de pronóstico anduvo mejor</h3>
+        <p class="pf-note">Ninguno gana en todo. El que pronostica por partner erra menos. El de tipo de usuario con shock común da rangos más confiables, y eso importa para decidir el colchón. Con tipos de usuario idénticos pierde, como debe ser.</p>
+        <div class="pf-tablewrap">
+          <table data-source="modelos" data-row-key="modelo">
+            <thead><tr><th data-field="modelo">Modelo</th><th class="pf-n" data-field="error">Error típico</th><th class="pf-n" data-field="cobertura">Cae en su rango del 90 %</th><th class="pf-n" data-field="calibracion">Desajuste (menos es mejor)</th></tr></thead>
+            <tbody data-draw="t-modelos"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="pf-card" id="frontera">
+      <h3>Más plata compra menos faltantes, pero la regla propuesta paga menos por lo mismo</h3>
+      <p class="pf-note">Cada punto es una configuración probada con <span data-draw="n-frontera" data-source="frontera">—</span> usuarios. Más abajo y más a la izquierda es mejor. Faltante es un día en que un partner quedó en rojo.</p>
+      <div class="pf-legend"><span><i class="pf-sw" data-serie="stable"></i>Regla propuesta</span><span><i class="pf-sw" data-serie="hoy"></i>Regla fija en días de gasto</span></div>
+      <div class="pf-grid">
+        <div><h3 class="pf-tl">Con banco</h3><div class="pf-chart pf-short" data-draw="c-front-wire" data-source="frontera"></div></div>
+        <div><h3 class="pf-tl">Con stablecoin</h3><div class="pf-chart pf-short" data-draw="c-front-stable" data-source="frontera"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pf-sec" id="usuarios">
+    <h2>Cuánta plata según la cantidad de usuarios</h2>
+    <p>Corrimos el sistema entero a cada tamaño, no extrapolamos. Por encima de unos pocos miles de usuarios la plata crece en línea recta: duplicar usuarios duplica la plata. Escalar no ahorra capital por usuario, porque lo que define el colchón es lo que afecta a todos a la vez. Solo una billetera muy chica paga un extra por su volatilidad.</p>
+    <div class="pf-legend" aria-label="Series">
+      <span><i class="pf-sw" data-serie="hoy"></i>Regla fija + banco</span>
+      <span><i class="pf-sw" data-serie="banco"></i>Propuesta + banco</span>
+      <span><i class="pf-sw" data-serie="stable_fijo"></i>Regla fija + stablecoin</span>
+      <span><i class="pf-sw" data-serie="stable"></i>Propuesta + stablecoin</span>
+    </div>
+    <div class="pf-grid">
+      <div class="pf-card" id="grafico-total">
+        <h3>Plata inmovilizada</h3>
+        <p class="pf-note">Pesos, promedio de septiembre y octubre de 2026 simulados, ambos ejes en escala logarítmica. La banda es el rango entre corridas.</p>
+        <div class="pf-chart" data-draw="c-total" data-source="escala"></div>
+      </div>
+      <div class="pf-card" id="grafico-dias">
+        <h3>Días de gasto que hay que tener</h3>
+        <p class="pf-note">Plata inmovilizada dividida por lo que sale en un día. Es la medida que más sirve para comparar empresas de distinto tamaño.</p>
+        <div class="pf-chart" data-draw="c-dias" data-source="escala"></div>
+      </div>
+    </div>
+    <div class="pf-card" id="tabla-usuarios">
+      <h3>El detalle por tamaño</h3>
+      <div class="pf-tablewrap">
+        <table data-source="resumen" data-row-key="n_users">
+          <thead><tr><th class="pf-n" data-field="usuarios">Usuarios</th><th class="pf-n" data-field="hoy">Regla fija + banco</th><th class="pf-n" data-field="banco">Propuesta + banco</th><th class="pf-n" data-field="stable">Propuesta + stablecoin</th><th class="pf-n" data-field="libera">Plata que se libera</th><th class="pf-n" data-field="libera_usd">En dólares</th><th class="pf-n" data-field="ahorro">Ahorro</th><th class="pf-n" data-field="hoy_usuario">Hoy, por usuario</th><th class="pf-n" data-field="stable_usuario">Propuesta, por usuario</th><th class="pf-n" data-field="corridas">Corridas</th></tr></thead>
+          <tbody data-draw="t-resumen"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="pf-card" id="calculadora">
+      <h3>Probalo con tu billetera</h3>
+      <p class="pf-note">Multiplica los días de gasto medidos por lo que sale en un día con tus números. Asume la misma mezcla de productos que la simulación.</p>
+      <div class="pf-calc" data-source="escala">
+        <div class="pf-controls">
+          <div class="pf-ctrl">
+            <label for="pf-users">Usuarios activos <b data-draw="r-users">—</b></label>
+            <input id="pf-users" class="pf-in" data-param="users" type="range" min="4" max="7" step="0.01">
+            <div class="pf-filters"><button class="pf-preset" data-users="100000" type="button">Chica</button><button class="pf-preset" data-users="1000000" type="button">Mediana</button><button class="pf-preset" data-users="5000000" type="button">Grande</button></div>
+          </div>
+          <div class="pf-ctrl">
+            <label for="pf-gasto">Gasto por usuario por mes por la billetera <b data-draw="r-gasto">—</b></label>
+            <input id="pf-gasto" class="pf-in" data-param="gasto" type="range" min="10000" max="1500000" step="10000">
+            <div class="pf-filters"><button class="pf-preset" data-gasto="base" type="button">Como el simulado</button><button class="pf-preset" data-gasto="cuarto" type="button">Un cuarto del simulado</button><button class="pf-preset" data-gasto="cuenta" type="button">Cuenta promedio</button></div>
+          </div>
+          <div class="pf-ctrl">
+            <label for="pf-k">Costo de la plata quieta, anual <b data-draw="r-k">—</b></label>
+            <input id="pf-k" class="pf-in" data-param="k" type="range" min="5" max="60" step="1">
+          </div>
+          <div class="pf-ctrl">
+            <label for="pf-bps">Costo de mandar por stablecoin, puntos básicos <b data-draw="r-bps">—</b></label>
+            <input id="pf-bps" class="pf-in" data-param="bps" type="range" min="0" max="100" step="1">
+          </div>
+          <p class="pf-warn pf-extrap" hidden>Estás por encima de lo que simulamos (<span data-draw="v" data-source="constantes" data-field="max_txt" data-where="clave=base">—</span> usuarios). Se usa el último valor medido.</p>
+        </div>
+        <div class="pf-out">
+          <div><span class="pf-tl">Regla fija + banco</span><span class="pf-big" data-draw="o-hoy">—</span><span class="pf-tl" data-draw="o-hoy-usd">—</span></div>
+          <div><span class="pf-tl">Propuesta + banco</span><span class="pf-big" data-draw="o-banco">—</span><span class="pf-tl" data-draw="o-banco-usd">—</span></div>
+          <div><span class="pf-tl">Propuesta + stablecoin</span><span class="pf-big" data-draw="o-stable">—</span><span class="pf-tl" data-draw="o-stable-usd">—</span></div>
+          <div><span class="pf-tl">Plata que se libera</span><span class="pf-big" data-draw="o-libera">—</span><span class="pf-tl" data-draw="o-libera-usd">—</span></div>
+          <div><span class="pf-tl">Ahorro por año por liberar esa plata</span><span class="pf-big" data-draw="o-gana">—</span></div>
+          <div><span class="pf-tl">Costo por año de usar stablecoin</span><span class="pf-big" data-draw="o-costo">—</span></div>
+          <div><span class="pf-tl">Ganancia neta por año</span><span class="pf-big" data-draw="o-neto">—</span><span class="pf-tl"><span data-draw="o-neto-usuario">—</span> por usuario</span></div>
+          <div><span class="pf-tl">Stablecoin deja de convenir a partir de</span><span class="pf-big" data-draw="o-equilibrio">—</span><span class="pf-tl">contra la propuesta con banco</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="pf-sec" id="partners">
+    <h2>En qué partner queda la plata</h2>
+    <div class="pf-card">
+      <p class="pf-note">Cada <span data-draw="v" data-source="constantes" data-field="n_ref_txt" data-where="clave=base">—</span> usuarios, a igual seguridad. Pasá el mouse por cada tramo para ver el monto. Tarjeta concentra la mayor parte porque es donde más gasta el usuario simulado.</p>
+      <div class="pf-legend" data-draw="l-partners" data-source="partners"></div>
+      <div class="pf-bars" style="position:relative" data-draw="b-partners" data-source="partners"></div>
+    </div>
+  </section>
+
+  <section class="pf-sec" id="sensibilidad" hidden>
+    <h2>Qué pasa si los supuestos están mal</h2>
+    <p>Cambiamos un supuesto por vez, con el resto en su valor base y <span data-draw="n-sens" data-source="sensibilidad">—</span> corridas por caso. Lo que más mueve el ahorro es cuánto tarda de verdad la stablecoin en quedar disponible y qué tan grande es el shock común. El reparto de los sueldos casi no cambia nada. Con un shock muy grande la regla propuesta se vuelve más cautelosa y el ahorro baja.</p>
+    <div class="pf-card">
+      <div class="pf-tablewrap">
+        <table data-source="sensibilidad" data-row-key="id">
+          <thead><tr><th data-field="grupo">Supuesto</th><th data-field="valor">Valor probado</th><th class="pf-n" data-field="dias_hoy">Días: regla fija + banco</th><th class="pf-n" data-field="dias_banco">Días: propuesta + banco</th><th class="pf-n" data-field="dias_stable">Días: propuesta + stablecoin</th><th class="pf-n" data-field="ahorro">Ahorro total</th></tr></thead>
+          <tbody data-draw="t-sens"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="pf-sec" id="limites">
+    <h2>Antes de usar estos números</h2>
+    <ul class="pf-list">
+      <li><b>Son datos simulados.</b> Muestran cómo funciona el sistema y cómo reacciona, no cuánto ahorraría una empresa real. Para eso hace falta correrlo con movimientos reales.</li>
+      <li><b>No cuenta la reserva central.</b> En ningún escenario se suma la plata que hay que tener lista antes de enviarla. Con stablecoin esa plata tiene que estar en stablecoin, así que parte del ahorro se puede mover de lugar en vez de desaparecer.</li>
+      <li><b>El tiempo de la stablecoin es optimista.</b> Asumimos que el partner la puede usar enseguida. Si la tiene que convertir a pesos en horario bancario, el ahorro baja.</li>
+      <li><b>El costo de usar stablecoin no está cotizado.</b> Con redenciones directas el costo real puede ser más alto, y eso decide si conviene.</li>
+      <li><b>Los plazos de cada partner son supuestos.</b> Salvo débito, son contractuales y no son públicos.</li>
+      <li><b>La comisión fija quedó en la unidad equivocada.</b> Está en pesos cuando la pensamos en dólares, así que casi no pesa. Corregirla favorece a stablecoin.</li>
+      <li><b>La seguridad está medida sobre pocos días.</b> Sin faltantes en dos meses simulados no quiere decir que nunca falte, y no probamos una corrida de varios días contra un partner real.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const rowsOf = (id) => { const d = dash.data(id); return d.status === 'ok' ? d.data : []; };
+const es = new Intl.NumberFormat('es-AR', {maximumFractionDigits: 0});
+const es1 = new Intl.NumberFormat('es-AR', {maximumFractionDigits: 1, minimumFractionDigits: 1});
+const money = (v) => v >= 1e12 ? '$' + es1.format(v / 1e12) + ' billones' : '$' + es.format(v / 1e6) + ' M';
+const usd = (v, fx) => { const u = v / fx; return u >= 1e9 ? 'USD ' + es1.format(u / 1e9) + ' mil M' : 'USD ' + (u >= 1e8 ? es.format(u / 1e6) : es1.format(u / 1e6)) + ' M'; };
+const usersShort = (n) => n >= 1e6 ? es1.format(n / 1e6) + ' M' : es.format(n / 1e3) + ' mil';
+const SERIES = [
+  {key: 'hoy', rail: 'wire', cell: 'reference_matched', name: 'Regla fija + banco', color: () => 'var(--color-fg-muted)'},
+  {key: 'banco', rail: 'wire', cell: 'proposed', name: 'Propuesta + banco', color: () => dash.colors[1]},
+  {key: 'stable_fijo', rail: 'stablecoin', cell: 'reference_matched', name: 'Regla fija + stablecoin', color: () => dash.colors[2]},
+  {key: 'stable', rail: 'stablecoin', cell: 'proposed', name: 'Propuesta + stablecoin', color: () => dash.colors[0]},
+];
+const seriesRows = (s) => rowsOf('escala').filter((r) => r.rail === s.rail && r.cell === s.cell).sort((a, b) => a.n_users - b.n_users);
+
+// One value of a dataset row, from the mark's own data-source, data-field and data-where.
+dash.calc('conteo', {
+  inputs: ['supuestos'],
+  title: 'Supuestos por origen',
+  description: 'Cuenta las filas de la tabla de supuestos según de dónde sale cada dato.',
+  fn: (supuestos) => ['Dato público', 'Regla o práctica', 'Supuesto nuestro'].map((origen) => ({origen, n: supuestos.filter((r) => r.origen === origen).length})),
+});
+dash.draw('v', (el) => {
+  const rows = rowsOf(el.dataset.source);
+  const [col, val] = decodeURIComponent(el.dataset.where).split('=');
+  const row = rows.find((r) => String(r[col]) === val);
+  el.textContent = row && row[el.dataset.field] != null ? row[el.dataset.field] : '—';
+});
+
+function fill(tbody, rows, key, cols) {
+  tbody.replaceChildren(...rows.map((r) => {
+    const tr = document.createElement('tr');
+    tr.dataset.key = r[key];
+    for (const c of cols) {
+      const td = document.createElement('td');
+      if (c.num) td.className = 'pf-n';
+      const v = r[c.f];
+      if (c.chip) {
+        const s = document.createElement('span');
+        s.className = 'pf-chip ' + (v === 'Dato público' ? 'pf-pub' : v === 'Regla o práctica' ? 'pf-reg' : 'pf-sup');
+        s.textContent = v;
+        td.append(s);
+      } else if (c.link && typeof r[c.link] === 'string' && r[c.link].startsWith('https://')) {
+        const a = document.createElement('a');
+        a.href = r[c.link]; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = v;
+        td.append(a);
+      } else td.textContent = v == null ? '' : v;
+      tr.append(td);
+    }
+    return tr;
+  }));
+}
+dash.draw('t-supuestos', (el) => {
+  const o = dash.params().origen;
+  fill(el, rowsOf('supuestos').filter((r) => !o || r.origen === o), 'id', [{f: 'grupo'}, {f: 'dato'}, {f: 'valor'}, {f: 'origen', chip: true}, {f: 'uso'}, {f: 'fuente', link: 'url'}]);
+});
+dash.draw('t-sim', (el) => fill(el, rowsOf('sim_vs_publico'), 'id', [{f: 'metrica'}, {f: 'simulado_txt', num: true}, {f: 'publico_txt', num: true}, {f: 'referencia'}, {f: 'lectura'}]));
+dash.draw('t-modelos', (el) => fill(el, rowsOf('modelos'), 'modelo', [{f: 'modelo'}, {f: 'error', num: true}, {f: 'cobertura', num: true}, {f: 'calibracion', num: true}]));
+dash.draw('t-resumen', (el) => fill(el, rowsOf('resumen'), 'n_users', ['usuarios', 'hoy', 'banco', 'stable', 'libera', 'libera_usd', 'ahorro', 'hoy_usuario', 'stable_usuario', 'corridas'].map((f) => ({f, num: true}))));
+dash.draw('t-sens', (el) => fill(el, rowsOf('sensibilidad'), 'id', [{f: 'grupo'}, {f: 'valor'}, {f: 'dias_hoy', num: true}, {f: 'dias_banco', num: true}, {f: 'dias_stable', num: true}, {f: 'ahorro', num: true}]));
+dash.draw('n-sens', (el) => { const r = rowsOf('sensibilidad')[0]; el.textContent = r ? r.corridas : '—'; });
+dash.draw('n-frontera', (el) => { el.textContent = rowsOf('frontera').length ? es.format(20000) : '—'; });
+
+dash.draw('b-ahorro', (el) => {
+  const c = rowsOf('constantes')[0];
+  const r = c && rowsOf('resumen').find((x) => x.n_users === c.n_ref);
+  el.replaceChildren();
+  if (!r) return;
+  const items = [['hoy', r.v_hoy, r.hoy], ['stable_fijo', r.v_stable_fijo, r.stable_fijo], ['banco', r.v_banco, r.banco], ['stable', r.v_stable, r.stable]];
+  const max = Math.max(...items.map((i) => i[1]));
+  for (const [key, v, txt] of items) {
+    const s = SERIES.find((x) => x.key === key);
+    const row = document.createElement('div'); row.className = 'pf-bar';
+    const name = document.createElement('span'); name.textContent = s.name;
+    const track = document.createElement('div'); track.className = 'pf-track';
+    const bar = document.createElement('div'); bar.className = 'pf-fill'; bar.style.width = (v / max * 72) + '%'; bar.style.background = s.color();
+    const val = document.createElement('span'); val.className = 'pf-val'; val.textContent = txt;
+    track.append(bar, val); row.append(name, track); el.append(row);
+  }
+});
+
+function tooltip(box) {
+  const t = document.createElement('div'); t.className = 'pf-tip'; t.hidden = true; box.append(t);
+  return {
+    show(html, x, y) {
+      t.replaceChildren(...html); t.hidden = false;
+      const w = t.offsetWidth, bw = box.clientWidth;
+      t.style.left = Math.max(0, Math.min(bw - w, x + 12)) + 'px';
+      t.style.top = Math.max(0, y - t.offsetHeight - 8) + 'px';
+    },
+    hide() { t.hidden = true; },
+  };
+}
+const tipLine = (color, text) => {
+  const d = document.createElement('div');
+  if (color) { const s = document.createElement('i'); s.className = 'pf-sw'; s.style.background = color; d.append(s); }
+  const b = document.createElement('span'); b.textContent = text; d.append(b);
+  return d;
+};
+const tipHead = (text) => { const d = document.createElement('div'); d.className = 'pf-tiph'; d.textContent = text; return d; };
+const textWidth = (svg, s) => { const t = svg.append('text').text(s); const w = t.node().getComputedTextLength(); t.remove(); return w; };
+
+function linesChart(el, {series, yLog, yFmt, yFmtEnd, yTicks}) {
+  el.replaceChildren();
+  const w = el.clientWidth, h = 300;
+  if (!w || !series.some((s) => s.pts.length)) return;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img');
+  const all = series.flatMap((s) => s.pts);
+  const xs = [...new Set(all.map((p) => p.x))].sort((a, b) => a - b);
+  const lo = d3.min(all, (p) => p.lo ?? p.y), hi = d3.max(all, (p) => p.hi ?? p.y);
+  const ticks = yTicks(lo, hi);
+  const left = Math.ceil(d3.max(ticks, (t) => textWidth(svg, yFmt(t)))) + 10;
+  const last = series.map((s) => s.pts[s.pts.length - 1]).filter(Boolean);
+  const right = w < 460 ? 12 : Math.ceil(d3.max(last, (p) => textWidth(svg, yFmtEnd(p.y)))) + 12;
+  const m = {t: 10, r: right, b: 26, l: left};
+  const x = d3.scaleLog([xs[0], xs[xs.length - 1]], [m.l, w - m.r]);
+  const y = (yLog ? d3.scaleLog([lo * 0.9, hi * 1.1], [h - m.b, m.t]) : d3.scaleLinear([0, hi * 1.1], [h - m.b, m.t]));
+  svg.append('g').selectAll('line').data(ticks).join('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y).attr('y2', y).style('stroke', 'var(--cds-chart-grid)');
+  svg.append('g').selectAll('text').data(ticks).join('text').attr('x', m.l - 6).attr('y', y).attr('dy', '0.32em').attr('text-anchor', 'end').style('fill', 'var(--color-fg-muted)').text(yFmt);
+  let lastRight = -Infinity;
+  const axis = svg.append('g');
+  for (const v of xs) {
+    const label = usersShort(v), lw = textWidth(svg, label), px = x(v);
+    const anchor = v === xs[xs.length - 1] ? 'end' : v === xs[0] ? 'start' : 'middle';
+    const a = anchor === 'end' ? px - lw : anchor === 'start' ? px : px - lw / 2;
+    if (a < lastRight + 8) continue;
+    axis.append('text').attr('x', px).attr('y', h - 8).attr('text-anchor', anchor).style('fill', 'var(--color-fg-muted)').text(label);
+    lastRight = a + lw;
+  }
+  for (const s of series) {
+    if (s.pts.some((p) => p.lo != null && p.hi > p.lo)) {
+      svg.append('path').attr('d', d3.area().x((p) => x(p.x)).y0((p) => y(p.lo)).y1((p) => y(p.hi))(s.pts)).style('fill', s.color).style('opacity', 0.12);
+    }
+    svg.append('path').attr('d', d3.line().x((p) => x(p.x)).y((p) => y(p.y))(s.pts)).style('fill', 'none').style('stroke', s.color).style('stroke-width', 2).style('stroke-linecap', 'round').style('stroke-linejoin', 'round');
+  }
+  if (w >= 460) {
+    const ends = series.filter((s) => s.pts.length).map((s) => { const p = s.pts[s.pts.length - 1]; return {s, p, py: y(p.y)}; }).sort((a, b) => a.py - b.py);
+    for (let i = 1; i < ends.length; i++) if (ends[i].py - ends[i - 1].py < 14) ends[i].py = ends[i - 1].py + 14;
+    for (const e of ends) svg.append('text').attr('x', w - m.r + 6).attr('y', e.py).attr('dy', '0.32em').style('fill', e.s.color).text(yFmtEnd(e.p.y));
+  }
+  const rule = svg.append('line').attr('y1', m.t).attr('y2', h - m.b).style('stroke', 'var(--cds-chart-reference)').style('opacity', 0);
+  const dots = svg.append('g');
+  const tip = tooltip(el);
+  svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w - m.l - m.r).attr('height', h - m.t - m.b).style('fill', 'transparent')
+    .on('pointermove', (ev) => {
+      const [px] = d3.pointer(ev);
+      const v = xs.reduce((best, c) => Math.abs(x(c) - px) < Math.abs(x(best) - px) ? c : best, xs[0]);
+      rule.attr('x1', x(v)).attr('x2', x(v)).style('opacity', 1);
+      const here = series.map((s) => ({s, p: s.pts.find((q) => q.x === v)})).filter((e) => e.p);
+      dots.selectAll('circle').data(here).join('circle').attr('cx', x(v)).attr('cy', (e) => y(e.p.y)).attr('r', 4).style('fill', (e) => e.s.color);
+      tip.show([tipHead(es.format(v) + ' usuarios'), ...here.map((e) => tipLine(e.s.color, e.s.name + ': ' + yFmtEnd(e.p.y)))], x(v), y(here[0].p.y));
+    })
+    .on('pointerleave', () => { rule.style('opacity', 0); dots.selectAll('circle').remove(); tip.hide(); });
+}
+const logTicks = (lo, hi) => { const out = []; for (let e = Math.floor(Math.log10(lo)); e <= Math.ceil(Math.log10(hi)); e++) for (const m of [1, 3]) { const v = m * 10 ** e; if (v >= lo * 0.9 && v <= hi * 1.1) out.push(v); } return out; };
+const mkSeries = (y, band) => SERIES.map((s) => ({name: s.name, color: s.color(), pts: seriesRows(s).map((r) => ({x: r.n_users, y: y(r), lo: band ? r.capital_min : null, hi: band ? r.capital_max : null}))}));
+dash.draw('c-total', (el) => linesChart(el, {series: mkSeries((r) => r.capital, true), yLog: true, yFmt: money, yFmtEnd: money, yTicks: logTicks}));
+dash.draw('c-dias', (el) => linesChart(el, {series: mkSeries((r) => r.dias, false), yLog: false, yFmt: (v) => es.format(v), yFmtEnd: (v) => es1.format(v) + ' días', yTicks: (lo, hi) => d3.scaleLinear([0, hi * 1.1], [0, 1]).ticks(5)}));
+
+function frontierChart(el, rail) {
+  el.replaceChildren();
+  const rows = rowsOf('frontera').filter((r) => r.rail === rail);
+  const w = el.clientWidth, h = 260;
+  if (!w || !rows.length) return;
+  const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${w} ${h}`).attr('role', 'img');
+  const hi = d3.max(rows, (r) => r.capital);
+  const yt = d3.scaleLinear([0, hi * 1.05], [0, 1]).ticks(4);
+  const m = {t: 10, r: 14, b: 40, l: Math.ceil(d3.max(yt, (t) => textWidth(svg, money(t)))) + 10};
+  const x = d3.scaleLinear([0, d3.max(rows, (r) => r.faltantes) * 1.03], [m.l, w - m.r]);
+  const y = d3.scaleLinear([0, hi * 1.05], [h - m.b, m.t]);
+  svg.append('g').selectAll('line').data(yt).join('line').attr('x1', m.l).attr('x2', w - m.r).attr('y1', y).attr('y2', y).style('stroke', 'var(--cds-chart-grid)');
+  svg.append('g').selectAll('text').data(yt).join('text').attr('x', m.l - 6).attr('y', y).attr('dy', '0.32em').attr('text-anchor', 'end').style('fill', 'var(--color-fg-muted)').text(money);
+  const xt = x.ticks(w < 360 ? 3 : 5);
+  svg.append('g').selectAll('text').data(xt).join('text').attr('x', x).attr('y', h - 22).attr('text-anchor', 'middle').style('fill', 'var(--color-fg-muted)').text((v) => es.format(v * 100) + ' %');
+  svg.append('text').attr('x', (m.l + w - m.r) / 2).attr('y', h - 5).attr('text-anchor', 'middle').style('fill', 'var(--color-fg-muted)').text('Días con faltantes');
+  const groups = [{p: 'Propuesta', color: dash.colors[0]}, {p: 'Regla fija', color: 'var(--color-fg-muted)'}];
+  for (const g of groups) {
+    const pts = rows.filter((r) => r.politica === g.p).sort((a, b) => a.capital - b.capital);
+    svg.append('path').attr('d', d3.line().x((p) => x(p.faltantes)).y((p) => y(p.capital))(pts)).style('fill', 'none').style('stroke', g.color).style('stroke-width', 2).style('stroke-linejoin', 'round');
+    svg.append('g').selectAll('circle').data(pts).join('circle').attr('cx', (p) => x(p.faltantes)).attr('cy', (p) => y(p.capital)).attr('r', 3).style('fill', g.color);
+  }
+  const tip = tooltip(el);
+  svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', w - m.l - m.r).attr('height', h - m.t - m.b).style('fill', 'transparent')
+    .on('pointermove', (ev) => {
+      const [px, py] = d3.pointer(ev);
+      const near = rows.reduce((b, r) => Math.hypot(x(r.faltantes) - px, y(r.capital) - py) < Math.hypot(x(b.faltantes) - px, y(b.capital) - py) ? r : b, rows[0]);
+      tip.show([tipHead(near.politica + ', ' + near.parametro), tipLine(null, money(near.capital) + ' inmovilizados'), tipLine(null, es1.format(near.faltantes * 100) + ' % de días con faltantes')], x(near.faltantes), y(near.capital));
+    })
+    .on('pointerleave', () => tip.hide());
+}
+dash.draw('c-front-wire', (el) => frontierChart(el, 'wire'));
+dash.draw('c-front-stable', (el) => frontierChart(el, 'stablecoin'));
+
+const PARTNERS = ['Tarjeta', 'Fondos (FCI)', 'Pago de servicios', 'Efectivo', 'Cripto', 'Remesas'];
+dash.draw('l-partners', (el) => {
+  el.replaceChildren(...(rowsOf('partners').length ? PARTNERS : []).map((p, i) => {
+    const s = document.createElement('span'); const k = document.createElement('i'); k.className = 'pf-sw'; k.style.background = dash.colors[i];
+    s.append(k, document.createTextNode(p)); return s;
+  }));
+});
+dash.draw('b-partners', (el) => {
+  el.replaceChildren();
+  const rows = rowsOf('partners');
+  if (!rows.length) return;
+  const order = ['Regla fija + banco', 'Propuesta + banco', 'Regla fija + stablecoin', 'Propuesta + stablecoin'];
+  const totals = new Map(order.map((e) => [e, d3.sum(rows.filter((r) => r.escenario === e), (r) => r.capital)]));
+  const max = Math.max(...totals.values());
+  const tip = tooltip(el);
+  for (const e of order) {
+    const row = document.createElement('div'); row.className = 'pf-bar';
+    const name = document.createElement('span'); name.textContent = e;
+    const track = document.createElement('div'); track.className = 'pf-track';
+    const stack = document.createElement('div'); stack.className = 'pf-stack'; stack.style.width = (totals.get(e) / max * 72) + '%';
+    PARTNERS.forEach((p, i) => {
+      const r = rows.find((x) => x.escenario === e && x.partner_es === p);
+      if (!r) return;
+      const seg = document.createElement('i'); seg.style.width = (r.capital / totals.get(e) * 100) + '%'; seg.style.background = dash.colors[i];
+      seg.addEventListener('pointermove', (ev) => { const b = el.getBoundingClientRect(); tip.show([tipHead(e), tipLine(dash.colors[i], p + ': ' + money(r.capital) + ' (' + es.format(r.capital / totals.get(e) * 100) + ' %), por ' + r.riel)], ev.clientX - b.left, ev.clientY - b.top); });
+      seg.addEventListener('pointerleave', () => tip.hide());
+      stack.append(seg);
+    });
+    const val = document.createElement('span'); val.className = 'pf-val'; val.textContent = money(totals.get(e));
+    track.append(stack, val); row.append(name, track); el.append(row);
+  }
+});
+
+// The calculator: measured days of spend at the chosen size, times the reader's daily outflow.
+const atSize = (s, n, f) => {
+  const rows = seriesRows(s);
+  if (!rows.length) return NaN;
+  if (n <= rows[0].n_users) return rows[0][f];
+  const hi = rows.findIndex((r) => r.n_users >= n);
+  if (hi < 0) return rows[rows.length - 1][f];
+  const a = rows[hi - 1], b = rows[hi], t = (Math.log(n) - Math.log(a.n_users)) / (Math.log(b.n_users) - Math.log(a.n_users));
+  return a[f] + t * (b[f] - a[f]);
+};
+const calc = () => {
+  const {users, gasto, k, bps} = dash.params();
+  const fx = (rowsOf('constantes')[0] || {}).dolar;
+  const day = users * gasto / 30;
+  const [sHoy, sBanco, , sStable] = SERIES;
+  const hoy = atSize(sHoy, users, 'dias') * day, banco = atSize(sBanco, users, 'dias') * day, stable = atSize(sStable, users, 'dias') * day;
+  const feePer10 = atSize(sStable, users, 'fee_rate');
+  const gana = (k / 100) * (hoy - stable);
+  const costo = day * 365 * feePer10 * (bps / 10);
+  const ganaBanco = (k / 100) * (hoy - banco);
+  return {users, gasto, k, bps, fx, hoy, banco, stable, libera: hoy - stable, gana, costo, neto: gana - costo, equilibrio: (gana - ganaBanco) / (day * 365 * feePer10 / 10)};
+};
+const ok = (v) => Number.isFinite(v);
+const out = (name, f) => dash.draw(name, (el) => { const c = calc(); const v = f(c); el.textContent = v == null ? '—' : v; });
+out('r-users', (c) => es.format(c.users));
+out('r-gasto', (c) => '$' + es.format(c.gasto));
+out('r-k', (c) => c.k + ' %');
+out('r-bps', (c) => c.bps + ' (' + es1.format(c.bps / 100) + ' %)');
+for (const f of ['hoy', 'banco', 'stable', 'libera']) {
+  out('o-' + f, (c) => ok(c[f]) ? money(c[f]) : null);
+  out('o-' + f + '-usd', (c) => ok(c[f]) && c.fx ? usd(c[f], c.fx) : null);
+}
+out('o-gana', (c) => ok(c.gana) ? money(c.gana) : null);
+out('o-costo', (c) => ok(c.costo) ? money(c.costo) : null);
+out('o-neto', (c) => ok(c.neto) ? money(c.neto) : null);
+out('o-neto-usuario', (c) => ok(c.neto) ? '$' + es.format(c.neto / c.users) : null);
+out('o-equilibrio', (c) => ok(c.equilibrio) ? es.format(c.equilibrio) + ' pb' : null);
+
+// Controls: listen and set values; everything shown is a drawing above.
+const toSlider = {users: (v) => Math.log10(v), gasto: (v) => v, k: (v) => v, bps: (v) => v};
+const fromSlider = {users: (v) => Math.round(10 ** v / 1000) * 1000, gasto: (v) => v, k: (v) => v, bps: (v) => v};
+document.querySelectorAll('.pf-in').forEach((inp) => inp.addEventListener('input', () => dash.setParams({[inp.dataset.param]: fromSlider[inp.dataset.param](Number(inp.value))})));
+document.querySelectorAll('.pf-origen').forEach((b) => b.addEventListener('click', () => dash.setParams({origen: b.dataset.origen || null})));
+document.querySelectorAll('.pf-preset').forEach((b) => b.addEventListener('click', () => {
+  if (b.dataset.users) dash.setParams({users: Number(b.dataset.users)});
+  const base = (rowsOf('constantes')[0] || {}).gasto_mes;
+  if (b.dataset.gasto === 'base' && base) dash.setParams({gasto: Math.round(base / 10000) * 10000});
+  if (b.dataset.gasto === 'cuarto' && base) dash.setParams({gasto: Math.round(base / 40000) * 10000});
+  if (b.dataset.gasto === 'cuenta') dash.setParams({gasto: 10000});
+}));
+dash.onData(() => {
+  const p = dash.params();
+  document.querySelectorAll('.pf-in').forEach((inp) => { if (inp !== document.activeElement) inp.value = toSlider[inp.dataset.param](p[inp.dataset.param]); });
+  document.querySelectorAll('.pf-origen').forEach((b) => b.setAttribute('aria-pressed', String((b.dataset.origen || null) === (p.origen ?? null))));
+  const c = rowsOf('constantes')[0];
+  document.querySelectorAll('.pf-extrap').forEach((n) => { n.hidden = !c || p.users <= c.max_simulado; });
+  document.querySelectorAll('.pf-sw[data-serie]').forEach((sw) => { const s = SERIES.find((x) => x.key === sw.dataset.serie); if (s) sw.style.background = s.color(); });
+  const sens = document.getElementById('sensibilidad');
+  if (sens) sens.hidden = !rowsOf('sensibilidad').length;
+});
+</script>

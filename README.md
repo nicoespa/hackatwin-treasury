@@ -24,6 +24,8 @@ alternative is to clear the flag after each `uv sync`:
 
 - `config/calendar_ar.yaml`: Argentine holidays (2025-11-01 to 2026-12-31), SAC (aguinaldo) and ANSES payment windows.
 - `src/treasury/calendar.py`: business-day calendar built from that YAML.
+- `scripts/scaling_experiment.py`: capital immobilized by number of users, plus sensitivity to the simulator's assumptions; writes `reports/experiments/`.
+- `reports/dashboard/`: source and data of the published business dashboard.
 
 ## Demo
 

@@ -1,0 +1,57 @@
+[
+{
+"id": "ticket",
+"metrica": "Ticket promedio de tarjeta",
+"simulado": 33706.236192122175,
+"publico": 31765.424557116676,
+"unidad": "pesos",
+"referencia": "Débito, BCRA jun-2026",
+"lectura": "Parecido a débito. Prepaga es cerca de $18.000 y crédito cerca de $60.000.",
+"simulado_txt": "$33.706",
+"publico_txt": "$31.765"
+},
+{
+"id": "ops",
+"metrica": "Compras con tarjeta por mes, por usuario",
+"simulado": 12.920788369973009,
+"publico": 10.142857142857142,
+"unidad": "veces",
+"referencia": "Todas las tarjetas sobre 37,8 M personas",
+"lectura": "Algo más que el promedio nacional.",
+"simulado_txt": "12,9 veces",
+"publico_txt": "10,1 veces"
+},
+{
+"id": "gasto",
+"metrica": "Gasto mensual con tarjeta por usuario",
+"simulado": 435511.14458673546,
+"publico": 438624.3386243387,
+"unidad": "pesos",
+"referencia": "Todas las tarjetas sobre 37,8 M personas",
+"lectura": "Parecido al total por persona: el usuario simulado hace todo su gasto con esta billetera.",
+"simulado_txt": "$435.511",
+"publico_txt": "$438.624"
+},
+{
+"id": "prepaga",
+"metrica": "Gasto mensual con tarjeta por cuenta de billetera",
+"simulado": 435511.14458673546,
+"publico": 11589.895988112927,
+"unidad": "pesos",
+"referencia": "Prepaga sobre 67,3 M cuentas de pago",
+"lectura": "Mucho más que una cuenta promedio, que suele estar casi sin uso. Por eso la calculadora deja bajar el gasto.",
+"simulado_txt": "$435.511",
+"publico_txt": "$11.590"
+},
+{
+"id": "pico",
+"metrica": "Día de pico contra día típico",
+"simulado": 1.5345363551220312,
+"publico": 1.4904761904761905,
+"unidad": "veces",
+"referencia": "Pix: récord contra un día típico (inferido)",
+"lectura": "Parecido a Pix.",
+"simulado_txt": "1,5 veces",
+"publico_txt": "1,5 veces"
+}
+]

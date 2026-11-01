@@ -1,0 +1,282 @@
+[
+{
+"id": 1,
+"grupo": "Mercado",
+"dato": "Personas con cuenta en Argentina",
+"valor": "37,8 millones (dic-2025)",
+"origen": "Dato público",
+"uso": "Referencia para comparar el gasto por persona.",
+"fuente": "BCRA, Informe de Inclusión Financiera",
+"url": "https://www.bcra.gob.ar/archivos/Pdfs/publicacionesestadisticas/informes/informe-inclusion-financiera-2026-04.pdf"
+},
+{
+"id": 2,
+"grupo": "Mercado",
+"dato": "Cuentas de pago de billeteras",
+"valor": "67,3 millones; 14,7 millones con saldo (jun-2026)",
+"origen": "Dato público",
+"uso": "Muestra que la cuenta promedio mueve mucho menos que el usuario simulado.",
+"fuente": "BCRA, Informe de Pagos Minoristas",
+"url": "https://www.bcra.gob.ar/archivos/Pdfs/PublicacionesEstadisticas/Informes/informe-mensual-pagos-minoristas-2026-07.pdf"
+},
+{
+"id": 3,
+"grupo": "Mercado",
+"dato": "Pagos con tarjeta por mes",
+"valor": "Crédito 176,2 M por $10,6 billones; débito 163,7 M por $5,2 billones; prepaga 43,5 M por $0,78 billones (jun-2026)",
+"origen": "Dato público",
+"uso": "Ticket y gasto de referencia.",
+"fuente": "BCRA, Informe de Pagos Minoristas",
+"url": "https://www.bcra.gob.ar/archivos/Pdfs/PublicacionesEstadisticas/Informes/informe-mensual-pagos-minoristas-2026-07.pdf"
+},
+{
+"id": 4,
+"grupo": "Mercado",
+"dato": "Pagos con QR por mes",
+"valor": "116,9 M por $3,0 billones (jul-2026)",
+"origen": "Dato público",
+"uso": "Contexto de ticket. No se simula aparte.",
+"fuente": "BCRA, Informe de Pagos Minoristas",
+"url": "https://www.bcra.gob.ar/archivos/Pdfs/PublicacionesEstadisticas/Informes/informe-mensual-pagos-minoristas-2026-07.pdf"
+},
+{
+"id": 5,
+"grupo": "Mercado",
+"dato": "Inflación",
+"valor": "23,6 % acumulada a sep-2026, cerca de 2,4 % por mes",
+"origen": "Dato público",
+"uso": "El simulador usa 2% por mes.",
+"fuente": "El Economista, 23-10-2026",
+"url": "https://eleconomista.com.ar/economia/el-banco-central-cambia-reglas-mercado-pago-uala-otras-billeteras-pasara-noviembre-n99145/amp"
+},
+{
+"id": 6,
+"grupo": "Mercado",
+"dato": "Rendimiento de la plata en pesos",
+"valor": "TNA de 14 % a 24 % en fondos de billeteras",
+"origen": "Dato público",
+"uso": "Costo de oportunidad de la plata quieta. Default de la calculadora: 20 %.",
+"fuente": "El Economista, 23-10-2026",
+"url": "https://eleconomista.com.ar/economia/el-banco-central-cambia-reglas-mercado-pago-uala-otras-billeteras-pasara-noviembre-n99145/amp"
+},
+{
+"id": 7,
+"grupo": "Mercado",
+"dato": "Dólar mayorista",
+"valor": "$1.513 (14-oct-2026)",
+"origen": "Dato público",
+"uso": "Solo para mostrar pesos en dólares.",
+"fuente": "Rava Bursátil",
+"url": "https://www.rava.com/cotizaciones/historico/dolar-mayorista/2026/10/14/"
+},
+{
+"id": 8,
+"grupo": "Calendario",
+"dato": "Pago de sueldos",
+"valor": "Hasta el 4.º día hábil, plazo máximo legal",
+"origen": "Dato público",
+"uso": "Por eso el cobro se reparte entre los días hábiles 1 y 4.",
+"fuente": "Ley de Contrato de Trabajo, art. 128",
+"url": "https://www.argentina.gob.ar/normativa/nacional/25552/actualizacion"
+},
+{
+"id": 9,
+"grupo": "Calendario",
+"dato": "Reparto del cobro dentro de esos días",
+"valor": "10 %, 20 %, 30 % y 40 %",
+"origen": "Supuesto nuestro",
+"uso": "Hipótesis del simulador. Se prueba con otras dos.",
+"fuente": "Sin dato público",
+"url": null
+},
+{
+"id": 10,
+"grupo": "Calendario",
+"dato": "Sueldo que pasa a billeteras",
+"valor": "Más de 40 % lo mueve en 48 horas",
+"origen": "Dato público",
+"uso": "Justifica el pico de pagos e inversión después de cobrar. Fuente secundaria.",
+"fuente": "Cámara Argentina Fintech, vía MDZ",
+"url": "https://www.mdzol.com/dinero/adios-al-banco-4-cada-10-argentinos-mueven-su-sueldo-billeteras-virtuales-apenas-cobran-n1466121"
+},
+{
+"id": 11,
+"grupo": "Calendario",
+"dato": "Pico de pagos el día de cobro",
+"valor": "Pix: 313 M operaciones el 5.º día hábil, contra 200 a 220 M típicos",
+"origen": "Dato público",
+"uso": "Es la referencia de forma, porque Argentina no publica serie diaria. El rango típico es inferido.",
+"fuente": "Forbes Brasil",
+"url": "https://forbes.com.br/forbes-money/2025/12/pix-bate-recorde-com-313-milhoes-de-transacoes-em-um-dia/"
+},
+{
+"id": 12,
+"grupo": "Calendario",
+"dato": "Salto del dólar",
+"valor": "Compra de stablecoins hasta 3 veces el promedio",
+"origen": "Dato público",
+"uso": "Referencia del escenario de pánico cambiario. Dato de un solo exchange.",
+"fuente": "CriptoNoticias, sobre Lemon",
+"url": "https://criptonoticias.com/finanzas/aumenta-compra-dolar-cripto-argentina-elecciones"
+},
+{
+"id": 13,
+"grupo": "Usuarios",
+"dato": "Tipos de usuario y participación",
+"valor": "asalariado 35%, informal 20%, jubilado o AUH 12%, joven intensivo 13%, inversor 8%, cripto 7%, comercio 5%",
+"origen": "Supuesto nuestro",
+"uso": "Define la mezcla de productos. No hay demografía pública por billetera.",
+"fuente": "Sin dato público",
+"url": null
+},
+{
+"id": 14,
+"grupo": "Usuarios",
+"dato": "Ticket y frecuencia por producto",
+"valor": "Ej. asalariado: tarjeta $20.000 mediana. 0.60 compras por día",
+"origen": "Supuesto nuestro",
+"uso": "Es lo que más pesa en la plata final. Se puede mover en la calculadora.",
+"fuente": "Elegidos a mano, comparados con BCRA abajo",
+"url": null
+},
+{
+"id": 15,
+"grupo": "Usuarios",
+"dato": "Usuarios nuevos",
+"valor": "60 % activos al inicio, 40 % entran por tandas mensuales",
+"origen": "Supuesto nuestro",
+"uso": "Da el crecimiento de la base durante el año.",
+"fuente": "Sin dato público",
+"url": null
+},
+{
+"id": 16,
+"grupo": "Usuarios",
+"dato": "Fuera del modelo",
+"valor": "Transferencias a CBU o CVU, abandono de usuarios, fraude",
+"origen": "Supuesto nuestro",
+"uso": "Las transferencias salen por COELSA, no de un saldo en partner. Ojo: sin abandono, la base solo crece.",
+"fuente": "Decisión de diseño",
+"url": null
+},
+{
+"id": 17,
+"grupo": "Shock común",
+"dato": "Sorpresa diaria compartida",
+"valor": "Desvío 15%, persistencia 0.7",
+"origen": "Supuesto nuestro",
+"uso": "Es lo que hace que todos los usuarios se muevan juntos. Lo más determinante para el colchón. No hay serie diaria pública para calibrarlo.",
+"fuente": "Sin dato público",
+"url": null
+},
+{
+"id": 18,
+"grupo": "Partners",
+"dato": "Cuándo liquida cada partner",
+"valor": "Servicios, FCI, cripto y remesas en el día; tarjeta y efectivo al día hábil siguiente",
+"origen": "Supuesto nuestro",
+"uso": "Tarjeta débito T+1 sí está documentado. Los demás plazos son contractuales y no son públicos.",
+"fuente": "BCRA para débito; el resto supuesto",
+"url": "https://www.cronista.com/finanzas-mercados/desde-hoy-los-pagos-con-debito-a-los-comercios-se-acreditaran-en-un-dia"
+},
+{
+"id": 19,
+"grupo": "Partners",
+"dato": "Qué partner acepta stablecoin",
+"valor": "Servicios, tarjeta y remesas sí. FCI y efectivo solo banco. Cripto solo stablecoin",
+"origen": "Supuesto nuestro",
+"uso": "Por eso el escenario stablecoin no llega a todos los partners.",
+"fuente": "Sin dato público",
+"url": null
+},
+{
+"id": 20,
+"grupo": "Rieles",
+"dato": "Transferencia bancaria",
+"valor": "48 horas hábiles, corte 15:00, acredita 10:00",
+"origen": "Supuesto nuestro",
+"uso": "Coincide con lo que contó el CPO entrevistado (hasta 48 horas).",
+"fuente": "Entrevista HackaTwin, 30-10",
+"url": null
+},
+{
+"id": 21,
+"grupo": "Rieles",
+"dato": "Stablecoin",
+"valor": "30 minutos, todos los días",
+"origen": "Supuesto nuestro",
+"uso": "Tiempo hasta que el partner puede usar la plata. Es optimista si hay que convertir a pesos, por eso se prueba con más horas.",
+"fuente": "Supuesto; matiz en Circle",
+"url": "https://www.circle.com/blog/the-economics-of-usdc-and-why-our-partners-win"
+},
+{
+"id": 22,
+"grupo": "Rieles",
+"dato": "Costo de usar stablecoin",
+"valor": "10 puntos básicos sobre lo enviado",
+"origen": "Supuesto nuestro",
+"uso": "No se cotizó con un proveedor. Es lo que decide si conviene: mirá el punto de equilibrio.",
+"fuente": "Referencia: Tether cobra 0,1 % o más al redimir",
+"url": "https://stablecoininsider.org/how-to-redeem-a-stablecoin-for-dollars/"
+},
+{
+"id": 23,
+"grupo": "Rieles",
+"dato": "Comisión fija por transferencia",
+"valor": "30 en banco y 2 en stablecoin",
+"origen": "Supuesto nuestro",
+"uso": "Error nuestro: quedó en pesos cuando la pensamos en dólares. Por eso casi no pesa. Corregirla favorecería a stablecoin.",
+"fuente": "A corregir",
+"url": null
+},
+{
+"id": 24,
+"grupo": "Política",
+"dato": "Regla típica de la industria",
+"valor": "Dejar un día de volumen en semana y tres el fin de semana",
+"origen": "Regla o práctica",
+"uso": "Inspira la comparación contra un colchón fijo en días de gasto.",
+"fuente": "Marqeta, guía de fondeo",
+"url": "https://community.marqeta.com/t5/knowledge-base/program-funding-account-management-101-guide/ta-p/418"
+},
+{
+"id": 25,
+"grupo": "Política",
+"dato": "Nivel de protección de la regla propuesta",
+"valor": "99% de los escenarios simulados",
+"origen": "Supuesto nuestro",
+"uso": "En la práctica dio más seguridad que eso, porque la regla es conservadora.",
+"fuente": "Elección nuestra",
+"url": null
+},
+{
+"id": 26,
+"grupo": "Política",
+"dato": "Costo de un pago rechazado",
+"valor": "$0.05 por cada peso rechazado",
+"origen": "Supuesto nuestro",
+"uso": "Nadie publica este dato para billeteras. Cada empresa tiene que medirlo.",
+"fuente": "Proxy: 40 % no reintenta tras un rechazo (Forter)",
+"url": "https://paymentsnext.com/?p=12925"
+},
+{
+"id": 27,
+"grupo": "Política",
+"dato": "Costo de capital",
+"valor": "12% anual en el backtest; 20 % por default en la calculadora",
+"origen": "Supuesto nuestro",
+"uso": "El 12 % queda bajo frente a lo que rinde un fondo en pesos.",
+"fuente": "Elección nuestra",
+"url": null
+},
+{
+"id": 28,
+"grupo": "Política",
+"dato": "Reserva central",
+"valor": "No se cuenta",
+"origen": "Supuesto nuestro",
+"uso": "Límite importante: en ningún escenario se suma la plata que hay que tener lista antes de enviar.",
+"fuente": "Decisión de diseño",
+"url": null
+}
+]
