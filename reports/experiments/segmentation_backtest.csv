@@ -1,0 +1,25 @@
+variant,labels,cell,rail,model,policy,buffer_days,capital_total_mean,shortfall_rate,shortfall_amount_total,cost_total,n_transfers,realized_service,p_unresolvable_mean,warmup_days,warmup_shortfall_windows,rail_note
+(d) oracle,oracle,proposed,wire,segment_factor,forecast_a0.99,,3256104954.9895015,0.0,0.0,56607884.477080785,221,1.0,0.008883620689655173,4,0,crypto_exchange=stablecoin
+(d) oracle,oracle,reference_matched,wire,none,fixed,10.0,4011209047.2599597,0.0,0.0,69580796.28740315,282,1.0,,4,0,crypto_exchange=stablecoin
+(d) oracle,oracle,proposed,stablecoin,segment_factor,forecast_a0.99,,1680491024.7010396,0.0,0.0,46046812.394889005,242,1.0,0.004471428571428572,4,0,"fci_custodian=wire, cash_network=wire"
+(d) oracle,oracle,reference_matched,stablecoin,none,fixed,6.5,2765021231.949485,0.0,0.0,65691181.96538297,430,1.0,,4,0,"fci_custodian=wire, cash_network=wire"
+(d) kmeans,"kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5)",proposed,wire,segment_factor,forecast_a0.99,,3616832310.758727,0.0,0.0,62786489.81954645,214,1.0,0.007090517241379311,4,0,crypto_exchange=stablecoin
+(d) kmeans,"kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5)",reference_matched,wire,none,fixed,10.0,4011209047.2599597,0.0,0.0,69580796.28740315,282,1.0,,4,0,crypto_exchange=stablecoin
+(d) kmeans,"kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5)",proposed,stablecoin,segment_factor,forecast_a0.99,,1973931031.9125876,0.0,0.0,51043854.60036862,235,1.0,0.003942857142857143,4,0,"fci_custodian=wire, cash_network=wire"
+(d) kmeans,"kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5)",reference_matched,stablecoin,none,fixed,6.5,2765021231.949485,0.0,0.0,65691181.96538297,430,1.0,,4,0,"fci_custodian=wire, cash_network=wire"
+(d) kmeans k=7,"kmeans(k=7,seed=0,window=90,min_tenure=30,min_events=5)",proposed,wire,segment_factor,forecast_a0.99,,3860267428.547185,0.0,0.0,66954669.915436804,208,1.0,0.015228448275862068,4,0,crypto_exchange=stablecoin
+(d) kmeans k=7,"kmeans(k=7,seed=0,window=90,min_tenure=30,min_events=5)",reference_matched,wire,none,fixed,10.0,4011209047.2599597,0.0,0.0,69580796.28740315,282,1.0,,4,0,crypto_exchange=stablecoin
+(d) kmeans k=7,"kmeans(k=7,seed=0,window=90,min_tenure=30,min_events=5)",proposed,stablecoin,segment_factor,forecast_a0.99,,2227733207.393353,0.0,0.0,55224723.77845074,228,1.0,0.0061428571428571435,4,0,"fci_custodian=wire, cash_network=wire"
+(d) kmeans k=7,"kmeans(k=7,seed=0,window=90,min_tenure=30,min_events=5)",reference_matched,stablecoin,none,fixed,6.5,2765021231.949485,0.0,0.0,65691181.96538297,430,1.0,,4,0,"fci_custodian=wire, cash_network=wire"
+(b) oracle,oracle,proposed,wire,aggregate_drivers,forecast_a0.99,,3861462967.008736,0.0,0.0,66982635.70995757,215,1.0,0.014969827586206895,4,0,crypto_exchange=stablecoin
+(b) oracle,oracle,reference_matched,wire,none,fixed,10.0,4011209047.2599597,0.0,0.0,69580796.28740315,282,1.0,,4,0,crypto_exchange=stablecoin
+(b) oracle,oracle,proposed,stablecoin,aggregate_drivers,forecast_a0.99,,2120194287.163208,0.003205128205128205,1739392.674642831,54867780.81701548,240,0.9967948717948718,0.011435714285714285,4,0,"fci_custodian=wire, cash_network=wire"
+(b) oracle,oracle,reference_matched,stablecoin,none,fixed,6.5,2765021231.949485,0.0,0.0,65691181.96538297,430,1.0,,4,0,"fci_custodian=wire, cash_network=wire"
+(c) oracle,oracle,proposed,wire,aggregate_drivers_obligations,forecast_a0.99,,3801873229.0279665,0.0,0.0,65963926.07982057,216,1.0,0.01593103448275862,4,0,crypto_exchange=stablecoin
+(c) oracle,oracle,reference_matched,wire,none,fixed,10.0,4011209047.2599597,0.0,0.0,69580796.28740315,282,1.0,,4,0,crypto_exchange=stablecoin
+(c) oracle,oracle,proposed,stablecoin,aggregate_drivers_obligations,forecast_a0.99,,2077944859.278595,0.003205128205128205,1739392.674642831,54084516.22797442,242,0.9967948717948718,0.0144,4,0,"fci_custodian=wire, cash_network=wire"
+(c) oracle,oracle,reference_matched,stablecoin,none,fixed,6.5,2765021231.949485,0.0,0.0,65691181.96538297,430,1.0,,4,0,"fci_custodian=wire, cash_network=wire"
+(c) kmeans,"kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5)",proposed,wire,aggregate_drivers_obligations,forecast_a0.99,,3710189334.7971873,0.0,0.0,64405550.27160123,216,1.0,0.012732758620689656,4,0,crypto_exchange=stablecoin
+(c) kmeans,"kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5)",reference_matched,wire,none,fixed,10.0,4011209047.2599597,0.0,0.0,69580796.28740315,282,1.0,,4,0,crypto_exchange=stablecoin
+(c) kmeans,"kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5)",proposed,stablecoin,aggregate_drivers_obligations,forecast_a0.99,,1972589766.8132455,0.003205128205128205,1613392.674642831,51974073.11295036,240,0.9967948717948718,0.008950000000000001,4,0,"fci_custodian=wire, cash_network=wire"
+(c) kmeans,"kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5)",reference_matched,stablecoin,none,fixed,6.5,2765021231.949485,0.0,0.0,65691181.96538297,430,1.0,,4,0,"fci_custodian=wire, cash_network=wire"
