@@ -1,0 +1,215 @@
+{
+  "as_of": "2026-10-09",
+  "review_at": "2026-10-09T09:00:00",
+  "rail": "stablecoin",
+  "forecast_run_id": "segment_factor@2026-10-09",
+  "seed": 0,
+  "n_paths": 2000,
+  "data_through": "2026-10-08",
+  "forecast_age_hours": 9.0,
+  "llm": false,
+  "autonomy": {
+    "enabled": true,
+    "max_forecast_age_hours": 24,
+    "sanity_multiple": 3,
+    "limits": {
+      "USD": {
+        "max_per_transfer": 350000,
+        "max_per_partner_day": 400000,
+        "max_all_partners_day": 400000
+      },
+      "BRL": {
+        "max_per_transfer": 300000,
+        "max_per_partner_day": 400000,
+        "max_all_partners_day": 400000
+      }
+    }
+  },
+  "totals": {
+    "BRL": {
+      "executed_in_run": 0.0,
+      "instructed_today": 0.0,
+      "max_all_partners_day": 400000
+    },
+    "USD": {
+      "executed_in_run": 9600.0,
+      "instructed_today": 9600.0,
+      "max_all_partners_day": 400000
+    }
+  },
+  "ledger": "data/transfers_intl.jsonl",
+  "partners": [
+    {
+      "partner": "pix_br",
+      "currency": "BRL",
+      "rail": "stablecoin",
+      "destination": "sim:usdt:pix_br",
+      "status": "no_deposit",
+      "forecast_tomorrow": {
+        "date": "2026-10-10",
+        "q05": 43952.41,
+        "q50": 71207.22,
+        "q95": 116418.57,
+        "q99": 138974.46
+      },
+      "available": 236862.09836659924,
+      "in_transit": 0.0,
+      "need": 143664.56361394163,
+      "p_unresolvable": 0.0,
+      "policy_amount": 0.0,
+      "executed_amount": 0.0,
+      "limit_applied": null,
+      "remainder": 0.0,
+      "transfer": null,
+      "eta": null,
+      "alerts": [],
+      "rationale": "Target 143,665, available 236,862, deposit 0 via stablecoin; p_unresolvable 0.0% [templated: offline]",
+      "exception": null,
+      "forecast_7d": [
+        {
+          "date": "2026-10-10",
+          "q05": 43952.41,
+          "q50": 71207.22,
+          "q95": 116418.57,
+          "q99": 138974.46
+        },
+        {
+          "date": "2026-10-11",
+          "q05": 41940.04,
+          "q50": 67307.68,
+          "q95": 111542.7,
+          "q99": 136040.25
+        },
+        {
+          "date": "2026-10-12",
+          "q05": 32439.84,
+          "q50": 54634.49,
+          "q95": 88815.45,
+          "q99": 109182.79
+        },
+        {
+          "date": "2026-10-13",
+          "q05": 33257.87,
+          "q50": 54673.56,
+          "q95": 89666.33,
+          "q99": 106392.4
+        },
+        {
+          "date": "2026-10-14",
+          "q05": 35617.58,
+          "q50": 57612.58,
+          "q95": 92108.15,
+          "q99": 112329.06
+        },
+        {
+          "date": "2026-10-15",
+          "q05": 35869.38,
+          "q50": 59325.61,
+          "q95": 95699.96,
+          "q99": 112892.2
+        },
+        {
+          "date": "2026-10-16",
+          "q05": 38906.04,
+          "q50": 64098.05,
+          "q95": 104494.76,
+          "q99": 125304.66
+        }
+      ]
+    },
+    {
+      "partner": "usd_acquirer",
+      "currency": "USD",
+      "rail": "stablecoin",
+      "destination": "sim:usdt:usd_acquirer",
+      "status": "executed",
+      "forecast_tomorrow": {
+        "date": "2026-10-10",
+        "q05": 0.0,
+        "q50": 0.0,
+        "q95": 0.0,
+        "q99": 0.0
+      },
+      "available": 152503.45123454506,
+      "in_transit": 0.0,
+      "need": 162084.13154956992,
+      "p_unresolvable": 0.0,
+      "policy_amount": 9600.0,
+      "executed_amount": 9600.0,
+      "limit_applied": null,
+      "remainder": 0.0,
+      "transfer": {
+        "idempotency_key": "usd_acquirer@2026-10-09T09:00:00",
+        "partner": "usd_acquirer",
+        "rail": "stablecoin",
+        "amount": 9600.0,
+        "currency": "USD",
+        "destination": "sim:usdt:usd_acquirer",
+        "instructed_at": "2026-10-09T09:00:00",
+        "accepted_at": "2026-10-09T09:00:00",
+        "arrival_at": "2026-10-09T09:30:00",
+        "forecast_run_id": "segment_factor@2026-10-09",
+        "policy_amount": 9600.0,
+        "limit_applied": null,
+        "alerts": [],
+        "created_at": "2026-11-06T22:40:01.311748+00:00",
+        "status": "in_transit"
+      },
+      "eta": "2026-10-09T09:30:00",
+      "alerts": [],
+      "rationale": "Target 162,084, available 152,503, deposit 9,600 via stablecoin; p_unresolvable 0.0% [templated: offline]",
+      "exception": null,
+      "forecast_7d": [
+        {
+          "date": "2026-10-10",
+          "q05": 0.0,
+          "q50": 0.0,
+          "q95": 0.0,
+          "q99": 0.0
+        },
+        {
+          "date": "2026-10-11",
+          "q05": 0.0,
+          "q50": 0.0,
+          "q95": 0.0,
+          "q99": 0.0
+        },
+        {
+          "date": "2026-10-12",
+          "q05": 857.45,
+          "q50": 1418.66,
+          "q95": 2268.0,
+          "q99": 2739.43
+        },
+        {
+          "date": "2026-10-13",
+          "q05": 146376.95,
+          "q50": 229637.84,
+          "q95": 360239.0,
+          "q99": 438895.5
+        },
+        {
+          "date": "2026-10-14",
+          "q05": 220729.86,
+          "q50": 328254.17,
+          "q95": 494091.17,
+          "q99": 591922.89
+        },
+        {
+          "date": "2026-10-15",
+          "q05": 57164.01,
+          "q50": 85577.01,
+          "q95": 127838.91,
+          "q99": 151765.62
+        },
+        {
+          "date": "2026-10-16",
+          "q05": 58158.29,
+          "q50": 84358.06,
+          "q95": 126392.85,
+          "q99": 150368.82
+        }
+      ]
+    }
+  ]
+}

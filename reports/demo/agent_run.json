@@ -1,0 +1,589 @@
+{
+  "as_of": "2026-10-01",
+  "review_at": "2026-10-01T09:00:00",
+  "rail": "wire",
+  "forecast_run_id": "segment_factor@2026-10-01",
+  "seed": 0,
+  "n_paths": 2000,
+  "data_through": "2026-09-30",
+  "forecast_age_hours": 9.0,
+  "llm": false,
+  "autonomy": {
+    "enabled": true,
+    "max_forecast_age_hours": 24,
+    "sanity_multiple": 3,
+    "limits": {
+      "ARS": {
+        "max_per_transfer": 500000000,
+        "max_per_partner_day": 750000000,
+        "max_all_partners_day": 1500000000
+      }
+    }
+  },
+  "totals": {
+    "ARS": {
+      "executed_in_run": 756104000.0,
+      "instructed_today": 756104000.0,
+      "max_all_partners_day": 1500000000
+    }
+  },
+  "ledger": "data/transfers.jsonl",
+  "partners": [
+    {
+      "partner": "bills_aggregator",
+      "currency": "ARS",
+      "rail": "wire",
+      "destination": "SIM-CBU-0000000000000000000101",
+      "status": "executed",
+      "forecast_tomorrow": {
+        "date": "2026-10-02",
+        "q05": 117718212.91,
+        "q50": 155753590.65,
+        "q95": 219886690.83,
+        "q99": 252716607.34
+      },
+      "available": 906583094.5734676,
+      "in_transit": 0.0,
+      "need": 1022139190.6670623,
+      "p_unresolvable": 0.0,
+      "policy_amount": 115557000.0,
+      "executed_amount": 115557000.0,
+      "limit_applied": null,
+      "remainder": 0.0,
+      "transfer": {
+        "idempotency_key": "bills_aggregator@2026-10-01T09:00:00",
+        "partner": "bills_aggregator",
+        "rail": "wire",
+        "amount": 115557000.0,
+        "currency": "ARS",
+        "destination": "SIM-CBU-0000000000000000000101",
+        "instructed_at": "2026-10-01T09:00:00",
+        "accepted_at": "2026-10-01T09:00:00",
+        "arrival_at": "2026-10-05T10:00:00",
+        "forecast_run_id": "segment_factor@2026-10-01",
+        "policy_amount": 115557000.0,
+        "limit_applied": null,
+        "alerts": [],
+        "created_at": "2026-11-06T22:19:27.200831+00:00",
+        "status": "in_transit"
+      },
+      "eta": "2026-10-05T10:00:00",
+      "alerts": [],
+      "rationale": "Target 1,022,139,191, available 906,583,095, deposit 115,557,000 via wire; p_unresolvable 0.0% [templated: offline]",
+      "exception": null,
+      "forecast_7d": [
+        {
+          "date": "2026-10-02",
+          "q05": 117718212.91,
+          "q50": 155753590.65,
+          "q95": 219886690.83,
+          "q99": 252716607.34
+        },
+        {
+          "date": "2026-10-03",
+          "q05": 89504283.91,
+          "q50": 113117819.33,
+          "q95": 147680551.96,
+          "q99": 169067098.17
+        },
+        {
+          "date": "2026-10-04",
+          "q05": 78399337.39,
+          "q50": 98499250.66,
+          "q95": 127186472.22,
+          "q99": 144168601.52
+        },
+        {
+          "date": "2026-10-05",
+          "q05": 114502189.58,
+          "q50": 152798698.59,
+          "q95": 208699553.3,
+          "q99": 235705415.87
+        },
+        {
+          "date": "2026-10-06",
+          "q05": 116146800.78,
+          "q50": 154193028.99,
+          "q95": 212660245.98,
+          "q99": 243459498.63
+        },
+        {
+          "date": "2026-10-07",
+          "q05": 103129235.69,
+          "q50": 134648208.81,
+          "q95": 181307604.63,
+          "q99": 207179625.47
+        },
+        {
+          "date": "2026-10-08",
+          "q05": 119754147.83,
+          "q50": 161306851.99,
+          "q95": 223101630.22,
+          "q99": 254114916.73
+        }
+      ]
+    },
+    {
+      "partner": "card_network",
+      "currency": "ARS",
+      "rail": "wire",
+      "destination": "SIM-CBU-0000000000000000000102",
+      "status": "capped",
+      "forecast_tomorrow": {
+        "date": "2026-10-02",
+        "q05": 196485063.25,
+        "q50": 284083615.03,
+        "q95": 426044582.63,
+        "q99": 508357041.09
+      },
+      "available": 1527125533.3377736,
+      "in_transit": 0.0,
+      "need": 2364197638.493643,
+      "p_unresolvable": 0.0,
+      "policy_amount": 837073000.0,
+      "executed_amount": 500000000.0,
+      "limit_applied": "max_per_transfer",
+      "remainder": 337073000.0,
+      "transfer": {
+        "idempotency_key": "card_network@2026-10-01T09:00:00",
+        "partner": "card_network",
+        "rail": "wire",
+        "amount": 500000000.0,
+        "currency": "ARS",
+        "destination": "SIM-CBU-0000000000000000000102",
+        "instructed_at": "2026-10-01T09:00:00",
+        "accepted_at": "2026-10-01T09:00:00",
+        "arrival_at": "2026-10-05T10:00:00",
+        "forecast_run_id": "segment_factor@2026-10-01",
+        "policy_amount": 837073000.0,
+        "limit_applied": "max_per_transfer",
+        "alerts": [
+          {
+            "partner": "card_network",
+            "code": "limit_capped",
+            "action": "capped",
+            "message": "Tope max_per_transfer: se ejecutan 500,0 M ARS de 837,1 M ARS; faltan 337,1 M ARS, requiere decisión humana.",
+            "details": {
+              "limit": "max_per_transfer",
+              "remaining": 500000000,
+              "remainder": 337073000.0
+            }
+          }
+        ],
+        "created_at": "2026-11-06T22:19:27.202655+00:00",
+        "status": "in_transit"
+      },
+      "eta": "2026-10-05T10:00:00",
+      "alerts": [
+        {
+          "partner": "card_network",
+          "code": "limit_capped",
+          "action": "capped",
+          "message": "Tope max_per_transfer: se ejecutan 500,0 M ARS de 837,1 M ARS; faltan 337,1 M ARS, requiere decisión humana.",
+          "details": {
+            "limit": "max_per_transfer",
+            "remaining": 500000000,
+            "remainder": 337073000.0
+          }
+        }
+      ],
+      "rationale": "Target 2,364,197,638, available 1,527,125,533, deposit 837,073,000 via wire; p_unresolvable 0.0% [templated: offline]",
+      "exception": null,
+      "forecast_7d": [
+        {
+          "date": "2026-10-02",
+          "q05": 196485063.25,
+          "q50": 284083615.03,
+          "q95": 426044582.63,
+          "q99": 508357041.09
+        },
+        {
+          "date": "2026-10-03",
+          "q05": 0.0,
+          "q50": 0.0,
+          "q95": 0.0,
+          "q99": 0.0
+        },
+        {
+          "date": "2026-10-04",
+          "q05": 0.0,
+          "q50": 0.0,
+          "q95": 0.0,
+          "q99": 0.0
+        },
+        {
+          "date": "2026-10-05",
+          "q05": 222728497.61,
+          "q50": 319771551.73,
+          "q95": 456244321.41,
+          "q99": 524613637.36
+        },
+        {
+          "date": "2026-10-06",
+          "q05": 576835088.98,
+          "q50": 845238504.82,
+          "q95": 1222485669.1,
+          "q99": 1431226701.05
+        },
+        {
+          "date": "2026-10-07",
+          "q05": 196594954.95,
+          "q50": 286705636.42,
+          "q95": 415032109.39,
+          "q99": 479056247.08
+        },
+        {
+          "date": "2026-10-08",
+          "q05": 181146666.84,
+          "q50": 259733254.02,
+          "q95": 382589887.82,
+          "q99": 439595548.44
+        }
+      ]
+    },
+    {
+      "partner": "fci_custodian",
+      "currency": "ARS",
+      "rail": "wire",
+      "destination": "SIM-CBU-0000000000000000000103",
+      "status": "executed",
+      "forecast_tomorrow": {
+        "date": "2026-10-02",
+        "q05": 61507635.43,
+        "q50": 98764903.82,
+        "q95": 162374296.87,
+        "q99": 203516052.55
+      },
+      "available": 609295246.3246462,
+      "in_transit": 0.0,
+      "need": 619763198.107079,
+      "p_unresolvable": 0.0,
+      "policy_amount": 10468000.0,
+      "executed_amount": 10468000.0,
+      "limit_applied": null,
+      "remainder": 0.0,
+      "transfer": {
+        "idempotency_key": "fci_custodian@2026-10-01T09:00:00",
+        "partner": "fci_custodian",
+        "rail": "wire",
+        "amount": 10468000.0,
+        "currency": "ARS",
+        "destination": "SIM-CBU-0000000000000000000103",
+        "instructed_at": "2026-10-01T09:00:00",
+        "accepted_at": "2026-10-01T09:00:00",
+        "arrival_at": "2026-10-05T10:00:00",
+        "forecast_run_id": "segment_factor@2026-10-01",
+        "policy_amount": 10468000.0,
+        "limit_applied": null,
+        "alerts": [],
+        "created_at": "2026-11-06T22:19:27.204497+00:00",
+        "status": "in_transit"
+      },
+      "eta": "2026-10-05T10:00:00",
+      "alerts": [],
+      "rationale": "Target 619,763,198, available 609,295,246, deposit 10,468,000 via wire; p_unresolvable 0.0% [templated: offline]",
+      "exception": null,
+      "forecast_7d": [
+        {
+          "date": "2026-10-02",
+          "q05": 61507635.43,
+          "q50": 98764903.82,
+          "q95": 162374296.87,
+          "q99": 203516052.55
+        },
+        {
+          "date": "2026-10-03",
+          "q05": 28185268.79,
+          "q50": 45734183.13,
+          "q95": 75122175.0,
+          "q99": 89310548.56
+        },
+        {
+          "date": "2026-10-04",
+          "q05": 22454387.85,
+          "q50": 38352375.8,
+          "q95": 63020029.2,
+          "q99": 78516233.5
+        },
+        {
+          "date": "2026-10-05",
+          "q05": 61912119.77,
+          "q50": 100266341.43,
+          "q95": 163405738.64,
+          "q99": 190410826.01
+        },
+        {
+          "date": "2026-10-06",
+          "q05": 58897417.46,
+          "q50": 97336032.94,
+          "q95": 155908153.65,
+          "q99": 189370973.69
+        },
+        {
+          "date": "2026-10-07",
+          "q05": 52541536.71,
+          "q50": 85898238.66,
+          "q95": 137185540.89,
+          "q99": 168419808.04
+        },
+        {
+          "date": "2026-10-08",
+          "q05": 52811658.68,
+          "q50": 88656811.9,
+          "q95": 142813342.33,
+          "q99": 174537729.72
+        }
+      ]
+    },
+    {
+      "partner": "crypto_exchange",
+      "currency": "ARS",
+      "rail": "stablecoin",
+      "destination": "sim:usdc:crypto_exchange",
+      "status": "no_deposit",
+      "forecast_tomorrow": {
+        "date": "2026-10-02",
+        "q05": 16285185.19,
+        "q50": 26601457.54,
+        "q95": 44376560.19,
+        "q99": 54318510.93
+      },
+      "available": 88148114.9954378,
+      "in_transit": 0.0,
+      "need": 57602908.54209717,
+      "p_unresolvable": 0.0,
+      "policy_amount": 0.0,
+      "executed_amount": 0.0,
+      "limit_applied": null,
+      "remainder": 0.0,
+      "transfer": null,
+      "eta": null,
+      "alerts": [],
+      "rationale": "Target 57,602,909, available 88,148,115, deposit 0 via stablecoin; p_unresolvable 0.0% [templated: offline]",
+      "exception": null,
+      "forecast_7d": [
+        {
+          "date": "2026-10-02",
+          "q05": 16285185.19,
+          "q50": 26601457.54,
+          "q95": 44376560.19,
+          "q99": 54318510.93
+        },
+        {
+          "date": "2026-10-03",
+          "q05": 14663393.44,
+          "q50": 24646755.19,
+          "q95": 41060508.71,
+          "q99": 50057721.43
+        },
+        {
+          "date": "2026-10-04",
+          "q05": 15377924.89,
+          "q50": 26634046.03,
+          "q95": 43735525.47,
+          "q99": 51936765.5
+        },
+        {
+          "date": "2026-10-05",
+          "q05": 15448101.48,
+          "q50": 26285685.14,
+          "q95": 42072465.55,
+          "q99": 51022868.28
+        },
+        {
+          "date": "2026-10-06",
+          "q05": 15246324.73,
+          "q50": 25518325.9,
+          "q95": 41542010.94,
+          "q99": 50209096.17
+        },
+        {
+          "date": "2026-10-07",
+          "q05": 14195645.02,
+          "q50": 24214147.71,
+          "q95": 39640477.92,
+          "q99": 47610797.44
+        },
+        {
+          "date": "2026-10-08",
+          "q05": 16337220.03,
+          "q50": 27055126.9,
+          "q95": 44550379.34,
+          "q99": 53377481.48
+        }
+      ]
+    },
+    {
+      "partner": "cash_network",
+      "currency": "ARS",
+      "rail": "wire",
+      "destination": "SIM-CBU-0000000000000000000105",
+      "status": "executed",
+      "forecast_tomorrow": {
+        "date": "2026-10-02",
+        "q05": 31334172.81,
+        "q50": 45082177.23,
+        "q95": 66512803.99,
+        "q99": 77992957.63
+      },
+      "available": 231502261.43883127,
+      "in_transit": 0.0,
+      "need": 361580815.69833565,
+      "p_unresolvable": 0.0,
+      "policy_amount": 130079000.0,
+      "executed_amount": 130079000.0,
+      "limit_applied": null,
+      "remainder": 0.0,
+      "transfer": {
+        "idempotency_key": "cash_network@2026-10-01T09:00:00",
+        "partner": "cash_network",
+        "rail": "wire",
+        "amount": 130079000.0,
+        "currency": "ARS",
+        "destination": "SIM-CBU-0000000000000000000105",
+        "instructed_at": "2026-10-01T09:00:00",
+        "accepted_at": "2026-10-01T09:00:00",
+        "arrival_at": "2026-10-05T10:00:00",
+        "forecast_run_id": "segment_factor@2026-10-01",
+        "policy_amount": 130079000.0,
+        "limit_applied": null,
+        "alerts": [],
+        "created_at": "2026-11-06T22:19:27.206802+00:00",
+        "status": "in_transit"
+      },
+      "eta": "2026-10-05T10:00:00",
+      "alerts": [],
+      "rationale": "Target 361,580,816, available 231,502,261, deposit 130,079,000 via wire; p_unresolvable 0.0% [templated: offline]",
+      "exception": null,
+      "forecast_7d": [
+        {
+          "date": "2026-10-02",
+          "q05": 31334172.81,
+          "q50": 45082177.23,
+          "q95": 66512803.99,
+          "q99": 77992957.63
+        },
+        {
+          "date": "2026-10-03",
+          "q05": 0.0,
+          "q50": 0.0,
+          "q95": 0.0,
+          "q99": 0.0
+        },
+        {
+          "date": "2026-10-04",
+          "q05": 0.0,
+          "q50": 0.0,
+          "q95": 0.0,
+          "q99": 0.0
+        },
+        {
+          "date": "2026-10-05",
+          "q05": 36423502.6,
+          "q50": 53165484.54,
+          "q95": 76500678.81,
+          "q99": 87416664.83
+        },
+        {
+          "date": "2026-10-06",
+          "q05": 88758628.11,
+          "q50": 129293537.68,
+          "q95": 186602926.11,
+          "q99": 225668994.83
+        },
+        {
+          "date": "2026-10-07",
+          "q05": 33345691.33,
+          "q50": 47899412.68,
+          "q95": 69696515.82,
+          "q99": 80497978.42
+        },
+        {
+          "date": "2026-10-08",
+          "q05": 29466455.14,
+          "q50": 42770630.19,
+          "q95": 62694954.22,
+          "q99": 72000112.79
+        }
+      ]
+    },
+    {
+      "partner": "remittance",
+      "currency": "ARS",
+      "rail": "wire",
+      "destination": "SIM-CBU-0000000000000000000106",
+      "status": "no_deposit",
+      "forecast_tomorrow": {
+        "date": "2026-10-02",
+        "q05": 2926157.31,
+        "q50": 6213110.84,
+        "q95": 12395388.19,
+        "q99": 15687615.16
+      },
+      "available": 46069250.86854884,
+      "in_transit": 0.0,
+      "need": 44265491.85381082,
+      "p_unresolvable": 0.0005,
+      "policy_amount": 0.0,
+      "executed_amount": 0.0,
+      "limit_applied": null,
+      "remainder": 0.0,
+      "transfer": null,
+      "eta": null,
+      "alerts": [],
+      "rationale": "Target 44,265,492, available 46,069,251, deposit 0 via wire; p_unresolvable 0.1% [templated: offline]",
+      "exception": null,
+      "forecast_7d": [
+        {
+          "date": "2026-10-02",
+          "q05": 2926157.31,
+          "q50": 6213110.84,
+          "q95": 12395388.19,
+          "q99": 15687615.16
+        },
+        {
+          "date": "2026-10-03",
+          "q05": 1764301.61,
+          "q50": 3923809.19,
+          "q95": 7544899.37,
+          "q99": 9579388.77
+        },
+        {
+          "date": "2026-10-04",
+          "q05": 1578870.89,
+          "q50": 3404331.3,
+          "q95": 6729176.53,
+          "q99": 9062868.69
+        },
+        {
+          "date": "2026-10-05",
+          "q05": 2016515.16,
+          "q50": 4391992.51,
+          "q95": 8735413.77,
+          "q99": 11026236.56
+        },
+        {
+          "date": "2026-10-06",
+          "q05": 2140103.74,
+          "q50": 4556076.49,
+          "q95": 9121143.02,
+          "q99": 11887510.47
+        },
+        {
+          "date": "2026-10-07",
+          "q05": 2305884.24,
+          "q50": 5034475.33,
+          "q95": 10032749.3,
+          "q99": 12520539.4
+        },
+        {
+          "date": "2026-10-08",
+          "q05": 2233577.15,
+          "q50": 4797810.32,
+          "q95": 9385709.99,
+          "q99": 12718166.86
+        }
+      ]
+    }
+  ]
+}

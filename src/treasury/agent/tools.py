@@ -5,7 +5,7 @@ it only appends to the approval queue (nothing here executes a payment)."""
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 
 import numpy as np
 import pandas as pd
@@ -41,6 +41,11 @@ class ToolContext:
     queue: ApprovalQueue
     inflow: dict[str, np.ndarray]
     recurring: pd.DataFrame
+    rail_cals: dict[str, Calendar] = field(default_factory=dict)  # per partner; else ``cal``
+
+    def cal_for(self, partner: str) -> Calendar:
+        """Days a business-day rail moves money to ``partner`` (its country's and the home calendar)."""
+        return self.rail_cals.get(partner, self.cal)
 
 
 def _paths(ctx: ToolContext, partner: str) -> np.ndarray:
@@ -54,7 +59,7 @@ def _decision(ctx: ToolContext, partner: str, rail: str) -> tuple[Decision, Rail
     rail_used = _rail_for(p, ctx.rails, rail)
     decision = recommend_deposit(
         _paths(ctx, partner), dates, p, rail_used, ctx.balances[partner], ctx.pending_credits.get(partner, []),
-        ctx.review_at, ctx.cal, ctx.policy_cfg, inflow_forecast=ctx.inflow[partner],
+        ctx.review_at, ctx.cal_for(partner), ctx.policy_cfg, inflow_forecast=ctx.inflow[partner],
     )
     if decision.window_end.normalize() > dates[-1]:
         raise ValueError(f"forecast ends {dates[-1].date()}, before the window of {partner} ({decision.window_end})")

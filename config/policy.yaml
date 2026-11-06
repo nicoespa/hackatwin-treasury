@@ -9,3 +9,21 @@ review_hours_247: [9, 18]    # 24/7 rails are reviewed twice a day, every day
 # Approval tiers of the agent's queue, in the data's currency (ARS), amount ≤ max: T1 is
 # auto-approved, T2 needs one approver, T3 two distinct ones; above T3_dual_max it is T4_blocked.
 tiers: {T1_auto_max: 50000000, T2_single_max: 250000000, T3_dual_max: 2000000000}
+# Autonomous execution (`treasury agent run`): the agent sends deposits itself, within these hard
+# limits. Amounts per currency (the partner's `currency` in partners.yaml, ARS when absent), summed
+# over the calendar day of the review. Sized on data/sim/base: most policy deposits are under
+# 300M ARS, month-start wire deposits to card_network reach ~850M, a day's total ~1.1B.
+autonomy:
+  enabled: true                # kill switch: false stops every execution
+  max_forecast_age_hours: 24   # hold when the data behind the forecast ends earlier than this before the review
+  sanity_multiple: 3           # hold when the amount exceeds this × the partner's trailing 28-day max daily drain
+  limits:
+    ARS: {max_per_transfer: 500000000, max_per_partner_day: 750000000, max_all_partners_day: 1500000000}
+  # The only accounts the agent may pay into, per partner and rail (simulated identifiers).
+  destinations:
+    bills_aggregator: {wire: "SIM-CBU-0000000000000000000101", stablecoin: "sim:usdc:bills_aggregator"}
+    card_network: {wire: "SIM-CBU-0000000000000000000102", stablecoin: "sim:usdc:card_network"}
+    fci_custodian: {wire: "SIM-CBU-0000000000000000000103"}
+    crypto_exchange: {stablecoin: "sim:usdc:crypto_exchange"}
+    cash_network: {wire: "SIM-CBU-0000000000000000000105"}
+    remittance: {wire: "SIM-CBU-0000000000000000000106", stablecoin: "sim:usdc:remittance"}

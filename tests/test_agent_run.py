@@ -5,6 +5,7 @@ from types import SimpleNamespace
 
 import anthropic
 import httpx2
+import pandas as pd
 import pytest
 
 from treasury.agent import tools
@@ -145,3 +146,22 @@ def test_target_start_leaves_funded_partners_resolvable(ctx, funded):
 def test_build_context_rejects_unknown_start_balances(dataset, ctx):
     with pytest.raises(ValueError, match="start_balances"):
         build_context(dataset, "2026-10-26", ctx.queue, start_balances="zero")
+
+
+def test_autonomous_run_llm_explains_but_amounts_are_the_policy(ctx, funded, tmp_path):
+    """In the autonomous run the LLM writes the rationale (even after trying a bigger amount) and the
+    executed amounts stay the policy's; nothing is queued in the approval queue."""
+    from treasury.agent.executor import TransferLedger
+    from treasury.agent.guardrails import Limits, load_autonomy
+    from treasury.agent.run import execute_day
+
+    cfg = replace(load_autonomy(), enabled=True, sanity_multiple=1e9, limits={"ARS": Limits(1e12, 1e12, 1e12)})
+    client = FakeClient(lambda d, f, b, r: json.dumps({"rationale": f"Deposit {d['amount']:,.0f}.", "exception": None}))
+    result = execute_day(ctx, TransferLedger(tmp_path / "t.jsonl"), pd.Timestamp("2026-10-25"), "stablecoin", cfg,
+                         client=client)
+    rows = {r["partner"]: r for r in result["partners"]}
+    for pid, d in funded.items():
+        assert rows[pid]["executed_amount"] == d["amount"]
+        assert rows[pid]["rationale"] == f"Deposit {d['amount']:,.0f}." and "[templated" not in rows[pid]["rationale"]
+    assert all(rows[p]["rationale"].endswith("[templated: no deposit]") for p in rows if p not in funded)
+    assert result["llm"] and ctx.queue.list() == []
