@@ -12,7 +12,12 @@ import pandas as pd
 from lightgbm import LGBMRegressor
 
 from treasury.calendar import Calendar
-from treasury.models.aggregate_lgbm import CONFIG, FLOOR_SHARE, driver_features, trailing_level
+from treasury.models.aggregate_lgbm import (
+    CONFIG,
+    FLOOR_SHARE,
+    driver_features,
+    trailing_level,
+)
 from treasury.models.base import NODE, QCOLS, QUANTILES, enforce_quantiles
 from treasury.models.seasonal_naive import seasonal_lag, seasonal_mean
 from treasury.montecarlo import simulate_paths
@@ -29,7 +34,7 @@ TWEEDIE_PARAMS = {
     "objective": "tweedie", "tweedie_variance_power": 1.3, "n_estimators": 300, "learning_rate": 0.05,
     "num_leaves": 15, "min_child_samples": 50, "random_state": 0, "n_jobs": 1, "verbose": -1,
 }
-_OWN_DRIVERS = ("n_active_ratio_", "n_new_ratio_", "campaign_lift_")
+_OWN_DRIVERS = ("n_active_ratio_", "n_new_ratio_", "campaign_lift_", "settles_")
 
 
 def node_baseline(series: pd.Series, dates: pd.DatetimeIndex) -> np.ndarray:
@@ -92,7 +97,9 @@ class SegmentLGBM:
     every node with a positive ``outflow_residual`` (``split_residual``), ``baseline`` per
     ``node_baseline``. Features: calendar, the node's own segment ``n_active_ratio`` and
     ``n_new_ratio``, its product's ``campaign_lift``, ``segment`` and ``product`` as categoricals,
-    and lags 7/14 of ``r``. Point per node: ``mu = r_hat × baseline``.
+    and lags 7/14 of ``r``; with international drivers also the shared FX and tourism columns
+    (``aggregate_lgbm.intl_columns``) and ``settles``, its partner's ``settles_<partner>`` (1 for
+    partners without one). Point per node: ``mu = r_hat × baseline``.
 
     Noise, estimated in ``fit`` on an internal holdout (the last ``HOLDOUT_DAYS`` of history):
     the model is first fit on the days before it and predicts the holdout days (features lag
@@ -151,7 +158,7 @@ class SegmentLGBM:
         shared = driver_features(dates, drivers, self._cal, self.payday_hypothesis)
         calendar = shared[[c for c in shared if not c.startswith(_OWN_DRIVERS)]]
         frames, bases = [], []
-        for j, (segment, product, _) in enumerate(self._nodes):
+        for j, (segment, product, partner) in enumerate(self._nodes):
             X = calendar.assign(
                 n_active_ratio=shared[f"n_active_ratio_{segment}"],
                 n_new_ratio=shared[f"n_new_ratio_{segment}"],
@@ -160,6 +167,8 @@ class SegmentLGBM:
                 product=pd.Categorical([product] * len(dates), categories=self._products),
                 **{f"lag_{k}": seasonal_lag(self._ratio[j], dates, k) for k in LAGS},
             )
+            if any(c.startswith("settles_") for c in shared):  # international: the node's partner settles today
+                X["settles"] = shared[f"settles_{partner}"] if f"settles_{partner}" in shared else 1.0
             frames.append(X)
             bases.append(node_baseline(self._target[j], dates))
         return pd.concat(frames, ignore_index=True), np.column_stack(bases)

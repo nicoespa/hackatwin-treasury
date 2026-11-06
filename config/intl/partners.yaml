@@ -1,0 +1,22 @@
+# International partners: each holds a prefunded balance abroad in its own `currency`, and every
+# amount of its products is in that currency. `country` names the calendar (calendar_<country>.yaml)
+# its settlement lag counts business days on, and with Argentina's the days a SWIFT wire moves.
+# Hours are Argentine time (UTC-3). Set `accepts_rails: [swift]` to run a partner without stablecoin.
+pix_br:
+  products: [pix_brazil]       # Pix QR payments by Argentine users in Brazil
+  settle_lag_business_days: 0  # Pix settles in real time, 24/7
+  settle_cutoff_hour: 23
+  same_day_before_cutoff: true
+  nets_inflows: false
+  accepts_rails: [swift, stablecoin]
+  country: br
+  currency: BRL
+usd_acquirer:
+  products: [intl_card, intl_card_refund, remittance_out, usd_income]
+  settle_lag_business_days: 1  # card schemes settle T+1 US business days; remittances batch with them (simplification)
+  settle_cutoff_hour: 17
+  same_day_before_cutoff: false
+  nets_inflows: true           # card refunds and USD freelance income collected here
+  accepts_rails: [swift, stablecoin]
+  country: us
+  currency: USD

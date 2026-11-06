@@ -27,6 +27,19 @@ ANSES = "anses_beneficiary"
 ANSES_FIRST_DAY, ANSES_LAST_DAY = 9, 25  # calendar days of month over which ANSES pays
 INITIAL_SHARE = 0.6
 MAX_BILLS = 6
+# Optional top-level keys of archetypes.yaml; these defaults are the domestic behaviour.
+RECURRING_DEFAULT = {"product": "bill_payment", "due_day_max": 10, "autodebit_share": 0.5}
+PAYDAY_DEFAULT = {"segments": [SALARIED], "products": ["bill_payment", "fci_subscription"]}
+
+
+def recurring_spec(archetypes: dict) -> dict:
+    """Recurring payments: ``product``, due days ``1..due_day_max``, share ``autodebit_share`` confirmed."""
+    return {**RECURRING_DEFAULT, **archetypes.get("recurring", {})}
+
+
+def payday_spec(archetypes: dict) -> dict:
+    """Payday-driven ``segments`` (they get a ``payday_bd``) and the ``products`` boosted on payday."""
+    return {**PAYDAY_DEFAULT, **archetypes.get("payday", {})}
 
 
 def load_archetypes(path: str | Path) -> dict:
@@ -80,7 +93,7 @@ def generate_users(
 ) -> pd.DataFrame:
     """``n`` users with ``user_id, segment, activation_date, payday_bd, anses_day, n_bills, has_autodebit``.
 
-    ``payday_bd`` is a business-day index (1..4) for salaried users; ``anses_day`` is a
+    ``payday_bd`` is a business-day index (1..4) for users of ``payday_spec`` segments (salaried); ``anses_day`` is a
     calendar day of month (9..25) for ANSES beneficiaries. Paydays follow
     ``params.payday_hypothesis``.
     """
@@ -91,12 +104,12 @@ def generate_users(
     counts = _segment_counts(n, np.array([specs[s]["share"] for s in names]))
     segment = rng.permutation(np.repeat(np.array(names, dtype=object), counts))
 
-    salaried = segment == SALARIED
+    salaried = np.isin(segment, payday_spec(archetypes)["segments"])
     payday_bd = np.where(salaried, rng.choice(np.arange(1, 5), size=n, p=payday_p), np.nan)
     anses_day = np.where(segment == ANSES, rng.integers(ANSES_FIRST_DAY, ANSES_LAST_DAY + 1, size=n), np.nan)
     bills_mean = np.array([specs[s]["bills_mean"] for s in segment], dtype=float)
     n_bills = np.minimum(rng.poisson(bills_mean), MAX_BILLS)
-    has_autodebit = (n_bills > 0) & (rng.random(n) < 0.5)
+    has_autodebit = (n_bills > 0) & (rng.random(n) < recurring_spec(archetypes)["autodebit_share"])
 
     return pd.DataFrame(
         {

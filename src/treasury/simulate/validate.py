@@ -57,11 +57,12 @@ def validate(events_routed: pd.DataFrame, cal: Calendar) -> dict[str, float | bo
     salaried = _daily(events_routed[payday_rows], days)
     peaks = salaried.groupby(salaried.index.to_period("M")).idxmax()
     in_window = [1 <= cal.nth_business_day_of_month(d) <= ARGMAX_LAST_BD for d in peaks]
+    salaried_peaks = bool(np.mean(in_window) >= ARGMAX_MIN_SHARE) if payday_rows.any() else None
 
     return {
         "dispersion_index": float(flat_counts.var(ddof=1) / flat_counts.mean()),
         "acf7_gt_acf3": bool(_acf(seasonal, 7) > _acf(seasonal, 3)),
-        "salaried_argmax_in_bd1_5": bool(np.mean(in_window) >= ARGMAX_MIN_SHARE),
+        "salaried_argmax_in_bd1_5": salaried_peaks,  # None without salaried payday events
         "p99_over_median": float(amount.quantile(0.99) / amount.median()),
         "detrended_outflow_cv": _cv(detrended(outflow)),
     }

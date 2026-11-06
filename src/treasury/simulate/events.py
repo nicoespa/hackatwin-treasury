@@ -12,12 +12,19 @@ import pandas as pd
 from scipy.signal import lfilter
 
 from treasury.calendar import Calendar
-from treasury.simulate.population import ANSES, ANSES_FIRST_DAY, ANSES_LAST_DAY, SALARIED, check_payday_hypothesis
+from treasury.simulate.population import (
+    ANSES,
+    ANSES_FIRST_DAY,
+    ANSES_LAST_DAY,
+    check_payday_hypothesis,
+    payday_spec,
+    recurring_spec,
+)
 from treasury.simulate.scenarios import Scenario
 
 DAYS_PER_MONTH = 30.4375
 EARLY_MONTH_PRODUCT, EARLY_MONTH_LAST_DAY, EARLY_MONTH_MULT = "bill_payment", 10, 1.4
-PAYDAY_PRODUCTS = ("bill_payment", "fci_subscription")
+PAYDAY_PRODUCTS = ("bill_payment", "fci_subscription")  # domestic default of population.payday_spec
 PAYDAY_MULT, DAY_AFTER_PAYDAY_MULT = 3.0, 1.8  # on payday and on the next business day
 ANSES_PRODUCTS, ANSES_MULT = ("cash_out", "bill_payment"), 2.5
 SAC_PRODUCTS, SAC_MULT = ("fci_subscription", "card_purchase"), 1.3
@@ -77,22 +84,23 @@ def _recurring_bills(
     act_idx: np.ndarray,
     log_median: np.ndarray,
     sigma: np.ndarray,
-    bill_col: int,
     start: date,
     n_days: int,
     rng: np.random.Generator,
+    due_day_max: int = 10,
 ) -> tuple[np.ndarray, ...]:
     """``(user_pos, day_idx, amount, confirmed, counterparty)`` for every recurring bill payment.
 
-    Each bill keeps one due day (1..10) and one amount. Autodebit bills are paid on the
-    due day; manual ones, with probability 0.9, on a day in ``[due - 2, due + 3]``.
+    Each bill keeps one due day (1..``due_day_max``) and one amount, lognormal with the owner's
+    segment ``log_median`` and ``sigma``. Autodebit bills are paid on the due day; manual ones,
+    with probability 0.9, on a day in ``[due - 2, due + 3]``.
     """
     n_bills = users["n_bills"].to_numpy()
     owner = np.repeat(np.arange(len(users)), n_bills)
     nth = np.arange(len(owner)) - np.repeat(np.cumsum(n_bills) - n_bills, n_bills)
-    due = rng.integers(1, 11, size=len(owner))
+    due = rng.integers(1, due_day_max + 1, size=len(owner))
     seg = seg_code[owner]
-    amount = np.round(np.exp(log_median[seg, bill_col] + sigma[seg, bill_col] * rng.standard_normal(len(owner))), 2)
+    amount = np.round(np.exp(log_median[seg] + sigma[seg] * rng.standard_normal(len(owner))), 2)
     autodebit = users["has_autodebit"].to_numpy()[owner]
     counterparty = users["user_id"].to_numpy()[owner].astype(str).astype(object) + "-b" + nth.astype(str).astype(object)
 
@@ -147,11 +155,12 @@ def simulate_events(
     seg_code = users["segment"].map({s: i for i, s in enumerate(segments)}).to_numpy()
     act_idx = ((users["activation_date"] - pd.Timestamp(start)).dt.days).to_numpy()
     payday = users["payday_bd"].to_numpy()
-    salaried = np.flatnonzero(users["segment"].to_numpy() == SALARIED)
+    payday_cfg, recurring = payday_spec(archetypes), recurring_spec(archetypes)
+    salaried = np.flatnonzero(np.isin(users["segment"].to_numpy(), payday_cfg["segments"]))
     anses = np.flatnonzero(users["segment"].to_numpy() == ANSES)
     anses_day = users["anses_day"].to_numpy()[anses].astype(np.int64)
     user_rate = rate[seg_code] * (adopt_rng.random((len(users), len(products))) < adoption[seg_code])
-    payday_cols, anses_cols, sac_cols = (_cols(products, p) for p in (PAYDAY_PRODUCTS, ANSES_PRODUCTS, SAC_PRODUCTS))
+    payday_cols, anses_cols, sac_cols = (_cols(products, p) for p in (payday_cfg["products"], ANSES_PRODUCTS, SAC_PRODUCTS))
     early_col = _cols(products, [EARLY_MONTH_PRODUCT])
 
     ev_user, ev_prod, ev_day = [], [], []
@@ -192,9 +201,14 @@ def simulate_events(
     confirmed = np.zeros(len(user_pos), dtype=bool)
     counterparty = np.full(len(user_pos), "", dtype=object)
 
-    bill_col = products.index("bill_payment")
+    # Recurring payments of the ``recurring`` product (domestic: bill_payment); an archetype may set
+    # their amount apart from the product's with ``bills_amount_median`` and ``bills_amount_sigma``.
+    bill_col = products.index(recurring["product"])
+    bill_log_median = np.array([np.log(specs[s]["bills_amount_median"]) if "bills_amount_median" in specs[s]
+                                else log_median[i, bill_col] for i, s in enumerate(segments)])
+    bill_sigma = np.array([specs[s].get("bills_amount_sigma", sigma[i, bill_col]) for i, s in enumerate(segments)])
     b_user, b_day, b_amount, b_confirmed, b_counterparty = _recurring_bills(
-        users, seg_code, act_idx, log_median, sigma, bill_col, start, n_days, bill_rng
+        users, seg_code, act_idx, bill_log_median, bill_sigma, start, n_days, bill_rng, recurring["due_day_max"]
     )
     user_pos = np.concatenate([user_pos, b_user])
     prod = np.concatenate([prod, np.full(len(b_user), bill_col)])

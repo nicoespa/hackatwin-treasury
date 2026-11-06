@@ -26,11 +26,15 @@ class PolicyConfig:
     review_hour: int
     fixed_buffer_days: float
     review_hours_247: tuple[int, ...] = (9, 18)
+    # Place a lagged partner's later-day outflow at its settle_cutoff_hour, when it settles, instead
+    # of 00:00 (the domestic default keeps 00:00, so a credit landing that day never covers it).
+    place_lagged_at_cutoff: bool = False
 
 
 def load_policy(path: str | Path) -> PolicyConfig:
     raw = yaml.safe_load(Path(path).read_text())
     raw.pop("tiers", None)  # approval tiers belong to the agent's queue (agent.queue.load_tiers)
+    raw.pop("autonomy", None)  # autonomous-execution limits (agent.guardrails.load_autonomy)
     return PolicyConfig(**{**raw, "review_hours_247": tuple(raw.get("review_hours_247", (9, 18)))})
 
 
@@ -88,11 +92,14 @@ def window_flows(
     window_end: pd.Timestamp,
     realized_today: float = 0.0,
     inflow_forecast: np.ndarray | None = None,
+    lagged_at_cutoff: bool = False,
 ) -> tuple[pd.DatetimeIndex, np.ndarray]:
     """Forecast flows of every date in ``[review_at, window_end]``: ``(at, amounts [n_paths, n_flows])``.
 
     Placement is conservative. A later day's outflow sits at 00:00, so a credit landing during the
-    day never covers it; for a partner that nets inflows, that day's ``inflow_forecast`` is a
+    day never covers it; with ``lagged_at_cutoff`` (for a lagged partner, whose events all settle
+    at its ``settle_cutoff_hour``) it sits at that hour instead, dropped if after ``window_end``,
+    and so does the review day's when the review comes before that hour; for a partner that nets inflows, that day's ``inflow_forecast`` is a
     negative flow at its ``settle_cutoff_hour`` (dropped if after ``window_end``). On the review
     day only the outflow still to come, ``max(0, path - realized_today)``, enters at ``review_at``,
     with no inflow credit.
@@ -102,12 +109,20 @@ def window_flows(
     today = review_at.normalize()
     for j in np.flatnonzero((dates >= today) & (dates <= window_end.normalize())):
         day = dates[j]
+        settles = day + pd.Timedelta(hours=partner.settle_cutoff_hour)
         if day == today:
-            at.append(review_at)
-            cols.append(np.maximum(0.0, paths_partner[:, j] - realized_today))
+            if lagged_at_cutoff and review_at < settles:  # today's settlement is still ahead, all of it
+                if settles <= window_end:
+                    at.append(settles)
+                    cols.append(np.maximum(0.0, paths_partner[:, j] - realized_today))
+            else:
+                at.append(review_at)
+                cols.append(np.maximum(0.0, paths_partner[:, j] - realized_today))
             continue
-        at.append(day)
-        cols.append(paths_partner[:, j])
+        outflow_at = settles if lagged_at_cutoff else day
+        if outflow_at <= window_end:
+            at.append(outflow_at)
+            cols.append(paths_partner[:, j])
         inflow_at = day + pd.Timedelta(hours=partner.settle_cutoff_hour)
         if partner.nets_inflows and inflow_forecast is not None and inflow_at <= window_end:
             at.append(inflow_at)
@@ -146,7 +161,8 @@ def recommend_deposit(
     window_end = arrival_time(rail, next_review(rail, review_at, policy_cfg), cal)
     paths_partner = np.atleast_2d(np.asarray(paths_partner, float))
     at, amounts = window_flows(
-        paths_partner, pd.DatetimeIndex(dates), partner, review_at, window_end, realized_today, inflow_forecast
+        paths_partner, pd.DatetimeIndex(dates), partner, review_at, window_end, realized_today, inflow_forecast,
+        lagged_at_cutoff=policy_cfg.place_lagged_at_cutoff and not partner.is_realtime,
     )
     result = min_deposit_paths(opening_available, at, amounts, pending_credits, arrival)
     landing = sum(c.amount for c in pending_credits if c.at <= window_end)

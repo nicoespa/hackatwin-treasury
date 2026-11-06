@@ -15,6 +15,8 @@ from treasury.calendar import Calendar
 
 # Products that credit the partner balance (direction -1); every other product drains it.
 INFLOW_PRODUCTS = frozenset({"card_refund", "fci_redemption", "crypto_sell", "cash_in"})
+INTL_INFLOW_PRODUCTS = frozenset({"intl_card_refund", "usd_income"})  # the international variant's
+HOME_COUNTRY = "ar"
 
 
 @dataclass(frozen=True)
@@ -26,6 +28,8 @@ class Partner:
     same_day_before_cutoff: bool
     nets_inflows: bool
     accepts_rails: tuple[str, ...]
+    country: str = HOME_COUNTRY  # whose bank calendar its settlement lag counts
+    currency: str = "ARS"  # of its balance and of the amounts of its products
 
     @property
     def is_realtime(self) -> bool:
@@ -55,6 +59,8 @@ def load_partners(path: str | Path) -> dict[str, Partner]:
             same_day_before_cutoff=fields["same_day_before_cutoff"],
             nets_inflows=fields["nets_inflows"],
             accepts_rails=tuple(fields["accepts_rails"]),
+            country=fields.get("country", HOME_COUNTRY),
+            currency=fields.get("currency", "ARS"),
         )
         for product in partner.products:
             if product in owner:
@@ -97,10 +103,13 @@ def route_events(
     partners: Mapping[str, Partner],
     cal: Calendar,
     overrides: Sequence[RouteOverride] | None = None,
+    partner_cals: Mapping[str, Calendar] | None = None,
 ) -> pd.DataFrame:
     """Return a copy of ``events`` with ``partner``, ``settle_at`` and ``direction`` added.
 
-    ``direction`` is +1 for outflows and -1 for products in ``INFLOW_PRODUCTS``.
+    ``direction`` is +1 for outflows and -1 for products in ``INFLOW_PRODUCTS`` or
+    ``INTL_INFLOW_PRODUCTS``. A lagged partner
+    counts its lag on ``partner_cals[partner]`` when given (its country's calendar), else on ``cal``.
     Lagged settlement is computed once per (partner, date, before-cutoff) rather than per row.
     """
     routed = events.copy()
@@ -126,11 +135,12 @@ def route_events(
         rows = partner_ids == pid
         day = days[rows]
         before = routed.loc[rows, "at"].dt.hour < partner.settle_cutoff_hour
-        on_time = {d: _lagged_settle(d.date(), True, partner, cal) for d in day.unique()}
-        late = {d: _lagged_settle(d.date(), False, partner, cal) for d in day.unique()}
+        pcal = (partner_cals or {}).get(pid, cal)
+        on_time = {d: _lagged_settle(d.date(), True, partner, pcal) for d in day.unique()}
+        late = {d: _lagged_settle(d.date(), False, partner, pcal) for d in day.unique()}
         settle[rows] = day.map(on_time).where(before, day.map(late))
     routed["settle_at"] = settle
 
-    inflow = routed["product"].isin(INFLOW_PRODUCTS).to_numpy()
+    inflow = routed["product"].isin(INFLOW_PRODUCTS | INTL_INFLOW_PRODUCTS).to_numpy()
     routed["direction"] = np.where(inflow, -1, 1).astype(np.int8)
     return routed

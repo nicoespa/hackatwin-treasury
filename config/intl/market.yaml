@@ -1,0 +1,37 @@
+# Exchange rates and the demand they drive in the international variant (treasury.fx).
+# Rates are quoted per USD; every value below is a modelling assumption, not market data.
+
+amount_inflation_monthly: 0.003  # drift of USD and BRL amounts (US/BR inflation ~3-4 %/yr), replaces the ARS 2 %
+
+ars_per_usd:
+  start: 1450              # official rate around 2025-11-01 (approximate)
+  crawl_monthly: 0.015     # depreciation inside the crawling band (guess, ~ inflation minus 0.5 pp)
+  vol_daily: 0.005         # daily log noise (guess)
+  jump_prob_daily: 0.01    # ~3-4 devaluation jumps a year (guess)
+  jump_mean: 0.04          # mean jump size in log terms (guess)
+  jump_sd: 0.02
+brl_per_usd:
+  start: 5.38              # around 2025-11-01 (approximate)
+  crawl_monthly: 0.0       # no drift assumed
+  vol_daily: 0.007         # ~11 % annualized (guess)
+
+# Each entry scales `products` by exp(-elasticity * change), change = log(rate / its mean over the
+# previous `window_days`): spending abroad falls right after the peso weakens, and recovers as
+# wages catch up with the new level.
+demand:
+  - {products: [pix_brazil], pair: ars_per_brl, window_days: 90, elasticity: 1.2}  # tourism is price-elastic (guess)
+  - {products: [intl_card], pair: ars_per_usd, window_days: 30, elasticity: 0.4}   # USD card spend, less elastic (guess)
+
+# Argentine tourism to Brazil: multiplier on `products` (the largest lift of the windows holding a date).
+tourism:
+  products: [pix_brazil]
+  base: 1.0
+  windows:
+    - {start: 2025-11-21, end: 2025-11-24, lift: 1.4}  # AR long weekend (puente + Soberanía Nacional)
+    - {start: 2025-12-20, end: 2025-12-31, lift: 1.4}  # summer school holidays begin
+    - {start: 2026-01-01, end: 2026-01-31, lift: 2.0}  # January: peak season on the Brazilian coast
+    - {start: 2026-02-01, end: 2026-02-28, lift: 1.6}  # February
+    - {start: 2026-02-13, end: 2026-02-18, lift: 2.3}  # Carnaval long weekend (AR holidays 02-16, 02-17)
+    - {start: 2026-03-28, end: 2026-04-05, lift: 1.6}  # Semana Santa (Easter 2026-04-05; AR holidays 04-02, 04-03)
+    - {start: 2026-07-06, end: 2026-07-31, lift: 1.5}  # winter school holidays (two weeks, dates vary by province)
+    - {start: 2026-12-19, end: 2026-12-31, lift: 1.4}  # summer school holidays begin

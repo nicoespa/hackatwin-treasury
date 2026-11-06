@@ -1,0 +1,17 @@
+# Rails that fund a partner abroad. fixed_fee is in USD; bps applies to the amount sent.
+# The backtest's own `fees` adds fixed_fee to bps of the amount in the partner currency; the USD
+# report (treasury.intl) converts the amount to USD at the day's rate first.
+swift:
+  lead_time_hours: 48          # buy USD and wire it: ~2 business days, counted on days open in AR and abroad
+  business_days_only: true
+  instruct_cutoff_hour: 13     # Argentine banks take same-day SWIFT instructions until ~13:00 (guess)
+  credit_hour: 12              # credited around midday at the destination bank (guess)
+  fixed_fee: 30                # USD: sending bank + correspondent charges (guess, typical range 25-50)
+  bps: 30                      # FX spread buying USD at the bank (guess)
+stablecoin:
+  lead_time_hours: 0.5         # USDT transfer plus conversion at the partner: ~30 minutes, 24/7
+  business_days_only: false
+  instruct_cutoff_hour: null
+  credit_hour: null
+  fixed_fee: 1                 # USD network fee (guess)
+  bps: 40                      # 10 bps on-ramp fee + 30 bps USDT -> USD/BRL conversion at the partner (guess)

@@ -44,6 +44,19 @@ class Calendar:
             anses_windows=windows("anses_windows"),
         )
 
+    @classmethod
+    def joint(cls, home: Calendar, *others: Calendar) -> Calendar:
+        """Business days of every calendar at once: the union of the holidays, the intersection of
+        the coverages, and ``home``'s SAC and ANSES windows. ``joint(c)`` equals ``c``."""
+        cals = (home, *others)
+        return cls(
+            holidays=frozenset().union(*(c.holidays for c in cals)),
+            coverage_start=max(c.coverage_start for c in cals),
+            coverage_end=min(c.coverage_end for c in cals),
+            sac_windows=home.sac_windows,
+            anses_windows=home.anses_windows,
+        )
+
     def _checked(self, d: date) -> date:
         if isinstance(d, datetime):
             d = d.date()

@@ -1,0 +1,23 @@
+# US bank holidays: the days the Federal Reserve Banks are closed (Fedwire and FedACH do not
+# settle), from the Fed's "Holidays Observed" schedule (federalreserve.gov, K.8).
+# Methods refuse dates outside `coverage`.
+#
+# Rule: a holiday on a Sunday is observed the following Monday; on a Saturday the Reserve Banks
+# stay OPEN the preceding Friday. So Independence Day 2026 (Saturday 07-04) closes nothing:
+# 2026-07-03 is a business day for settlement (only the Board of Governors closes).
+coverage: {start: 2025-11-01, end: 2026-12-31}
+
+holidays:
+  - 2025-11-11  # Veterans Day
+  - 2025-11-27  # Thanksgiving Day
+  - 2025-12-25  # Christmas Day
+  - 2026-01-01  # New Year's Day
+  - 2026-01-19  # Birthday of Martin Luther King, Jr.
+  - 2026-02-16  # Washington's Birthday
+  - 2026-05-25  # Memorial Day
+  - 2026-06-19  # Juneteenth National Independence Day
+  - 2026-09-07  # Labor Day
+  - 2026-10-12  # Columbus Day
+  - 2026-11-11  # Veterans Day
+  - 2026-11-26  # Thanksgiving Day
+  - 2026-12-25  # Christmas Day

@@ -1,0 +1,21 @@
+# Funding policy of the international variant; amounts (lot_size) in each partner's currency.
+alpha: 0.99                  # service level: quantile of the Monte Carlo deposit amounts
+cost_of_capital_annual: 0.08 # USD balances: an Argentine fintech's USD funding cost (corporate USD bonds ~7-9 %, guess)
+cost_per_usd_rejected: 0.05  # penalty per unit of outflow the balance could not cover
+lot_size: 100                # deposits are rounded up to a multiple of this (USD or BRL)
+review_hour: 9               # daily review for business-day rails, before the SWIFT cutoff
+fixed_buffer_days: 5         # reference policy: top up to this many days of trailing mean drain
+review_hours_247: [9, 18]    # 24/7 rails are reviewed twice a day, every day
+place_lagged_at_cutoff: true  # usd_acquirer settles T+1 at 17:00: a SWIFT credit at 12:00 that day covers it
+# Autonomous execution (treasury agent run): hard limits per currency, in that currency.
+autonomy:
+  enabled: true                # kill switch: false stops every execution
+  max_forecast_age_hours: 24   # hold when the data behind the forecast ends earlier than this before the review
+  sanity_multiple: 3           # hold when the amount exceeds this × the partner's trailing 28-day max daily drain
+  limits:
+    USD: {max_per_transfer: 350000, max_per_partner_day: 400000, max_all_partners_day: 400000}  # usd_acquirer deposits: p90 ~320 k
+    BRL: {max_per_transfer: 300000, max_per_partner_day: 400000, max_all_partners_day: 400000}  # pix_br deposits: p90 ~250 k
+  # The only accounts the agent may pay into, per partner and rail (simulated identifiers).
+  destinations:
+    pix_br: {swift: "SIM-SWIFT-BR-0001", stablecoin: "sim:usdt:pix_br"}
+    usd_acquirer: {swift: "SIM-SWIFT-US-0002", stablecoin: "sim:usdt:usd_acquirer"}

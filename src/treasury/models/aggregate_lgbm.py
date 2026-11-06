@@ -55,7 +55,8 @@ def driver_features(
     dates: pd.DatetimeIndex, drivers: pd.DataFrame, cal: Calendar, payday_hypothesis: str
 ) -> pd.DataFrame:
     """Float features indexed by ``dates``: ``calendar_features``, per segment
-    ``n_active_ratio_<seg>`` and ``n_new_ratio_<seg>``, and every ``campaign_lift_*``.
+    ``n_active_ratio_<seg>`` and ``n_new_ratio_<seg>``, every ``campaign_lift_*`` and, when the
+    drivers have them (international variant), the ``intl_columns``.
     ``ValueError`` when ``drivers`` lacks one of ``dates``."""
     drv = drivers.set_index("date").sort_index()
     missing = dates.difference(drv.index)
@@ -70,7 +71,18 @@ def driver_features(
         stationary[f"n_new_ratio_{segment}"] = (drv[f"n_new_30d_{segment}"] / active).where(active > 0, 0.0)
     lifts = drv[[c for c in drv if c.startswith("campaign_lift_")]]
     cal_df = calendar_features(dates, cal, payday_hypothesis).set_index("date")
-    return pd.concat([cal_df, pd.DataFrame(stationary).reindex(dates), lifts.reindex(dates)], axis=1).astype(float)
+    frames = [cal_df, pd.DataFrame(stationary).reindex(dates), lifts.reindex(dates)]
+    if intl := intl_columns(drv):
+        frames.append(drv[intl].reindex(dates))
+    return pd.concat(frames, axis=1).astype(float)
+
+
+def intl_columns(drivers: pd.DataFrame) -> list[str]:
+    """International drivers a model reads: exchange-rate changes (``fx_*_chg*``), the
+    ``tourism_index`` and ``settles_<partner>``. The ``fx_<pair>`` levels are left out: they trend
+    with the peso's crawl, so trees would only learn the training range's level."""
+    return [c for c in drivers if (c.startswith("fx_") and "_chg" in c) or c == "tourism_index"
+            or c.startswith("settles_")]
 
 
 
@@ -123,8 +135,9 @@ class AggregateLGBM:
         return wide.reindex(days).fillna(0.0)
 
     def _partner_features(self, shared: pd.DataFrame, partner: str) -> pd.DataFrame:
-        lifts = {f"campaign_lift_{p}" for p in self._products[partner]}
-        X = shared[[c for c in shared if not c.startswith("campaign_lift_") or c in lifts]].copy()
+        lifts = {f"campaign_lift_{p}" for p in self._products.get(partner, ())}
+        own = lifts | {f"settles_{partner}"}
+        X = shared[[c for c in shared if not c.startswith(("campaign_lift_", "settles_")) or c in own]].copy()
         for k in LAGS:
             X[f"lag_{k}"] = seasonal_lag(self._ratio[partner], X.index, k)
         return X

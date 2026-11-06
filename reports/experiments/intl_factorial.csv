@@ -1,0 +1,10 @@
+cell,rail,variant,policy,buffer_days,capital_usd,shortfall_rate,realized_service,shortfall_usd,n_transfers,fees_usd,cost_total_usd,warmup_days,warmup_shortfall_windows,rail_note
+reference,swift,all accept stablecoin,fixed,5.0,350384.24108710676,0.5192307692307693,0.4807692307692307,1655787.7317762636,70,14907.008680502482,101689.81566088379,4,0,all partners on this rail
+proposed,swift,all accept stablecoin,forecast_a0.99,,636504.994264518,0.0,1.0,0.0,57,13941.698591930552,21196.111677246703,4,0,all partners on this rail
+reference_matched,swift,all accept stablecoin,fixed,6.5625,454696.97968886246,0.0,1.0,0.0,70,14910.610682444649,20092.91050574785,4,0,all partners on this rail
+reference,stablecoin,all accept stablecoin,fixed,5.0,403057.10393251776,0.0,1.0,0.0,156,17326.37592536426,21920.122644156792,4,0,all partners on this rail
+proposed,stablecoin,all accept stablecoin,forecast_a0.99,,204380.65820378336,0.0,1.0,0.0,77,16724.08188741795,19053.4614439323,4,0,all partners on this rail
+reference_matched,stablecoin,all accept stablecoin,fixed,4.4375,356876.6520454015,0.0,1.0,0.0,156,17324.064679281804,21391.480768347203,4,0,all partners on this rail
+reference,stablecoin,usd_acquirer swift only,fixed,5.0,362065.5227397537,0.25,0.75,1380519.5685713638,139,14863.67592536426,88016.20935282938,4,0,usd_acquirer=swift
+proposed,stablecoin,usd_acquirer swift only,forecast_a0.99,,573305.1774345516,0.0,1.0,0.0,76,13984.78188741795,20518.89021105558,4,0,usd_acquirer=swift
+reference_matched,stablecoin,usd_acquirer swift only,fixed,6.5625,468868.0193332236,0.0,1.0,0.0,139,14869.068796978068,20212.879647460835,4,0,usd_acquirer=swift

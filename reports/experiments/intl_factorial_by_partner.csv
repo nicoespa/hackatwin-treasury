@@ -1,0 +1,19 @@
+partner,currency,rail_used,capital_mean,capital_mean_usd,shortfall_windows,shortfall_amount,shortfall_amount_usd,n_transfers,fees_usd,cell,rail,variant,policy,buffer_days
+pix_br,BRL,swift,294838.0395438988,58680.798595118285,28,1382380.1900000048,275268.16320489964,35,3426.908680502482,reference,swift,all accept stablecoin,fixed,5.0
+usd_acquirer,USD,swift,291703.4424919885,291703.4424919885,26,1380519.5685713638,1380519.5685713638,35,11480.1,reference,swift,all accept stablecoin,fixed,5.0
+pix_br,BRL,swift,447930.6745629195,89317.90327207322,0,0.0,0.0,33,3228.3985919305496,proposed,swift,all accept stablecoin,forecast_a0.99,
+usd_acquirer,USD,swift,547187.0909924448,547187.0909924448,0,0.0,0.0,24,10713.300000000001,proposed,swift,all accept stablecoin,forecast_a0.99,
+pix_br,BRL,swift,400110.8603458866,79661.81271770685,0,0.0,0.0,35,3432.6106824446483,reference_matched,swift,all accept stablecoin,fixed,6.5625
+usd_acquirer,USD,swift,375035.1669711556,375035.1669711556,0,0.0,0.0,35,11478.0,reference_matched,swift,all accept stablecoin,fixed,6.5625
+pix_br,BRL,stablecoin,353359.2803321505,70362.08024776523,0,0.0,0.0,104,3383.5759253642586,reference,stablecoin,all accept stablecoin,fixed,5.0
+usd_acquirer,USD,stablecoin,332695.0236847525,332695.0236847525,0,0.0,0.0,52,13942.800000000001,reference,stablecoin,all accept stablecoin,fixed,5.0
+pix_br,BRL,stablecoin,130982.3572552294,26118.086442106916,0,0.0,0.0,52,3271.48188741795,proposed,stablecoin,all accept stablecoin,forecast_a0.99,
+usd_acquirer,USD,stablecoin,178262.57176167643,178262.57176167643,0,0.0,0.0,25,13452.6,proposed,stablecoin,all accept stablecoin,forecast_a0.99,
+pix_br,BRL,stablecoin,310925.9903733591,61912.618405291956,0,0.0,0.0,104,3380.864679281803,reference_matched,stablecoin,all accept stablecoin,fixed,4.4375
+usd_acquirer,USD,stablecoin,294964.0336401095,294964.0336401095,0,0.0,0.0,52,13943.2,reference_matched,stablecoin,all accept stablecoin,fixed,4.4375
+pix_br,BRL,stablecoin,353359.2803321505,70362.08024776523,0,0.0,0.0,104,3383.5759253642586,reference,stablecoin,usd_acquirer swift only,fixed,5.0
+usd_acquirer,USD,swift,291703.4424919885,291703.4424919885,26,1380519.5685713638,1380519.5685713638,35,11480.1,reference,stablecoin,usd_acquirer swift only,fixed,5.0
+pix_br,BRL,stablecoin,130982.3572552294,26118.086442106916,0,0.0,0.0,52,3271.48188741795,proposed,stablecoin,usd_acquirer swift only,forecast_a0.99,
+usd_acquirer,USD,swift,547187.0909924448,547187.0909924448,0,0.0,0.0,24,10713.300000000001,proposed,stablecoin,usd_acquirer swift only,forecast_a0.99,
+pix_br,BRL,stablecoin,471229.85073050234,93832.85236206796,0,0.0,0.0,104,3391.068796978068,reference_matched,stablecoin,usd_acquirer swift only,fixed,6.5625
+usd_acquirer,USD,swift,375035.1669711556,375035.1669711556,0,0.0,0.0,35,11478.0,reference_matched,stablecoin,usd_acquirer swift only,fixed,6.5625

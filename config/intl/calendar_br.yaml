@@ -1,0 +1,28 @@
+# Brazilian national bank holidays (FEBRABAN calendar; Resolução CMN 4.880/2020 counts them as
+# non-business days for banking operations). Methods refuse dates outside `coverage`.
+#
+# Checked against FEBRABAN's 2026 list as reported by the press (13 national bank holidays) and
+# its 2025 list for November-December. Dia da Consciência Negra is a national holiday since
+# Lei 14.759/2023. Quarta-feira de Cinzas (2026-02-18) is NOT listed: banks open at 12:00.
+# 31 December is not a holiday (agencies do not open to the public, but it is a business day).
+# Weekend dates (2025-11-02, 2025-11-15, 2026-11-15) are listed for completeness.
+coverage: {start: 2025-11-01, end: 2026-12-31}
+
+holidays:
+  - 2025-11-02  # Finados (Sunday)
+  - 2025-11-15  # Proclamação da República (Saturday)
+  - 2025-11-20  # Dia Nacional de Zumbi e da Consciência Negra
+  - 2025-12-25  # Natal
+  - 2026-01-01  # Confraternização Universal
+  - 2026-02-16  # Carnaval (Monday)
+  - 2026-02-17  # Carnaval (Tuesday)
+  - 2026-04-03  # Sexta-feira Santa
+  - 2026-04-21  # Tiradentes
+  - 2026-05-01  # Dia do Trabalho
+  - 2026-06-04  # Corpus Christi
+  - 2026-09-07  # Independência
+  - 2026-10-12  # Nossa Senhora Aparecida
+  - 2026-11-02  # Finados
+  - 2026-11-15  # Proclamação da República (Sunday)
+  - 2026-11-20  # Dia Nacional de Zumbi e da Consciência Negra
+  - 2026-12-25  # Natal
