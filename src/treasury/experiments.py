@@ -12,8 +12,18 @@ from functools import partial
 from pathlib import Path
 
 import pandas as pd
+from sklearn.metrics import adjusted_rand_score
 
-from treasury.backtest import CONFIG, HORIZON, BacktestResult, Dataset, run, walk_forward
+from treasury.backtest import (
+    CONFIG,
+    HORIZON,
+    BacktestResult,
+    Dataset,
+    Segmenter,
+    run,
+    segmented_inputs,
+    walk_forward,
+)
 from treasury.calendar import Calendar
 from treasury.features import build_drivers
 from treasury.harness import default_origins
@@ -24,6 +34,7 @@ from treasury.models.seasonal_naive import SeasonalNaive
 from treasury.models.segment_lgbm import SegmentLGBM
 from treasury.policy import PolicyConfig, load_policy
 from treasury.routing import load_partners
+from treasury.segmentation import NEW, KMeansSegmenter
 from treasury.simulate import Campaign, CohortWave, SimParams, load_archetypes
 from treasury.simulate.pipeline import simulate_routed
 
@@ -68,14 +79,16 @@ def _policy(cfg: PolicyConfig | None) -> PolicyConfig:
 
 def ablation_table(
     dataset: Dataset, origins: Sequence[date] | None = None, models: Sequence[str] = tuple(MODEL_FACTORIES),
-    n_paths: int = 1000, by: tuple[str, ...] = ("model",),
+    n_paths: int = 1000, by: tuple[str, ...] = ("model",), segmenter: Segmenter | None = None,
 ) -> pd.DataFrame:
     """``summarize`` scores of each model's walk-forward forecasts (``HORIZON`` days per origin),
-    pooled over partners and horizons by default; ``by=("model", "partner")`` keeps partners."""
+    pooled over partners and horizons by default; ``by=("model", "partner")`` keeps partners.
+    ``segmenter`` goes to ``walk_forward`` (None: the data's own segment labels)."""
     origins = _origins(dataset, origins)
-    preds = pd.concat(
-        [f.quantiles for m in models for f in walk_forward(dataset, factory(m, n_paths), origins, n_paths=n_paths)]
-    )
+    preds = pd.concat([
+        f.quantiles for m in models
+        for f in walk_forward(dataset, factory(m, n_paths), origins, n_paths=n_paths, segmenter=segmenter)
+    ])
     table = summarize(preds, daily_partner_table(dataset.history), by=by)
     table.insert(0, "label", table["model"].map(LABELS))
     order = table["model"].map(list(MODEL_FACTORIES).index).rename("order")
@@ -115,6 +128,7 @@ def matched_buffer(
 
 def factorial_table(
     dataset: Dataset, origins: Sequence[date] | None = None, n_paths: int = 1000, cfg: PolicyConfig | None = None,
+    model: str = PROPOSED, segmenter: Segmenter | None = None,
 ) -> pd.DataFrame:
     """Per rail (wire, stablecoin): ``reference`` (fixed buffer of the config's ``fixed_buffer_days``
     of trailing mean drain, no model), ``proposed`` (``segment_factor`` paths + forecast policy at
@@ -124,6 +138,7 @@ def factorial_table(
     The config-value cells are not at the same service level; ``reference_matched`` vs
     ``proposed`` is the comparison that answers the success criterion (less capital at the same
     service level). ``rail_note`` names the partners that cannot take the rail and use their only one.
+    ``model`` (default ``PROPOSED``) and ``segmenter`` choose the proposed cell's forecasts.
     """
     origins, cfg = _origins(dataset, origins), _policy(cfg)
     rows = []
@@ -131,8 +146,8 @@ def factorial_table(
         ref = run(dataset, None, "fixed", rail, cfg, origins, n_paths=n_paths)
         rows.append(_row(ref, cell="reference", rail=rail, model="none", policy="fixed",
                          buffer_days=float(cfg.fixed_buffer_days)))
-        prop = run(dataset, factory(PROPOSED, n_paths), "forecast", rail, cfg, origins, n_paths=n_paths)
-        rows.append(_row(prop, cell="proposed", rail=rail, model=PROPOSED, policy=f"forecast_a{cfg.alpha:g}",
+        prop = run(dataset, factory(model, n_paths), "forecast", rail, cfg, origins, n_paths=n_paths, segmenter=segmenter)
+        rows.append(_row(prop, cell="proposed", rail=rail, model=model, policy=f"forecast_a{cfg.alpha:g}",
                          buffer_days=float("nan")))
         days, matched = matched_buffer(dataset, rail, prop.metrics["shortfall_rate"], origins, cfg)
         rows.append(_row(matched, cell="reference_matched", rail=rail, model="none", policy="fixed", buffer_days=days))
@@ -368,6 +383,7 @@ def _write_readme(
         *_notes(_policy(None)),
         "",
         *_service_section(factorial, frontier_table),
+        *segmentation_section(out),
         f"Source dataset `{data / 'params.json'}`:",
         "",
         "```json",
@@ -376,3 +392,152 @@ def _write_readme(
         "",
     ]
     (out / "README.md").write_text("\n".join(lines))
+
+
+# Inferred segments: the segment model on k-means segments vs the simulator's archetype labels.
+SEGMENTATION_VARIANTS: dict[str, tuple[str, Segmenter | None]] = {
+    "(d) oracle": (PROPOSED, None),
+    "(d) kmeans": (PROPOSED, KMeansSegmenter()),
+    "(d) kmeans k=7": (PROPOSED, KMeansSegmenter(k=7)),
+    "(b) oracle": ("aggregate_drivers", None),
+    "(c) oracle": ("aggregate_drivers_obligations", None),
+    "(c) kmeans": ("aggregate_drivers_obligations", KMeansSegmenter()),
+}
+SEGMENTATION_FILES = ("segmentation_forecast", "segmentation_backtest", "segmentation_clusters", "segmentation_profiles")
+SECTION_START, SECTION_END = "<!-- segmentation:start -->", "<!-- segmentation:end -->"
+
+
+def _labels(segmenter: Segmenter | None) -> str:
+    return "oracle" if segmenter is None else segmenter.name
+
+
+def segmentation_tables(
+    dataset: Dataset, origins: Sequence[date] | None = None, n_paths: int = 1000, cfg: PolicyConfig | None = None,
+    variants: dict[str, tuple[str, Segmenter | None]] = SEGMENTATION_VARIANTS,
+) -> dict[str, pd.DataFrame]:
+    """Each variant (model, segmenter) scored like ``ablation_table`` (pooled) and backtested like
+    ``factorial_table`` (``proposed`` and ``reference_matched`` per rail), plus per origin and
+    segmenter the chosen ``k``, its silhouette, the adjusted Rand index of the clustered users'
+    segments against the simulator's hidden archetypes (``ari_vs_archetype``, possible only on
+    simulated data) and each segment's profile with its dominant archetype."""
+    origins, cfg = _origins(dataset, origins), _policy(cfg)
+    forecast, backtest = [], []
+    for variant, (model, segmenter) in variants.items():
+        score = ablation_table(dataset, origins, models=(model,), n_paths=n_paths, segmenter=segmenter)
+        forecast.append(score.assign(variant=variant, labels=_labels(segmenter)))
+        cells = factorial_table(dataset, origins, n_paths, cfg, model=model, segmenter=segmenter)
+        backtest.append(cells[cells["cell"] != "reference"].assign(variant=variant, labels=_labels(segmenter)))
+    archetype = dataset.users.set_index("user_id")["segment"]
+    clusters, profiles = [], []
+    segmenters = {s.name: s for _, s in variants.values() if s is not None}
+    for name, segmenter in segmenters.items():
+        for origin in origins:
+            seg = segmented_inputs(dataset, segmenter, origin)[2]
+            clustered = seg.labels[seg.labels != NEW]
+            clusters.append({
+                "labels": name, "origin": pd.Timestamp(origin), "k": seg.k, "silhouette": seg.silhouette,
+                "silhouette_by_k": json.dumps({str(c): round(v, 4) for c, v in seg.silhouette_by_k.items()}),
+                "n_clustered": len(clustered), "n_new": int((seg.labels == NEW).sum()),
+                "ari_vs_archetype": adjusted_rand_score(archetype.reindex(clustered.index), clustered),
+            })
+            mix = pd.crosstab(seg.labels.rename("segment"), archetype.reindex(seg.labels.index).rename("archetype"),
+                              normalize="index")
+            profiles.append(seg.profile.assign(labels=name, origin=pd.Timestamp(origin)).merge(
+                pd.DataFrame({"segment": mix.index, "top_archetype": mix.idxmax(axis=1).to_numpy(),
+                              "top_archetype_share": mix.max(axis=1).to_numpy()}), on="segment"))
+    first = ["variant", "labels"]
+    return {
+        "segmentation_forecast": pd.concat(forecast, ignore_index=True).pipe(lambda t: t[first + [c for c in t if c not in first]]),
+        "segmentation_backtest": pd.concat(backtest, ignore_index=True).pipe(lambda t: t[first + [c for c in t if c not in first]]),
+        "segmentation_clusters": pd.DataFrame(clusters),
+        "segmentation_profiles": pd.concat(profiles, ignore_index=True).pipe(
+            lambda t: t[["labels", "origin"] + [c for c in t if c not in ("labels", "origin")]]),
+    }
+
+
+def segmentation_section(out: Path) -> list[str]:
+    """README section read off ``segmentation_*.csv`` in ``out`` (empty when they are missing),
+    between ``SECTION_START`` and ``SECTION_END`` so ``run_segmentation`` can replace it."""
+    paths = {name: out / f"{name}.csv" for name in SEGMENTATION_FILES[:3]}
+    if not all(p.exists() for p in paths.values()):
+        return []
+    fc, bt, cl = (pd.read_csv(p) for p in paths.values())
+    lines = [SECTION_START, "## Inferred segments (no archetype labels)", "",
+             "The segment model (d) normally splits nodes by the simulator's archetype label, which a real wallet",
+             "does not have. `treasury.segmentation` infers segments at each origin from the users' transactions",
+             "before it (k-means, k chosen by silhouette in 2..8; users with < 30 days of tenure or < 5 events in",
+             "the last 90 days, and users activated later, are `new`). In the node history every user is `new` for",
+             "their first 30 days and then joins their cluster (`backtest.segmented_inputs`). Profiles and",
+             "per-origin clusters: `segmentation.md`.", "",
+             "| variant | wape_q50 | cov_90 | cov_99 | pit_ks |", "|---|---|---|---|---|"]
+    lines += [f"| {r['variant']} | {r['wape_q50']:.3f} | {r['cov_90']:.3f} | {r['cov_99']:.3f} | {r['pit_ks']:.3f} |"
+              for _, r in fc.iterrows()]
+    lines += ["", "| variant | rail | capital | shortfall rate | matched buffer days | matched capital | capital saved |",
+              "|---|---|---|---|---|---|---|"]
+    for (variant, rail), g in bt.groupby(["variant", "rail"], sort=False):
+        prop, ref = (g[g["cell"] == c].iloc[0] for c in ("proposed", "reference_matched"))
+        lines.append(f"| {variant} | {rail} | {prop['capital_total_mean']:.3e} | {prop['shortfall_rate']:.2%} | "
+                     f"{ref['buffer_days']:.2f} | {ref['capital_total_mean']:.3e} | "
+                     f"{1 - prop['capital_total_mean'] / ref['capital_total_mean']:.0%} |")
+    lines += ["", "| labels | k per origin | silhouette (mean) | ARI vs archetypes (mean) |", "|---|---|---|---|"]
+    for labels, g in cl.groupby("labels", sort=False):
+        lines.append(f"| {labels} | {', '.join(str(k) for k in g['k'])} | {g['silhouette'].mean():.3f} | "
+                     f"{g['ari_vs_archetype'].mean():.3f} |")
+    return [*lines, "", SECTION_END, ""]
+
+
+def _upsert_section(readme: Path, section: list[str]) -> None:
+    """Replace the segmentation section of ``readme`` (or insert it before the source dataset)."""
+    text = readme.read_text() if readme.exists() else ""
+    block = "\n".join(section)
+    if SECTION_START in text and SECTION_END in text:
+        head, rest = text.split(SECTION_START, 1)
+        text = head + block.rstrip("\n") + rest.split(SECTION_END, 1)[1]
+    elif "Source dataset" in text:
+        head, rest = text.split("Source dataset", 1)
+        text = head + block + "Source dataset" + rest
+    else:
+        text += "\n" + block
+    readme.write_text(text)
+
+
+def _markdown(table: pd.DataFrame) -> str:
+    """``table`` as a markdown table, floats to 3 significant digits and timestamps as dates."""
+    def cell(v) -> str:
+        if isinstance(v, pd.Timestamp):
+            return str(v.date())
+        return f"{v:.3g}" if isinstance(v, float) else str(v)
+    rows = [" | ".join(table.columns), " | ".join("---" for _ in table.columns)]
+    rows += [" | ".join(cell(v) for v in r) for r in table.itertuples(index=False)]
+    return "\n".join(f"| {r} |" for r in rows)
+
+
+def run_segmentation(data: Path, out: Path, n_paths: int = 1000) -> dict[str, pd.DataFrame]:
+    """Write ``segmentation_tables`` as ``segmentation_*.csv`` and ``segmentation.md`` under ``out``
+    and refresh the segmentation section of ``out/README.md``."""
+    out.mkdir(parents=True, exist_ok=True)
+    dataset = Dataset.load(data)
+    tables = segmentation_tables(dataset, n_paths=n_paths)
+    for name, table in tables.items():
+        table.to_csv(out / f"{name}.csv", index=False)
+    section = segmentation_section(out)
+    profiles = tables["segmentation_profiles"]
+    last = profiles[profiles["origin"] == profiles["origin"].max()]
+    cols = ["labels", "segment", "n_users", "outflow_monthly", "payday_share", "weekend_share", "top_archetype",
+            "top_archetype_share", *[c for c in last if c.startswith("out_")]]
+    md = [
+        "# Inferred segments", "",
+        f"Generated by `scripts/segmentation_experiment.py` on `{data}` with `n_paths={n_paths}`, origins",
+        f"`default_origins({dataset.end}, n=8, step_days=7, horizon={HORIZON})` and `config/policy.yaml`.",
+        "Files: " + ", ".join(f"`{n}.csv`" for n in SEGMENTATION_FILES) + ".", "",
+        *[line for line in section if not line.startswith("<!--")],
+        f"## Segment profiles at the last origin ({last['origin'].max().date()})", "",
+        "Monthly amounts are means per user over the trailing 90 days (per 30 days); `top_archetype` is the",
+        "hidden archetype most of the segment's users have, readable only because the data is simulated.", "",
+        _markdown(last[cols]), "",
+        "## Clusters per origin", "",
+        _markdown(tables["segmentation_clusters"]), "",
+    ]
+    (out / "segmentation.md").write_text("\n".join(md))
+    _upsert_section(out / "README.md", section)
+    return tables

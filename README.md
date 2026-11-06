@@ -102,10 +102,12 @@ Known limitations:
 - **LLM run owed.** The agent's LLM path is tested only with a scripted fake client; a run against
   the real API is still owed.
 
-## Agent: policy decides, LLM explains, human approves
+## Agent: policy decides, LLM explains, human approves (or the agent executes within limits)
 
-`treasury agent` turns a day's funding decisions into proposals in an append-only approval queue
-(`data/queue.jsonl`). Nothing executes a payment.
+`treasury agent` has two modes. `propose` turns a day's funding decisions into proposals in an
+append-only approval queue (`data/queue.jsonl`) and executes nothing. `run` is the autonomous mode:
+no human in the loop, the agent executes the deposit itself (simulated, no network call) within hard
+limits (see "Autonomous mode" below).
 
 1. The deterministic policy (`policy.recommend_deposit` on `SegmentLGBM` paths) computes each
    partner's deposit first. The LLM never changes the amount: `propose_transfer` refuses an
@@ -144,8 +146,71 @@ most 0.015; with `--rail stablecoin` the policy funds fci_custodian (≈ 86M, T2
 (≈ 51M, T2), both on wire, their only rail; with `--rail wire` it also funds card_network (≈ 319M,
 T3) and bills_aggregator (≈ 32M, T1).
 
+### Autonomous mode (`treasury agent run`)
+
+```bash
+uv run treasury agent run --as-of 2026-10-01 --rail wire          # review at 09:00 (review_hour)
+uv run treasury agent run --as-of 2026-10-01T18:00 --rail stablecoin --data data/sim/base \
+    --out reports/demo/agent_run.json                             # review at that instant
+```
+
+Per partner it forecasts (same fit and opening balances as `propose`), lets the policy decide, applies
+the guardrails, executes into the simulated ledger `data/transfers.jsonl` (`--ledger`), prints a
+Spanish summary (forecast for tomorrow q50/q99, available balance, in transit, need, decided and
+executed amounts, limit applied, rail and ETA, alerts) and writes the same fields plus the next 7 days
+of forecast quantiles and the rationale to `--out` for the demo page. The LLM writes the rationale only
+when `ANTHROPIC_API_KEY` is set (and not `--no-llm`); it never changes an amount.
+
+Limits, in `config/policy.yaml` → `autonomy` (per currency, the partner's `currency` in
+`partners.yaml`, ARS when absent; summed over the calendar day of the review):
+
+| Setting | Default | Why |
+|---|---|---|
+| `enabled` | `true` | Kill switch: `false` holds every partner and executes nothing. |
+| `limits.ARS.max_per_transfer` | 500M | Most policy deposits on `data/sim/base` are under 300M; month-start wire deposits to card_network reach ~850M and get capped. |
+| `limits.ARS.max_per_partner_day` | 750M | Room for the two daily reviews of a 24/7 rail. |
+| `limits.ARS.max_all_partners_day` | 1.5B | A heavy day's total is ~1.1B (2026-10-01 on wire). |
+| `max_forecast_age_hours` | 24 | Hold when the data behind the forecast ends more than a day before the review. |
+| `sanity_multiple` | 3 | Hold when the amount exceeds 3 × the partner's trailing 28-day max daily drain. |
+| `destinations` | one per partner and rail | The only accounts the agent can pay into; it cannot choose or change the beneficiary. |
+
+Guardrails, each with an explicit alert record (`code`, `action`, message, details) in the output and
+in the ledger record of the transfer:
+
+- kill switch on, forecast missing (it does not cover the decision window) or stale, no allow-listed
+  destination on the rail, no limits for the currency: **hold**.
+- amount above the sanity bound: **hold** (more likely a broken forecast than real demand).
+- `p_unresolvable` above 0.05: **execute** and alert.
+- amount above the remaining limit: **execute up to the limit** (rounded down to `lot_size`) and alert
+  with the remainder. Sending nothing would leave the partner short and reject user payments; the
+  capped amount covers what the limits allow and the alert asks a human for the rest.
+
+The executor (`agent/executor.py`) records each transfer with an idempotency key (partner + review
+time: rerunning the same review sends nothing new and reports `already_executed`), rail, amount,
+currency, allow-listed destination and the times of `instructed → in_transit → credited` (`arrival_at`
+from `rails.arrival_time`); `ledger_status(path, at)` gives each transfer's status at any time. It
+re-checks the kill switch, the destination and the limits itself and refuses a transfer that breaks
+them. Transfers still in transit at a review are the partner's pending credits for that review. The
+approval queue and the dashboard's Aprobaciones tab are unchanged; the autonomous run does not use them.
+
 The LLM path is covered by offline tests with a scripted fake client only. A run against the
 real API is still owed: it needs `ANTHROPIC_API_KEY`, which was not available when this was built.
+
+## International variant
+
+The same pipeline for partners abroad: `pix_br` (BRL, Pix payments by Argentine users in Brazil) and
+`usd_acquirer` (USD, international cards, remittances, freelance income), funded by `swift` (2
+business days open in both countries) or `stablecoin`. Configs live in `config/intl/` (archetypes,
+partners with `country` and `currency`, rails, policy, Brazilian and US bank calendars, `market.yaml`
+with FX and tourism); the dataset's `params.json` records `"config": "intl"`, so `backtest` and the
+experiments load them. The domestic config and its results are unchanged.
+
+```bash
+uv run treasury simulate --config intl --users 20000 --start 2025-11-01 --end 2026-10-31 --seed 42 --out data/sim/intl
+uv run treasury intl-experiments --data data/sim/intl --out reports/experiments
+```
+
+Setup, assumptions and results (capital in USD): `reports/experiments/intl_README.md`.
 
 ## Checklist pre-demo
 

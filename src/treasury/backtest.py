@@ -18,14 +18,23 @@ import numpy as np
 import pandas as pd
 
 from treasury.calendar import Calendar
-from treasury.features import build_drivers
+from treasury.configset import ConfigSet
+from treasury.features import COHORT_PREFIXES, build_drivers, cohort_drivers, known_at
 from treasury.ledger import Credit, balance_arrays
 from treasury.models.base import Forecaster, daily_node_table, daily_partner_table
 from treasury.models.seasonal_naive import seasonal_mean
 from treasury.montecarlo import paths_from_quantiles
-from treasury.policy import PolicyConfig, fixed_buffer_decision, recommend_deposit, review_times
-from treasury.rails import Rail, arrival_time, load_rails
-from treasury.routing import Partner, load_partners
+from treasury.policy import (
+    PolicyConfig,
+    fixed_buffer_decision,
+    recommend_deposit,
+    review_times,
+)
+from treasury.rails import Rail, arrival_time
+from treasury.routing import Partner
+from treasury.segmentation import MIN_TENURE_DAYS, NEW, Segmentation
+
+Segmenter = Callable[[pd.DataFrame, pd.DataFrame, pd.Timestamp], Segmentation]  # with a ``name`` attribute
 
 CONFIG = Path(__file__).resolve().parents[2] / "config"
 HORIZON = 14
@@ -35,7 +44,8 @@ TRAILING_DAYS = 28  # window of the fixed buffer's trailing mean drain
 @dataclass(eq=False)
 class Dataset:
     """A routed simulation: ``users``, ``events`` and its ``params``, plus the node table
-    ``history`` (dates up to ``params["end"]``) and the ``drivers`` over those dates."""
+    ``history`` (dates up to ``params["end"]``) and the ``drivers`` over those dates. ``fx`` holds
+    the exchange rates of the international variant; ``params["config"]`` names its config set."""
 
     users: pd.DataFrame
     events: pd.DataFrame
@@ -44,6 +54,7 @@ class Dataset:
     drivers: pd.DataFrame
     macro: pd.DataFrame | None = None
     cache: dict = field(default_factory=dict, repr=False, compare=False)
+    fx: pd.DataFrame | None = None
 
     @classmethod
     def load(cls, folder: str | Path) -> Dataset:
@@ -53,17 +64,26 @@ class Dataset:
             pd.read_parquet(folder / "events.parquet"),
             params=json.loads((folder / "params.json").read_text()),
             macro=pd.read_parquet(folder / "macro.parquet"),
+            fx=pd.read_parquet(folder / "fx.parquet") if (folder / "fx.parquet").exists() else None,
         )
 
     @classmethod
     def from_frames(
         cls, users: pd.DataFrame, events: pd.DataFrame, params: dict, macro: pd.DataFrame | None = None,
-        scenarios: Sequence = (),
+        scenarios: Sequence = (), fx: pd.DataFrame | None = None,
     ) -> Dataset:
         history = daily_node_table(events)
         history = history[history["date"] <= pd.Timestamp(params["end"])].reset_index(drop=True)
         dates = pd.date_range(history["date"].min(), history["date"].max(), freq="D")
-        return cls(users, events, params, history, build_drivers(users, events, dates, scenarios), macro)
+        configs = ConfigSet.resolve(params.get("config"))
+        drivers = build_drivers(users, events, dates, scenarios, fx=fx, market=configs.market(),
+                                settle_lags=configs.settle_lags())
+        return cls(users, events, params, history, drivers, macro, fx=fx)
+
+    @property
+    def configs(self) -> ConfigSet:
+        """The config set of ``params["config"]``, with ``params["accepts_rails"]`` overrides if any."""
+        return ConfigSet.resolve(self.params.get("config"), self.params.get("accepts_rails"))
 
     @property
     def end(self) -> date:
@@ -83,14 +103,76 @@ class Forecast:
     quantiles: pd.DataFrame
 
 
+def segmented_inputs(
+    dataset: Dataset, segmenter: Segmenter, origin: date,
+) -> tuple[pd.DataFrame, pd.DataFrame, Segmentation]:
+    """Node history (dates before ``origin``) and drivers with every user's ``segment`` replaced
+    by ``segmenter(users, events, origin)``, which sees only data before ``origin``, plus that
+    segmentation.
+
+    ``NEW`` is a lifecycle state, not a fixed group: every user is ``NEW`` for their first
+    ``segmenter.min_tenure_days`` (default ``MIN_TENURE_DAYS``) after activation and then joins
+    their cluster; users the segmenter labels ``NEW`` (too little history, or activated after
+    ``origin``) stay ``NEW``. So the ``NEW`` nodes carry every cohort's first weeks over the whole
+    history instead of only the last few weeks. The drivers keep every column of
+    ``dataset.drivers`` except the cohort counts, rebuilt from the same membership spells.
+    Cached on the dataset by the segmenter's ``name`` and ``origin``."""
+    start = pd.Timestamp(origin)
+    key = ("segmented", segmenter.name, start)
+    if key in dataset.cache:
+        return dataset.cache[key]
+    segmentation = segmenter(dataset.users, dataset.events, start)
+    tenure = pd.Timedelta(days=getattr(segmenter, "min_tenure_days", MIN_TENURE_DAYS))
+    users = dataset.users.assign(segment=segmentation.labels.reindex(dataset.users["user_id"]).to_numpy())
+    joins = users["activation_date"].dt.normalize() + tenure  # when a clustered user leaves NEW
+    ev = dataset.events
+    by_user = users.set_index("user_id")
+    label = by_user["segment"].reindex(ev["user_id"]).to_numpy()
+    joined = (ev["at"].to_numpy() >= joins.set_axis(users["user_id"]).reindex(ev["user_id"]).to_numpy())
+    events = pd.DataFrame({
+        "settle_at": ev["settle_at"], "segment": np.where(joined, label, NEW),
+        "product": ev["product"], "partner": ev["partner"], "amount": ev["amount"],
+        "direction": ev["direction"], "confirmed": ev["confirmed"],
+    })
+    history = daily_node_table(events)
+    history = history[history["date"] < start].reset_index(drop=True)
+    kept = dataset.drivers[[c for c in dataset.drivers if not c.startswith(COHORT_PREFIXES)]]
+    dates = pd.DatetimeIndex(kept["date"])
+    clustered = users["segment"] != NEW
+    entries = pd.concat([
+        users[["activation_date"]].assign(segment=NEW),
+        pd.DataFrame({"activation_date": joins[clustered], "segment": users.loc[clustered, "segment"]}),
+    ])
+    cohorts = cohort_drivers(entries, dates)
+    exits = cohort_drivers(pd.DataFrame({"activation_date": joins[clustered], "segment": NEW}), dates)
+    cohorts[f"n_active_{NEW}"] -= exits[f"n_active_{NEW}"]
+    drivers = cohorts.merge(kept, on="date", how="left")
+    dataset.cache[key] = (history, drivers, segmentation)
+    return dataset.cache[key]
+
+
+def forecast_key(
+    model_factory: Callable[[], Forecaster], origins: Sequence[date], horizon: int, n_paths: int, seed: int,
+    segmenter: Segmenter | None = None,
+) -> tuple:
+    """Cache key of ``walk_forward``: model name, origins, horizon, ``n_paths``, ``seed`` and the
+    segmenter's ``name`` (None for the data's own segment labels)."""
+    return (model_factory().name, tuple(origins), horizon, n_paths, seed, getattr(segmenter, "name", None))
+
+
 def walk_forward(
     dataset: Dataset, model_factory: Callable[[], Forecaster], origins: Sequence[date],
-    horizon: int = HORIZON, n_paths: int = 1000, seed: int = 0,
+    horizon: int = HORIZON, n_paths: int = 1000, seed: int = 0, segmenter: Segmenter | None = None,
 ) -> list[Forecast]:
     """Fit a fresh model on the data before each origin and forecast ``horizon`` days. Paths are
-    the model's own ``last_paths`` when it has them, else ``paths_from_quantiles``. Cached on
-    the dataset by model name, origins, horizon, ``n_paths`` and ``seed``."""
-    key = (model_factory().name, tuple(origins), horizon, n_paths, seed)
+    the model's own ``last_paths`` when it has them, else ``paths_from_quantiles``. The model sees
+    the drivers ``known_at`` the origin (exchange rates frozen at their last value before it).
+    Cached on the dataset by ``forecast_key``.
+
+    Without ``segmenter`` the nodes and cohort drivers use the data's ``segment`` column. With
+    one, each origin relabels users from the data before it (``segmented_inputs``); cluster names
+    may differ across origins, which is harmless because each origin refits the model."""
+    key = forecast_key(model_factory, origins, horizon, n_paths, seed, segmenter)
     if key in dataset.cache:
         return dataset.cache[key]
     history, drivers = dataset.history, dataset.drivers
@@ -98,9 +180,11 @@ def walk_forward(
     for k, origin in enumerate(origins):
         start = pd.Timestamp(origin)
         dates = pd.date_range(start, periods=horizon, freq="D")
+        if segmenter is not None:
+            history, drivers, _ = segmented_inputs(dataset, segmenter, origin)
         model = model_factory()
         model.fit(history[history["date"] < start], drivers[drivers["date"] < start])
-        pred = model.predict(dates, drivers[drivers["date"] <= dates[-1]])
+        pred = model.predict(dates, known_at(drivers[drivers["date"] <= dates[-1]], start))
         if getattr(model, "last_paths", None) is not None:
             paths, partners = model.last_paths, list(model.partner_index)
         else:
@@ -218,8 +302,13 @@ def run(
     seed: int = 0,
     horizon: int = HORIZON,
     warmup_days: int | None = None,
+    segmenter: Segmenter | None = None,
 ) -> BacktestResult:
     """Backtest ``policy`` from the first origin to one step after the last.
+
+    Configs (calendars, partners, rails) come from ``dataset.configs``. A business-day rail moves
+    money only on days that are business days at home and in the partner's country
+    (``ConfigSet.rail_calendar``). Amounts are in each partner's currency.
 
     Each partner uses ``rail_name`` if it accepts it, else its only rail. It starts at the fixed
     buffer's target at the first origin. At each review the available balance is the realized one
@@ -231,10 +320,11 @@ def run(
     the same for every policy and rail) to the end; the warm-up's shortfalls are reported apart as
     ``warmup_shortfall_windows`` and ``warmup_shortfall_amount``. Capital, transfers, fees and
     ``p_unresolvable_mean`` also count only the evaluated period. ``p_unresolvable_mean`` also
-    leaves out the structural no-op reviews (``structural_noop``).
+    leaves out the structural no-op reviews (``structural_noop``). ``segmenter`` goes to
+    ``walk_forward``; the realized flows never depend on it.
     """
-    cal = Calendar.from_yaml(CONFIG / "calendar_ar.yaml")
-    partners, rails = load_partners(CONFIG / "partners.yaml"), load_rails(CONFIG / "rails.yaml")
+    configs = dataset.configs
+    cal, partners, rails = configs.joint_calendar(), configs.partners(), configs.rails()
     step = pd.Timedelta(days=(origins[1] - origins[0]).days if len(origins) > 1 else 7)
     start, stop = pd.Timestamp(origins[0]), pd.Timestamp(origins[-1]) + step
     n_days = (stop - start).days
@@ -242,7 +332,7 @@ def run(
     if not 0 <= warmup_days < n_days:
         raise ValueError(f"warmup_days={warmup_days} must be in [0, {n_days})")
     evaluated = start + pd.Timedelta(days=warmup_days)
-    forecasts = walk_forward(dataset, model_factory, origins, horizon, n_paths, seed) if policy == "forecast" else []
+    forecasts = walk_forward(dataset, model_factory, origins, horizon, n_paths, seed, segmenter) if policy == "forecast" else []
     daily = daily_partner_table(dataset.history)
     daily["drain"] = daily["outflow"] - daily["inflow"] * daily["partner"].map({p: q.nets_inflows for p, q in partners.items()})
     drain = daily.pivot(index="date", columns="partner", values="drain")
@@ -252,12 +342,12 @@ def run(
 
     logs, rows, by_partner, initial = [], [], [], {}
     for pid, partner in partners.items():
-        rail = _rail_for(partner, rails, rail_name)
+        rail, rail_cal = _rail_for(partner, rails, rail_name), configs.rail_calendar(partner)
         flow_at, signed = _realized(dataset, partner, start, stop)
         drained, out_cum = np.cumsum(signed), np.cumsum(np.maximum(signed, 0.0))
         initial[pid] = policy_cfg.fixed_buffer_days * trailing(pid, start)
         sent: list[tuple[pd.Timestamp, pd.Timestamp, float]] = []
-        for t in review_times(rail, start, stop, cal, policy_cfg):
+        for t in review_times(rail, start, stop, rail_cal, policy_cfg):
             available = initial[pid] + sum(a for _, arr, a in sent if arr <= t) - _sum_before(flow_at, drained, t)
             pending = [Credit(arr, a) for _, arr, a in sent if arr > t]
             if policy == "fixed":
@@ -269,12 +359,12 @@ def run(
                 j = fc.partners.index(pid)
                 today = _sum_before(flow_at, out_cum, t) - _sum_before(flow_at, out_cum, t.normalize())
                 decision = recommend_deposit(
-                    fc.paths[:, :, j], fc.dates, partner, rail, available, pending, t, cal, policy_cfg,
+                    fc.paths[:, :, j], fc.dates, partner, rail, available, pending, t, rail_cal, policy_cfg,
                     realized_today=today, inflow_forecast=fc.inflow[:, j],
                 )
                 if decision.window_end.normalize() > fc.dates[-1]:
                     raise ValueError(f"forecast from {fc.origin.date()} ends before the window of the review at {t}")
-            arrival = arrival_time(rail, t, cal)
+            arrival = arrival_time(rail, t, rail_cal)
             if decision.amount > 0:
                 sent.append((t, arrival, decision.amount))
             rows.append({"at": t, "partner": pid, "rail_used": rail.name, "available": available,

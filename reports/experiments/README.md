@@ -66,6 +66,46 @@ deposit, and the policy around it is conservative: each day's forecast outflow i
 credit landing that day never covers it) and every deposit protects the window until the next review's
 order could land, so the realized service sits above alpha.
 
+<!-- segmentation:start -->
+## Inferred segments (no archetype labels)
+
+The segment model (d) normally splits nodes by the simulator's archetype label, which a real wallet
+does not have. `treasury.segmentation` infers segments at each origin from the users' transactions
+before it (k-means, k chosen by silhouette in 2..8; users with < 30 days of tenure or < 5 events in
+the last 90 days, and users activated later, are `new`). In the node history every user is `new` for
+their first 30 days and then joins their cluster (`backtest.segmented_inputs`). Profiles and
+per-origin clusters: `segmentation.md`.
+
+| variant | wape_q50 | cov_90 | cov_99 | pit_ks |
+|---|---|---|---|---|
+| (d) oracle | 0.234 | 0.891 | 0.985 | 0.059 |
+| (d) kmeans | 0.249 | 0.935 | 0.984 | 0.064 |
+| (d) kmeans k=7 | 0.249 | 0.927 | 0.987 | 0.084 |
+| (b) oracle | 0.217 | 0.768 | 0.961 | 0.138 |
+| (c) oracle | 0.215 | 0.760 | 0.958 | 0.151 |
+| (c) kmeans | 0.217 | 0.798 | 0.966 | 0.139 |
+
+| variant | rail | capital | shortfall rate | matched buffer days | matched capital | capital saved |
+|---|---|---|---|---|---|---|
+| (d) oracle | wire | 3.256e+09 | 0.00% | 10.00 | 4.011e+09 | 19% |
+| (d) oracle | stablecoin | 1.680e+09 | 0.00% | 6.50 | 2.765e+09 | 39% |
+| (d) kmeans | wire | 3.617e+09 | 0.00% | 10.00 | 4.011e+09 | 10% |
+| (d) kmeans | stablecoin | 1.974e+09 | 0.00% | 6.50 | 2.765e+09 | 29% |
+| (d) kmeans k=7 | wire | 3.860e+09 | 0.00% | 10.00 | 4.011e+09 | 4% |
+| (d) kmeans k=7 | stablecoin | 2.228e+09 | 0.00% | 6.50 | 2.765e+09 | 19% |
+| (b) oracle | wire | 3.861e+09 | 0.00% | 10.00 | 4.011e+09 | 4% |
+| (b) oracle | stablecoin | 2.120e+09 | 0.32% | 6.50 | 2.765e+09 | 23% |
+| (c) oracle | wire | 3.802e+09 | 0.00% | 10.00 | 4.011e+09 | 5% |
+| (c) oracle | stablecoin | 2.078e+09 | 0.32% | 6.50 | 2.765e+09 | 25% |
+| (c) kmeans | wire | 3.710e+09 | 0.00% | 10.00 | 4.011e+09 | 8% |
+| (c) kmeans | stablecoin | 1.973e+09 | 0.32% | 6.50 | 2.765e+09 | 29% |
+
+| labels | k per origin | silhouette (mean) | ARI vs archetypes (mean) |
+|---|---|---|---|
+| kmeans(k=auto,seed=0,window=90,min_tenure=30,min_events=5) | 3, 3, 3, 3, 3, 3, 3, 2 | 0.193 | 0.348 |
+| kmeans(k=7,seed=0,window=90,min_tenure=30,min_events=5) | 7, 7, 7, 7, 7, 7, 7, 7 | 0.163 | 0.297 |
+
+<!-- segmentation:end -->
 Source dataset `data/sim/base/params.json`:
 
 ```json

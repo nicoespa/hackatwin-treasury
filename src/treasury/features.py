@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 import numpy as np
 import pandas as pd
@@ -51,11 +51,30 @@ def _users_active(activation: pd.Series, dates: pd.DatetimeIndex) -> np.ndarray:
     return np.searchsorted(sorted_days, dates.to_numpy(), side="right")
 
 
+COHORT_PREFIXES = ("n_active_", "n_new_30d_")
+
+
+def cohort_drivers(users: pd.DataFrame, dates: pd.DatetimeIndex) -> pd.DataFrame:
+    """``date`` plus, per ``users["segment"]`` (sorted), ``n_active_<segment>`` (users with
+    ``activation_date <= date``) and ``n_new_30d_<segment>`` (activated in ``(date - 30, date]``)."""
+    dates = pd.DatetimeIndex(dates)
+    out = pd.DataFrame({"date": dates})
+    for segment, group in users.groupby("segment", sort=True):
+        active = _users_active(group["activation_date"], dates)
+        before = _users_active(group["activation_date"], dates - pd.Timedelta(days=NEW_USER_WINDOW_DAYS))
+        out[f"n_active_{segment}"] = active
+        out[f"n_new_30d_{segment}"] = active - before
+    return out
+
+
 def build_drivers(
     users: pd.DataFrame,
     events_routed: pd.DataFrame,
     dates: pd.DatetimeIndex,
     scenarios: Sequence = (),
+    fx: pd.DataFrame | None = None,
+    market: Mapping | None = None,
+    settle_lags: Mapping[str, tuple[Calendar, int]] | None = None,
 ) -> pd.DataFrame:
     """Wide drivers table, one row per date of ``dates``, built only from what is known ahead.
 
@@ -68,15 +87,21 @@ def build_drivers(
       ``direction == 1``) by settlement date and partner. Confirmed events are autodebit bills
       with a fixed amount and due date, so they are known ahead of their settlement date.
 
+    The international variant adds, after those (the domestic table is unchanged without them):
+
+    - ``fx_*`` from ``fx.fx_drivers(fx, market)``: exchange rates and their recent change. They are
+      realized values; ``known_at`` freezes them at the forecast origin, so a forecast only sees the
+      latest rates before it.
+    - ``tourism_index``: the tourism-season calendar of ``market``, known ahead.
+    - ``settles_<partner>``: for each ``settle_lags`` partner (a lagged partner abroad, settling
+      ``lag`` business days later on its country's calendar), the calendar days of events that
+      settle on the date (``settle_load``): 0 on its non-business days, more after a weekend or a
+      holiday there. Known ahead from the calendar.
+
     The amount of an unconfirmed event is never read, so realized flows cannot leak in.
     """
     dates = pd.DatetimeIndex(dates)
-    out = pd.DataFrame({"date": dates})
-    for segment, group in users.groupby("segment", sort=True):
-        active = _users_active(group["activation_date"], dates)
-        before = _users_active(group["activation_date"], dates - pd.Timedelta(days=NEW_USER_WINDOW_DAYS))
-        out[f"n_active_{segment}"] = active
-        out[f"n_new_30d_{segment}"] = active - before
+    out = cohort_drivers(users, dates)
 
     segment = str(users["segment"].min())
     for product in sorted(events_routed["product"].unique()):
@@ -90,4 +115,38 @@ def build_drivers(
     wide = by_day.unstack("partner").reindex(index=dates, columns=sorted(events_routed["partner"].unique()))
     for partner in wide.columns:
         out[f"confirmed_{partner}"] = wide[partner].fillna(0.0).to_numpy()
+    if fx is not None:
+        from treasury.fx import fx_drivers
+
+        extra = fx_drivers(fx, market or {}, dates)
+        out = pd.concat([out, extra.drop(columns="date")], axis=1)
+    for partner, (pcal, lag) in sorted((settle_lags or {}).items()):
+        out[f"settles_{partner}"] = [settle_load(pcal, lag, d.date()) for d in dates]
+    return out
+
+
+def settle_load(cal: Calendar, lag: int, d) -> float:
+    """Calendar days of events that a partner settling ``lag`` business days later on ``cal``
+    settles on ``d``: 0 if ``d`` is not a business day, else the days between the business days
+    ``lag`` and ``lag + 1`` before it (3 on the Tuesday of a T+1 partner, 4 after a Monday
+    holiday). NaN when that reaches outside the calendar's coverage."""
+    if not cal.is_business_day(d):
+        return 0.0
+    try:
+        return float((cal.add_business_days(d, -lag) - cal.add_business_days(d, -lag - 1)).days)
+    except ValueError:
+        return float("nan")
+
+
+def known_at(drivers: pd.DataFrame, origin: pd.Timestamp) -> pd.DataFrame:
+    """``drivers`` as known at ``origin``: every ``fx_*`` column on and after ``origin`` takes its
+    value on the last date before it (a random-walk forecast of the rate). Unchanged, the same
+    object, when there is no ``fx_*`` column."""
+    cols = [c for c in drivers if c.startswith("fx_")]
+    if not cols:
+        return drivers
+    out = drivers.copy()
+    later = out["date"] >= pd.Timestamp(origin)
+    before = out.loc[~later].sort_values("date")
+    out.loc[later, cols] = before[cols].iloc[-1].to_numpy() if len(before) else np.nan
     return out
