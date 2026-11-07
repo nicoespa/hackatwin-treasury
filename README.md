@@ -212,6 +212,27 @@ uv run treasury intl-experiments --data data/sim/intl --out reports/experiments
 
 Setup, assumptions and results (capital in USD): `reports/experiments/intl_README.md`.
 
+## MCP server: control the agent from your own AI agent
+
+`treasury-mcp` exposes the autonomous agent over the Model Context Protocol (stdio), so an agent such
+as Claude can watch and steer it. Executions are simulated: only the ledger is written.
+
+| tool | what it does |
+|---|---|
+| `get_status` | whether the agent may execute, its limits, and every transfer with its status |
+| `get_limits` | hard limits per currency, allow-listed accounts, guardrail thresholds |
+| `forecast` | next 7 days of outflow quantiles for a partner and what the policy needs |
+| `run_review` | the 09:00 review of a day; dry run by default, `execute=true` records transfers |
+| `list_transfers` | ledger transfers and their status at a given time |
+| `set_autonomy` | pause or resume executions (limits always apply on top) |
+
+```bash
+claude mcp add prefoundly -- uv run --directory "$(pwd)" treasury-mcp
+```
+
+Environment: `TREASURY_DATA` (default `data/sim/intl`), `TREASURY_LEDGER` (default
+`data/transfers_mcp.jsonl`), `TREASURY_STATE` (default `data/agent_state.json`).
+
 ## Checklist pre-demo
 
 1. `export PYTHONPATH=src` in the shell that runs the demo (or `chflags nohidden
