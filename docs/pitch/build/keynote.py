@@ -16,6 +16,7 @@ COLS, ROWS = 6, 4
 FIXED, PRE_BANK = 797469, 600286  # US$, reports/experiments/exante_buffer.csv (intl, k-means, fixed set ahead)
 USERS = 20000
 
+def dec(x): return f'{x:.1f}'.replace('.', ',')
 def n(x): return f"{x:,.0f}".replace(',', '.')
 def icon(name, size=40): return f'<x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="{name}" size="{size}px" hint-size="{size}px,{size}px"></x-import>'
 
@@ -61,17 +62,17 @@ slide('Portada', 'light', marble('right:-150px;top:-170px;width:560px;height:400
 # 2 · Paying a bill
 phone = f'''<div data-b="0" data-fx="up" data-d="500" style="position:absolute;right:230px;top:110px;width:430px;height:860px;border-radius:70px;background:var(--pf-petrol-950);padding:18px;box-sizing:border-box;box-shadow:0 40px 80px rgba(0,0,0,.25)">
   <div style="position:relative;width:100%;height:100%;border-radius:54px;background:#fff;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:80px 34px 40px;box-sizing:border-box;gap:20px">
-    <span style="font-size:26px;font-weight:600;color:var(--pf-grey-600)">Pagar factura</span>
-    <span style="display:grid;place-items:center;width:150px;height:150px;border-radius:50%;background:var(--pf-mint-100);color:var(--pf-petrol-900)">{icon('lightbulb', 84)}</span>
-    <span style="font-size:30px;color:var(--pf-grey-700)">Luz · octubre</span>
+    <span style="font-size:26px;font-weight:600;color:var(--pf-grey-600)">Transferir</span>
+    <span style="display:grid;place-items:center;width:150px;height:150px;border-radius:50%;background:var(--pf-mint-100);color:var(--pf-petrol-900)">{icon('send', 84)}</span>
+    <span style="font-size:30px;color:var(--pf-grey-700)">A Martina G.</span>
     <span style="font-size:88px;font-weight:600;letter-spacing:-0.04em;color:var(--pf-petrol-900);font-family:var(--font-mono)">$ 25.000</span>
-    <span style="margin-top:auto;width:100%;height:84px;border-radius:24px;background:var(--pf-petrol-900);color:#fff;display:grid;place-items:center;font-size:28px;font-weight:600">Pagar</span>
+    <span style="margin-top:auto;width:100%;height:84px;border-radius:24px;background:var(--pf-petrol-900);color:#fff;display:grid;place-items:center;font-size:28px;font-weight:600">Enviar</span>
     <div data-b="1" data-fx="fade" style="position:absolute;inset:0;background:var(--pf-green-600);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;color:#fff">
       <span data-b="1" data-fx="stamp" data-d="150" style="display:grid;place-items:center;width:150px;height:150px;border-radius:50%;background:#fff;color:var(--pf-green-600)">{icon('check', 90)}</span>
-      <span style="font-size:46px;font-weight:600">Pagado</span></div>
+      <span style="font-size:46px;font-weight:600">Enviado</span></div>
   </div></div>'''
-slide('Pagás la luz', 'light', center(H('Pagás la luz desde tu billetera.', 'var(--pf-petrol-900)', 112),
-                                      P('Un toque, y listo.', 'var(--pf-teal-700)', 46, b=1, d=300), align='flex-start', pad='0 820px 0 140px', gap=30) + phone)
+slide('Hacés una transferencia', 'light', center(H('Hacés una transferencia desde tu billetera.', 'var(--pf-petrol-900)', 104),
+                                      P('Llega al instante.', 'var(--pf-teal-700)', 46, b=1, d=300), align='flex-start', pad='0 820px 0 140px', gap=30) + phone)
 
 # 3 · Who really pays
 def node(label, sub, ic, bg, fg, b, d=0):
@@ -85,15 +86,15 @@ def arrow(label, b, d=0):
             f'<span style="width:100%;height:6px;border-radius:6px;background:var(--pf-teal-500)"></span></div>')
 flow = ('<div style="width:1640px;display:flex;align-items:flex-start;gap:20px">'
         + node('Tu billetera', 'carga plata antes', 'wallet', 'var(--pf-petrol-900)', '#fff', 1)
-        + arrow('días antes', 1, 300)
+        + arrow('antes', 1, 300)
         + node('Un intermediario', 'tiene esa plata', 'landmark', 'var(--pf-mint-200)', 'var(--pf-petrol-900)', 1, 500)
         + arrow('al instante', 2)
-        + node('La empresa de luz', 'cobra', 'lightbulb', 'var(--pf-grey-100)', 'var(--pf-petrol-900)', 2, 300) + '</div>')
-slide('Quién paga', 'light', center(H('Pero no le paga tu billetera.', 'var(--pf-petrol-900)', 104), flow, gap=90))
+        + node('La otra cuenta', 'recibe la plata', 'user', 'var(--pf-grey-100)', 'var(--pf-petrol-900)', 2, 300) + '</div>')
+slide('De dónde sale', 'light', center(H('Pero la plata no sale de tu billetera.', 'var(--pf-petrol-900)', 104), flow, gap=90))
 
 # 4 · Prepaid analogy
 tank = f'''<div data-b="0" data-fx="up" data-d="600" style="width:1400px;display:flex;flex-direction:column;gap:22px">
-  <div style="display:flex;justify-content:space-between;font-size:32px;font-weight:600;color:var(--pf-mint-200)"><span>Saldo cargado en el intermediario</span><span data-b="1" data-fx="fade">cada pago lo baja</span></div>
+  <div style="display:flex;justify-content:space-between;font-size:32px;font-weight:600;color:var(--pf-mint-200)"><span>Saldo cargado en el intermediario</span><span data-b="1" data-fx="fade">cada transferencia lo baja</span></div>
   <div style="position:relative;height:150px;border-radius:40px;background:var(--pf-petrol-800);overflow:hidden">
     <div data-b="0" data-fx="grow" data-d="900" style="position:absolute;left:0;top:0;bottom:0;width:72%;background:linear-gradient(90deg,var(--pf-mint-300),var(--pf-mint-200));border-radius:40px"></div>
     <div data-b="1" data-fx="fade" style="position:absolute;left:46%;top:0;bottom:0;width:26%;background:var(--pf-petrol-800)"></div>
@@ -105,7 +106,7 @@ split = f'''<div style="position:absolute;inset:0;display:grid;grid-template-col
   <div data-b="0" data-fx="left" data-d="300" style="background:var(--pf-red-100);display:flex;flex-direction:column;justify-content:center;gap:28px;padding:0 120px">
     <span style="display:grid;place-items:center;width:120px;height:120px;border-radius:50%;background:#fff;color:var(--pf-red-600)">{icon('triangle-alert', 60)}</span>
     <span style="font-size:130px;line-height:.95;font-weight:600;letter-spacing:-0.05em;color:var(--pf-red-600)">Si se vacía</span>
-    <span style="font-size:50px;line-height:1.2;font-weight:500;color:var(--pf-petrol-900)">tu pago se rechaza.</span></div>
+    <span style="font-size:50px;line-height:1.2;font-weight:500;color:var(--pf-petrol-900)">pagás una multa.</span></div>
   <div data-b="1" data-fx="right" style="background:var(--pf-petrol-900);display:flex;flex-direction:column;justify-content:center;gap:28px;padding:0 120px">
     <span style="display:grid;place-items:center;width:120px;height:120px;border-radius:50%;background:var(--pf-mint-200);color:var(--pf-petrol-900)">{icon('lock', 60)}</span>
     <span style="font-size:130px;line-height:.95;font-weight:600;letter-spacing:-0.05em;color:#fff">Si sobra</span>
@@ -115,43 +116,16 @@ slide('Se vacía o sobra', 'light', split)
 # 6 · The question
 slide('La pregunta', 'deep', marble('left:-160px;top:-170px;width:480px;height:340px') + center(H('¿Cuánto hay que cargar?', '#fff', 140)))
 
-# 7 · Why it is hard
-probs = [('calendar-days', 'Cada día se paga distinto.', 'Cobro de sueldos, fines de semana, feriados.'),
-         ('trending-down', 'El peso se mueve.', 'Cuando cae, la gente gasta distinto.'),
-         ('globe', 'Si la cuenta está afuera, cargarla tarda.', 'Una transferencia bancaria internacional, de 2 a 5 días hábiles.'),
-         ('calendar-x', 'Hay feriados en dos países.', 'La plata solo avanza cuando abren los bancos de los dos.'),
-         ('ban', 'Y en Brasil se cerró el atajo.', 'Desde octubre de 2026 no se pueden usar stablecoins para esto.')]
-items = ''.join(f'<div data-b="{i + 1}" data-fx="left" style="display:grid;grid-template-columns:96px 1fr;align-items:center;gap:34px">'
-                f'<span style="display:grid;place-items:center;width:96px;height:96px;border-radius:50%;background:var(--pf-mint-200);color:var(--pf-petrol-900)">{icon(ic, 46)}</span>'
-                f'<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:48px;font-weight:600;letter-spacing:-0.02em;color:#fff">{t}</span>'
-                f'<span style="font-size:32px;color:var(--pf-mint-200)">{d}</span></div></div>' for i, (ic, t, d) in enumerate(probs))
-slide('Por qué es difícil', 'dark', f'<div style="position:absolute;left:150px;top:96px">{H("¿Por qué es tan difícil?", "#fff", 96)}</div>'
-      f'<div style="position:absolute;left:150px;right:150px;top:260px;display:flex;flex-direction:column;gap:26px">{items}</div>'
-      + SRC('Plazos según bancos argentinos. Banco Central de Brasil, Resolución 561, vigente desde el 1 de octubre de 2026', 'var(--pf-mint-300)'))
-
 # 8 · Today
-slide('Hoy', 'light', center(P('Por eso hoy se usa una regla fija:', 'var(--pf-teal-700)', 52, d=200),
-      BIG('11 días', 'var(--pf-petrol-900)', count={'count': 11, 'suffix': ' días'}),
-      P('de pagos cargados, por las dudas.', 'var(--pf-petrol-900)', 52, d=900), gap=36)
-      + SRC('Días de pago que necesita una regla fija para no quedarse nunca sin saldo, calibrada con las 16 semanas anteriores: 11,6 en pesos y 10,8 con cuentas afuera', 'var(--pf-grey-500)'))
-
-# 10 · Scale
-slide('3,39 millones', 'light', center(BIG('3,39 M', 'var(--pf-petrol-900)', count={'count': 3.39, 'dec': 2, 'suffix': ' M'}),
-      P('argentinos viajaron a Brasil en 2025. Uno de cada tres turistas que recibió.', 'var(--pf-petrol-900)', 50, d=900), gap=40)
-      + SRC('Dato oficial de turismo de Brasil, enero de 2026', 'var(--pf-grey-500)'))
-
-# 11 · One wallet
-slide('US$ 150 millones', 'mint', marble('right:-120px;top:-150px;width:520px;height:380px') + center(
-    BIG('US$ 150 M', 'var(--pf-petrol-900)', 260, count={'count': 150, 'prefix': 'US$ ', 'suffix': ' M'}),
-    P('pagó una sola billetera argentina en Brasil, en cinco semanas.', 'var(--pf-petrol-900)', 50, d=900),
-    P('Todo con plata cargada antes.', 'var(--pf-teal-700)', 50, b=1, d=0), gap=36)
-      + SRC('Prensa especializada, marzo de 2025', 'var(--pf-petrol-800)'))
+slide('Hoy', 'light', center(P('Hoy se carga', 'var(--pf-teal-700)', 52, d=200),
+      BIG('a ojo', 'var(--pf-petrol-900)', 300, d=500),
+      P('por las dudas, y casi siempre de más.', 'var(--pf-petrol-900)', 52, d=900), gap=40))
 
 # 12 · Reveal
 slide('Prefoundly', 'deep', f'<div data-b="0" data-fx="zoom" style="position:absolute;inset:0;background:url(&quot;{MARBLE}&quot;) center/cover;opacity:.28"></div>'
       + center(P('Por eso hicimos', 'var(--pf-mint-200)', 48, d=300),
                f'<div data-b="0" data-fx="blur" data-d="900" style="padding:56px 80px;border-radius:48px;background:var(--pf-grey-50)"><img src="{LOGO}" alt="Prefoundly AI" style="display:block;width:1120px;height:auto"></div>',
-               P('Calcula cuánto cargar en cada cuenta, todos los días.', 'var(--pf-mint-100)', 46, b=1, d=0), gap=48))
+               P('Calcula cuánto cargar en tu partner cada día, y lo manda solo.', 'var(--pf-mint-100)', 46, b=1, d=0), gap=48))
 
 # 13 · Groups
 random.seed(7)
@@ -164,12 +138,12 @@ for (cx, cy), col in groups:
 dots = (f'<div style="position:relative;width:1600px;height:680px">'
         f'<svg data-b="0" data-hb="1" data-fx="fade" width="1600" height="680" sc-camel-view-box="0 0 1600 680" style="position:absolute;inset:0">{"".join(scat)}</svg>'
         f'<svg data-b="1" data-fx="fade" width="1600" height="680" sc-camel-view-box="0 0 1600 680" style="position:absolute;inset:0">{"".join(clus)}</svg></div>')
-slide('Agrupa', 'light', f'<div style="position:absolute;left:140px;top:100px">{H("1. Mira cómo usa la billetera cada persona.", "var(--pf-petrol-900)", 84)}</div>'
-      f'<div style="position:absolute;left:160px;top:300px">{dots}</div>'
+slide('Agrupa', 'light', f'<div style="position:absolute;left:140px;top:100px">{H("1. Agrupa a los usuarios según su comportamiento.", "var(--pf-petrol-900)", 84)}</div>'
+      f'<div style="position:absolute;left:160px;top:250px;transform:scale(.84);transform-origin:top left">{dots}</div>'
       f'<div style="position:absolute;left:140px;bottom:80px">{P("Y arma grupos solo: los que pagan todo cuando cobran, los que gastan el fin de semana, los que casi no la usan.", "var(--pf-teal-700)", 38, b=1, d=300)}</div>')
 
 # 13 · Predicts (plain)
-q50, q99 = 155753590.65, 252716607.34  # reports/demo/agent_run.json, bills_aggregator, 2026-10-01
+q50, q99 = 66.4e6, 116.6e6  # web/console/data.json: Partner A (bills_aggregator), 23 Oct 09:00, need until the next load at alpha 0.5 and 0.99
 def mbar(label, value, color, tc, b, w):
     return (f'<div data-b="{b}" data-fx="up" style="display:grid;grid-template-columns:360px 1fr;align-items:center;gap:36px">'
             f'<span style="font-size:44px;font-weight:600;color:var(--pf-petrol-900)">{label}</span>'
@@ -179,15 +153,15 @@ def mb(label, v, color, tc, b):
     return (f'<div data-b="{b}" data-fx="up" style="display:grid;grid-template-columns:360px 1fr;align-items:center;gap:36px">'
             f'<span style="font-size:44px;font-weight:600;color:var(--pf-petrol-900)">{label}</span>'
             f'<div style="height:130px;border-radius:30px;background:var(--pf-grey-100)"><div data-b="{b}" data-fx="grow" data-d="300" style="width:{100 * v / q99:.0f}%;height:100%;border-radius:30px;background:{color};display:flex;align-items:center;padding:0 36px;box-sizing:border-box;white-space:nowrap">'
-            f'<span style="font-family:var(--font-mono);font-size:54px;font-weight:500;color:{tc}">$ {v / 1e6:.0f} M</span></div></div></div>')
-slide('Predice', 'light', center(H('2. Predice cuánto van a pagar mañana.', 'var(--pf-petrol-900)', 92),
-      '<div style="width:1640px;display:flex;flex-direction:column;gap:34px">' + mb('Día normal', q50, 'var(--pf-petrol-900)', '#fff', 1)
-      + mb('Día malo', q99, 'var(--pf-mint-300)', 'var(--pf-petrol-900)', 2) + '</div>',
-      P('Se prepara para el día malo, no para el promedio.', 'var(--pf-teal-700)', 44, b=2, d=600), gap=60)
-      + SRC('Pagos de facturas de los usuarios en un día. Día malo: el peor de cada 100 escenarios simulados', 'var(--pf-grey-500)'))
+            f'<span style="font-family:var(--font-mono);font-size:54px;font-weight:500;color:{tc}">$ {dec(v / 1e6)} M</span></div></div></div>')
+slide('Predice', 'light', center(H('2. Predice cuánto se va a pagar hasta la próxima carga.', 'var(--pf-petrol-900)', 88),
+      '<div style="width:1640px;display:flex;flex-direction:column;gap:34px">' + mb('Lo esperado', q50, 'var(--pf-petrol-900)', '#fff', 1)
+      + mb('Con margen', q99, 'var(--pf-mint-300)', 'var(--pf-petrol-900)', 2) + '</div>',
+      P('Se prepara con margen, no para el promedio.', 'var(--pf-teal-700)', 44, b=2, d=600), gap=60)
+      + SRC('Pagos de servicios y recargas, hasta la carga del día siguiente. Con margen: alcanza en 99 de cada 100 escenarios simulados', 'var(--pf-grey-500)'))
 
 # 14 · Calculates (tank)
-need, avail, load = 1022139190.67, 906583094.57, 115557000.0
+need, avail, load = 116.6e6, 95.3e6, 21.3e6  # the same decision, as the demo shows it
 calc = f'''<div style="width:1500px;display:flex;flex-direction:column;gap:26px">
   <div style="position:relative;height:170px;border-radius:44px;background:var(--pf-petrol-800);overflow:visible">
     <div data-b="0" data-fx="grow" data-d="500" style="position:absolute;left:0;top:0;bottom:0;width:{100 * avail / need * 0.88:.1f}%;border-radius:44px 0 0 44px;background:var(--pf-mint-200)"></div>
@@ -195,19 +169,19 @@ calc = f'''<div style="width:1500px;display:flex;flex-direction:column;gap:26px"
     <div style="position:absolute;left:88%;top:-30px;bottom:-30px;width:6px;border-radius:6px;background:#fff"></div>
   </div>
   <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:30px">
-    <div data-b="0" data-fx="up" style="display:flex;flex-direction:column;gap:6px"><span style="font-size:30px;font-weight:600;color:var(--pf-mint-200)">Hay cargado</span><span style="font-family:var(--font-mono);font-size:64px;color:#fff">$ {avail / 1e6:,.0f} M</span></div>
-    <div data-b="1" data-fx="up" style="display:flex;flex-direction:column;gap:6px;align-items:center"><span style="font-size:30px;font-weight:600;color:var(--pf-mint-300)">Carga</span><span style="font-family:var(--font-mono);font-size:64px;color:var(--pf-mint-300)">+ $ {load / 1e6:,.0f} M</span></div>
-    <div data-b="0" data-fx="up" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span style="font-size:30px;font-weight:600;color:#fff">Hace falta</span><span style="font-family:var(--font-mono);font-size:64px;color:#fff">$ {n(need / 1e6)} M</span></div>
+    <div data-b="0" data-fx="up" style="display:flex;flex-direction:column;gap:6px"><span style="font-size:30px;font-weight:600;color:var(--pf-mint-200)">Hay cargado</span><span style="font-family:var(--font-mono);font-size:64px;color:#fff">$ {dec(avail / 1e6)} M</span></div>
+    <div data-b="1" data-fx="up" style="display:flex;flex-direction:column;gap:6px;align-items:center"><span style="font-size:30px;font-weight:600;color:var(--pf-mint-300)">Carga</span><span style="font-family:var(--font-mono);font-size:64px;color:var(--pf-mint-300)">+ $ {dec(load / 1e6)} M</span></div>
+    <div data-b="0" data-fx="up" style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><span style="font-size:30px;font-weight:600;color:#fff">Hace falta</span><span style="font-family:var(--font-mono);font-size:64px;color:#fff">$ {dec(need / 1e6)} M</span></div>
   </div></div>'''
 slide('Calcula', 'dark', center(H('3. Calcula cuánto le falta.', '#fff', 112), calc, gap=80)
-      + SRC('Hace falta: lo que se puede pagar, en un día malo, hasta que llegue la próxima carga', 'var(--pf-mint-300)'))
+      + SRC('Hace falta: lo que se puede pagar hasta la próxima carga, con margen', 'var(--pf-mint-300)'))
 
 # 15 · Sends it
 tl = f'''<div style="position:relative;width:1500px;height:300px">
   <div style="position:absolute;left:40px;right:40px;top:58px;height:10px;border-radius:10px;background:var(--pf-grey-200)"></div>
   <div data-b="1" data-fx="grow" data-d="200" style="position:absolute;left:40px;right:40px;top:58px;height:10px;border-radius:10px;background:var(--pf-teal-500)"></div>
-  <div style="position:absolute;left:0;top:20px;display:flex;flex-direction:column;gap:16px;align-items:flex-start"><span style="width:86px;height:86px;border-radius:50%;background:var(--pf-petrol-900);border:12px solid var(--pf-mint-200);box-sizing:border-box"></span><span style="font-size:44px;font-weight:600;color:var(--pf-petrol-900)">Hoy, 9:00</span><span style="font-size:30px;color:var(--pf-grey-600)">Manda $ 116 M</span></div>
-  <div data-b="1" data-fx="stamp" data-d="1200" style="position:absolute;right:0;top:20px;display:flex;flex-direction:column;gap:16px;align-items:flex-end"><span style="display:grid;place-items:center;width:86px;height:86px;border-radius:50%;background:var(--pf-green-600);color:#fff">{icon('check', 48)}</span><span style="font-size:44px;font-weight:600;color:var(--pf-petrol-900)">Llega antes de que haga falta</span><span style="font-size:30px;color:var(--pf-grey-600)">Ningún pago se rechaza</span></div></div>'''
+  <div style="position:absolute;left:0;top:20px;display:flex;flex-direction:column;gap:16px;align-items:flex-start"><span style="width:86px;height:86px;border-radius:50%;background:var(--pf-petrol-900);border:12px solid var(--pf-mint-200);box-sizing:border-box"></span><span style="font-size:44px;font-weight:600;color:var(--pf-petrol-900)">Hoy, 9:00</span><span style="font-size:30px;color:var(--pf-grey-600)">Manda $ 21,3 M</span></div>
+  <div data-b="1" data-fx="stamp" data-d="1200" style="position:absolute;right:0;top:20px;display:flex;flex-direction:column;gap:16px;align-items:flex-end"><span style="display:grid;place-items:center;width:86px;height:86px;border-radius:50%;background:var(--pf-green-600);color:#fff">{icon('check', 48)}</span><span style="font-size:44px;font-weight:600;color:var(--pf-petrol-900)">9:30, acreditada</span><span style="font-size:30px;color:var(--pf-grey-600)">Sin multas</span></div></div>'''
 slide('La manda sola', 'light', center(H('4. Y la manda solo.', 'var(--pf-petrol-900)', 112), tl, P('Sin que nadie apriete un botón.', 'var(--pf-teal-700)', 44, b=2, d=0), gap=70))
 
 # 16 · Limits
@@ -220,32 +194,45 @@ caps = ''.join(f'<div data-b="1" data-fx="up" data-d="{150 * i}" style="flex:1;d
 slide('Con límites', 'dark', center(H('Con límites que no puede cambiar.', '#fff', 104), f'<div style="width:1640px;display:flex;gap:28px">{caps}</div>',
       P('Si hace falta más, manda hasta el tope y avisa a una persona.', 'var(--pf-mint-100)', 44, b=2, d=0), gap=64))
 
+# 17 · Explains every decision
+bubble_q = '<div data-b="0" data-fx="up" data-d="500" style="align-self:flex-end;max-width:900px;padding:30px 44px;border-radius:44px 44px 12px 44px;background:var(--pf-petrol-900);font-size:44px;line-height:1.3;color:#fff">¿Por qué mandaste $ 21,3 M?</div>'
+bubble_a = ('<div data-b="1" data-fx="up" style="align-self:flex-start;max-width:1250px;padding:34px 46px;border-radius:12px 44px 44px 44px;background:var(--pf-mint-100);display:flex;flex-direction:column;gap:12px">'
+            '<span style="font-size:30px;font-weight:600;color:var(--pf-teal-700)">Prefoundly AI</span>'
+            '<span style="font-size:44px;line-height:1.35;color:var(--pf-petrol-900)">Para llegar a mañana con margen hacían falta $ 116,6 M. Había $ 95,3 M en el partner, así que mandé la diferencia.</span></div>')
+slide('Te explica', 'light', center(H('5. Y te explica cada decisión.', 'var(--pf-petrol-900)', 104),
+      f'<div style="width:1500px;display:flex;flex-direction:column;gap:30px">{bubble_q}{bubble_a}</div>',
+      P('Le preguntás en tu idioma. Si querés, le das órdenes: frenar, poner un tope, cambiar el margen.', 'var(--pf-teal-700)', 40, b=2, d=0), gap=60))
+
+# 18 · MCP
+tools = ''.join(f'<span data-b="1" data-fx="up" data-d="{120 * i}" style="padding:18px 28px;border-radius:999px;background:var(--pf-petrol-800);font-family:var(--font-mono);font-size:32px;color:var(--pf-mint-200)">{t}</span>'
+                for i, t in enumerate(['get_status', 'forecast', 'run_review', 'list_transfers', 'set_autonomy']))
+term = (f'<div data-b="0" data-fx="up" data-d="600" style="width:1500px;padding:40px 48px;border-radius:36px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:40px;line-height:1.5;color:var(--pf-mint-100);text-align:left">'
+        f'<span style="color:var(--pf-mint-300)">$</span> claude mcp add prefoundly -- uv run treasury-mcp</div>')
+slide('MCP', 'dark', marble('right:-170px;top:-190px;width:540px;height:390px') + center(
+    H('Y lo conectás a tu propio agente.', '#fff', 104),
+    P('Hicimos un servidor MCP: Claude o cualquier agente consulta saldos y pronósticos, corre la revisión o lo frena.', 'var(--pf-mint-100)', 42, d=300),
+    term, f'<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:16px;width:1500px">{tools}</div>', gap=44))
+
 # 18 · Demo
 slide('Demo', 'deep', f'<div data-b="0" data-fx="zoom" style="position:absolute;inset:0;background:url(&quot;{MARBLE}&quot;) center/cover;opacity:.55"></div>' + center(H('Demo', '#fff', 300)))
 
 # 18 · Result
-def card(big, label, sub, bg, fg, sc, b):
-    return (f'<div data-b="{b}" data-fx="up" style="flex:1;display:flex;flex-direction:column;gap:22px;padding:56px 60px;border-radius:44px;background:{bg}">'
-            f'<span data-b="{b}" data-count="{big}" data-prefix="−" data-suffix=" %" data-d="300" style="font-size:220px;line-height:.9;font-weight:600;letter-spacing:-0.06em;color:{fg}">−{big} %</span>'
-            f'<span style="font-size:46px;font-weight:600;color:{fg}">{label}</span><span style="font-size:32px;color:{sc}">{sub}</span></div>')
-slide('Resultado', 'light', center(H('Menos plata parada. Ningún pago rechazado.', 'var(--pf-petrol-900)', 92),
-      '<div style="width:1640px;display:flex;gap:32px">'
-      + card(23, 'Cuentas en pesos', '$ 4.709 M → $ 3.617 M', 'var(--pf-petrol-900)', '#fff', 'var(--pf-mint-200)', 0)
-      + card(25, 'Cuentas afuera', 'US$ 797 mil → US$ 600 mil', 'var(--pf-mint-200)', 'var(--pf-petrol-900)', 'var(--pf-petrol-800)', 1)
-      + '</div>', gap=64)
-      + SRC('20.000 usuarios simulados, 8 semanas. Capital promedio contra una regla fija calibrada con las 16 semanas anteriores, con transferencia bancaria en los dos casos', 'var(--pf-grey-500)'))
+slide('Resultado', 'light', center(H('Menos plata parada.', 'var(--pf-petrol-900)', 104),
+      BIG('−23 %', 'var(--pf-teal-600)', 320, d=500, count={'count': 23, 'prefix': '−', 'suffix': ' %'}),
+      P('Que con la regla fija, y sin quedarse nunca sin saldo.', 'var(--pf-petrol-900)', 48, d=1000), gap=40)
+      + SRC('20.000 usuarios simulados, 8 semanas. Capital promedio: $ 4.709 M con la regla fija contra $ 3.617 M con Prefoundly', 'var(--pf-grey-500)'))
 
 # 21 · Zero
 slide('Cero', 'mint', marble('left:-150px;bottom:-180px;width:560px;height:400px') + center(
     BIG('0', 'var(--pf-petrol-900)', 420),
-    P('días sin saldo. Nunca se rechazó un pago.', 'var(--pf-petrol-900)', 54, d=900), gap=30))
+    P('días sin saldo. Ninguna multa.', 'var(--pf-petrol-900)', 54, d=900), gap=30))
 
 # 21 · Scale
 per_user = (4708922102.39 - 3616832310.76) / USERS
 slide('Un millón de usuarios', 'dark', marble('right:-180px;top:-190px;width:560px;height:400px') + center(
     P('Con 1 millón de usuarios,', 'var(--pf-mint-200)', 56, d=300),
     BIG(f'$ {per_user * 1e6 / 1e9:.0f} mil M', '#fff', 260, d=900, count={'count': round(per_user * 1e6 / 1e9), 'prefix': '$ ', 'suffix': ' mil M'}),
-    P('dejan de estar parados.', 'var(--pf-mint-300)', 64, d=1300), gap=36)
+    P('dejan de estar parados todo el año.', 'var(--pf-mint-300)', 64, d=1300), gap=36)
       + SRC('Pesos. Proyección desde 20.000 usuarios simulados: en la simulación, el capital creció en proporción a los usuarios desde 5.000', 'var(--pf-mint-300)'))
 
 # 24 · Close

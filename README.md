@@ -212,6 +212,58 @@ uv run treasury intl-experiments --data data/sim/intl --out reports/experiments
 
 Setup, assumptions and results (capital in USD): `reports/experiments/intl_README.md`.
 
+## Live demo: the monitoring console
+
+```bash
+uv run treasury live        # fits the week's forecast (under a minute), then http://127.0.0.1:8700
+```
+
+A simulated clock runs from Friday 16 October 2026 at 09:00 to Monday 12:00. The wallet prefunds one partner;
+users' payments from the simulation drain it as the clock passes them. The agent (`src/treasury/live.py`)
+decides once a day at 09:00, with no human in the loop:
+
+- **Plan**, business days: how much to send so the partner covers, on a bad day, everything until the next
+  plan lands. On Friday that is the whole weekend.
+- **Check**, weekend days: re-forecast with what already settled and send more only if it falls short. Money
+  already sent stays at the partner: a prefunded balance is part of the partner's business, so it is never
+  pulled back.
+
+The console shows the balance against the coverage the model asks for, the Friday forecast against what really
+left each day, and every decision as a sum (needs on a bad day, minus what the partner holds, equals what it
+sends). An optional order field constrains the agent ("frená los envíos", "riesgo medio", "no mandes más de
+100 M"); `src/treasury/orders.py` parses it with Claude when `ANTHROPIC_API_KEY` is set and with keywords
+otherwise. The autonomy limits always apply, and pausing from the MCP server shows here too.
+
+`scripts/plan_adjust_experiment.py` measures what pulling excess back would be worth if an intermediary
+allowed it (`give_back=True`, no pool or limits): plan only keeps 1.439e9 on average in those accounts, plan
+plus give-backs 1.285e9 (10.7 % less), both with no hour short (`reports/experiments/plan_adjust.csv`).
+
+An earlier variant, `scripts/rebalance_experiment.py`, sweeps surpluses inside the backtest itself, measured on the evaluated weeks (stablecoin rail, k-means segments):
+
+| variant | capital | partner-days short | transfers | fees |
+|---|---|---|---|---|
+| reviews at 9 and 18, no sweep (before) | 1.974e9 | 0 % | 235 | 17.3 M |
+| every 3 h, no sweep | 1.932e9 | 0 % | 235 | 17.3 M |
+| every 3 h, sweep to the need | 1.564e9 | 0.64 % | 465 | 40.2 M |
+| every 3 h, sweep keeping 2x the need | 1.723e9 | 0 % | 256 | 27.3 M |
+
+Sweeping with headroom frees 13 % more capital with no shortfall; it pays for its extra moves when moving
+money between the wallet's own accounts costs under 4.3 bps (12 % cost of capital) or 10.7 bps (30 %).
+
+## Live demo: dashboard plus your own agent
+
+```bash
+uv run treasury monitor --seed     # runs the agent's reviews of 28-Sep to 2-Oct-2026, then serves the dashboard
+# open http://127.0.0.1:8600
+```
+
+The dashboard (`src/treasury/monitor.py`, `monitor.html`) shows each account's balance against what a bad
+day could take, every transfer the agent sent with the reason in plain Spanish, open alerts, and eight weeks
+of balances with the agent against a fixed rule set ahead of time. It polls every 3 seconds. With the MCP
+server connected (next section), asking your agent to run and execute a review makes the new transfer appear
+on the dashboard; pausing the agent shows it as paused. To start over, delete `data/agent_runs.jsonl` and
+`data/transfers_mcp.jsonl`.
+
 ## MCP server: control the agent from your own AI agent
 
 `treasury-mcp` exposes the autonomous agent over the Model Context Protocol (stdio), so an agent such
@@ -230,8 +282,9 @@ as Claude can watch and steer it. Executions are simulated: only the ledger is w
 claude mcp add prefoundly -- uv run --directory "$(pwd)" treasury-mcp
 ```
 
-Environment: `TREASURY_DATA` (default `data/sim/intl`), `TREASURY_LEDGER` (default
-`data/transfers_mcp.jsonl`), `TREASURY_STATE` (default `data/agent_state.json`).
+Environment, shared with the live dashboard (`treasury monitor`): `TREASURY_DATA` (default `data/sim/base`),
+`TREASURY_LEDGER` (default `data/transfers_mcp.jsonl`), `TREASURY_RUNS` (default `data/agent_runs.jsonl`),
+`TREASURY_STATE` (default `data/agent_state.json`). Every review executed through MCP shows up on the dashboard.
 
 ## Checklist pre-demo
 
