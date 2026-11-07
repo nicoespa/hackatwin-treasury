@@ -619,23 +619,23 @@ code,kbd{font-family:var(--font-mono);font-size:.92em}
             </div>
           </section>
           <div data-r="kpis" data-tour="kpis" style="flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px">
-            <section data-tip="bal" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
+            <section data-tip="bal" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 20px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
               <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Saldo disponible</span>
               <span style="font-size:40px;line-height:1;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900);white-space:nowrap">{{ balTxt }}</span>
               <div style="height:26px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--pf-grey-700);white-space:nowrap"><div style="flex:1;height:8px;border-radius:999px;background:var(--pf-grey-100);overflow:hidden"><div style="height:100%;width:{{ balPct }};border-radius:999px;background:{{ balColor }}"></div></div><span style="font-weight:600;color:var(--pf-petrol-900)">{{ balPctTxt }}</span></div>
             </section>
-            <section data-tip="cons" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
+            <section data-tip="cons" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 20px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
               <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Pagado hoy</span>
               <span style="font-size:40px;line-height:1;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900);white-space:nowrap">{{ consTxt }}</span>
               <div style="height:26px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--pf-grey-700);white-space:nowrap">hasta las {{ clock }}</div>
             </section>
-            <section data-tip="dev" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
+            <section data-tip="dev" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 20px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
               <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Desvío</span>
               <span style="font-size:40px;line-height:1;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900);white-space:nowrap">{{ devTxt }}</span>
               <div style="height:26px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--pf-grey-700);white-space:nowrap">vs. lo esperado</div>
             </section>
-            <section data-tip="next" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
-              <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Mañana, estimado</span>
+            <section data-tip="next" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 20px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
+              <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Reposición de mañana</span>
               <span style="font-size:40px;line-height:1;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900);white-space:nowrap">{{ fcTxt }}</span>
               <div style="height:26px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--pf-grey-700);white-space:nowrap">
                 <div style="position:relative;flex:1;height:24px">
