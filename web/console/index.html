@@ -792,7 +792,7 @@ code,kbd{font-family:var(--font-mono);font-size:.92em}
           <section style="flex:1;min-height:0;background:#fff;border:1px solid var(--pf-grey-200);border-radius:28px;padding:24px 32px;display:flex;flex-direction:column;gap:12px">
             <span style="font-size:24px;font-weight:600;color:var(--pf-petrol-900)">Conectalo en dos pasos</span>
             <div style="display:flex;flex-direction:column;gap:8px">
-              <span style="font-size:19px;color:var(--pf-grey-700)"><b style="color:var(--pf-petrol-900)">1.</b> Bajá el proyecto e instalá las dependencias</span>
+              <span style="font-size:19px;color:var(--pf-grey-700)"><b style="color:var(--pf-petrol-900)">1.</b> Bajá el proyecto, instalá las dependencias y generá los datos simulados</span>
               <div style="display:flex;align-items:center;gap:14px;padding:11px 12px 11px 20px;border-radius:14px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100)"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ mcpClone }}</span><button sc-camel-on-click="{{ copyClone }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ cloneBtn }}</button></div>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px">
@@ -861,7 +861,7 @@ const parseDay = (s) => new Date(s + 'T12:00:00');
 const dayLabel = (s) => { const d = parseDay(s); return d.getDate() + ' ' + MON[d.getMonth()]; };
 const sum = (a, i0, i1) => { let s = 0; for (let i = Math.max(0, i0); i < Math.min(a.length, i1); i++) s += a[i]; return s; };
 const MCP = {
-  clone: 'git clone https://github.com/nicoespa/hackatwin-treasury && cd hackatwin-treasury && uv sync',
+  clone: 'git clone https://github.com/nicoespa/hackatwin-treasury && cd hackatwin-treasury && uv sync && uv run treasury simulate',
   add: 'claude mcp add prefoundly -- uv run --directory "$PWD" treasury-mcp',
   json: '{\n  "mcpServers": {\n    "prefoundly": {\n      "command": "uv",\n      "args": ["run", "--directory", "/ruta/a/hackatwin-treasury", "treasury-mcp"]\n    }\n  }\n}',
   tools: [

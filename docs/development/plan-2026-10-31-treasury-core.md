@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.12 (uv), numpy, pandas, pyarrow, scipy, lightgbm, pyyaml, pytest, typer (CLI), anthropic (agent, Task 9), streamlit (dashboard, Task 10).
 
-**Spec:** `reports/Prefondeo desde comportamiento de usuarios.md` (copied into this repo when the session moved) and its predecessor `reports/Tesorería predictiva para prefondeo.md`. Research notes under `research_notes/`.
+**Spec:** `docs/research/user-behavior-prefunding.md` (copied into this repo when the session moved) and its predecessor `docs/research/predictive-treasury.md`. Research notes under `research_notes/`.
 
 ## Global Constraints
 

@@ -1,4 +1,4 @@
-"""Data for the web console (web/console): the model's daily 09:00 decisions for three partners, the
+"""Data for the web console (web/console): the model's daily 09:00 decisions for two partners, the
 last 14 days and one replayable day minute by minute.
 
 Runs the walk-forward forecast (k-means segments, Tweedie LightGBM, Monte Carlo) and the backtest with

@@ -1,6 +1,6 @@
-# SDD ledger — plan: docs/superpowers/plans/2026-10-31-treasury-core.md
+# SDD ledger — plan: docs/development/plan-2026-10-31-treasury-core.md
 
-Spec: reports/Prefondeo desde comportamiento de usuarios.md (copied into repo at end of first turn).
+Spec: docs/research/user-behavior-prefunding.md (copied into repo at end of first turn).
 Branch: main of a fresh repo (user chose main via propose_branch). Ruling: implement on main — the repo was created for this plan and has no other history; cost if wrong: none to recover (no other branches exist).
 
 ## Pre-flight conflict scan
@@ -89,4 +89,4 @@ Final whole-branch review dispatched (50e29e0..87ce30e, model fable).
 Final review (fable): Ready with fixes. 0 Critical. Important: (1) README commands fail here because .pth files are hidden after uv sync → standardize PYTHONPATH=src; (2) agent default scenario shows p_unresolvable 0.82/0.98 because balances start at the 3-day fixed buffer → start from policy target of the previous day or explain; (3) designed_to_lose.csv not shown in any tab (plan gap) → expander in Ablación; (4) addopts deselects slow tests that pin designed-to-lose/unknown-scenario (they run in 23 s) → drop marker; (5) stress tab text promises "misma semana" but re-simulation consumes a different RNG stretch; predicted_recurring comes from training history → fix wording/labels; (6) hard-coded result strings in app.py (CELL_NAMES, captions) → derive from config/CSV; (7) campaign scope n_points=10 — do not cite in pitch. Ruling: single fix wave for Important 1–6 plus cheap minors (p_unresolvable_mean excludes 09:00 24/7 reviews; fixed_buffer_days 3→5 as a defensible reference while keeping reference_matched; record seed/n_paths on Proposal). Triage: must-do before demo = real-API run (user), browser click-through, cache clear if data regenerated.
 Final fix wave: commit 7f7dfec (149 passed incl. slow, 61 s). Headline unchanged (−19 % wire, −39 % stablecoin) with reference 5 days; agent default start = policy target of the previous day's last review (p_unresolvable ≤ 0.015); designed-to-lose shown in Ablación. Scoped re-review dispatched.
 Final fix wave re-review: all 7 addressed, no Critical/Important breakage. Parked — agent opening balance (target at D−1 with realized_today=0) is never drained by D−1's realized outflow, so demo deposits look smaller (fci 71.5M vs 134.1M drained; p_unresolvable still ≤ 0.028) — Ruling: real, deferred; not look-ahead; one-line fix (subtract realized D−1 outflow) for the user or next session — cost if wrong: optimistic deposit amounts in the Aprobaciones demo.
-Branch complete at 7f7dfec. Rulings consolidated into docs/decisions.md; workspace deleted.
+Branch complete at 7f7dfec. Rulings consolidated into docs/development/decisions.md; workspace deleted.
