@@ -1,0 +1,990 @@
+{
+ "start": "2026-10-16T15:00:00",
+ "stop": "2026-10-19T12:00:00",
+ "events": [
+  {
+   "at": "2026-10-16T15:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 92331425.59464377,
+   "need": 66520298.00902192,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T15:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 645451967.3532431,
+   "need": 542093898.4522702,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T15:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 62212525.31285703,
+   "need": 44648200.8513427,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T15:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 15990616.31535714,
+   "need": 15573230.815313386,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T18:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 85423241.63464433,
+   "need": 59544780.909022495,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T18:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 396007701.9832443,
+   "need": 283014706.3022877,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T18:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 57768310.73285703,
+   "need": 39057375.61134269,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T18:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 14681103.95535714,
+   "need": 14263718.455313401,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T21:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 79035107.07464409,
+   "need": 95409234.55524448,
+   "deposit": 16245000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-16T21:30:00"
+  },
+  {
+   "at": "2026-10-16T21:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 396007701.9832443,
+   "need": 283014706.3022877,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-16T21:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 55013134.99285704,
+   "need": 63627953.92166602,
+   "deposit": 8615000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-16T21:30:00"
+  },
+  {
+   "at": "2026-10-16T21:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 14355119.75535714,
+   "need": 20024068.237919874,
+   "deposit": 5669000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-16T21:30:00"
+  },
+  {
+   "at": "2026-10-17T00:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 92742698.19464403,
+   "need": 65099359.70619537,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T00:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 396007000.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T00:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 57793571.53285703,
+   "need": 49656050.165664814,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T00:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 19251319.22535714,
+   "need": 11487536.320477411,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T03:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 91749596.01464403,
+   "need": 64102306.71619512,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T03:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T03:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 56425359.24285704,
+   "need": 47796999.97566452,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T03:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 18962517.56535714,
+   "need": 11198734.660477415,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T06:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 90854060.78464401,
+   "need": 63251344.32619621,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T06:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T06:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 55633691.88285703,
+   "need": 46974690.9956645,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T06:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 18962517.56535714,
+   "need": 11198734.660477415,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T09:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 86396333.85464442,
+   "need": 58839548.49619724,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T09:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T09:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 53745660.70285704,
+   "need": 44917952.52566471,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T09:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 18714462.665357143,
+   "need": 10950679.760477409,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T12:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 78905627.17464489,
+   "need": 51261796.29619457,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T12:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T12:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 52614917.96285702,
+   "need": 42106859.875664376,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T12:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 16704334.215357142,
+   "need": 8940551.31047742,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T15:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 72558244.22464472,
+   "need": 44910954.92619611,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T15:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T15:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 50844406.20285703,
+   "need": 39858799.685664795,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T15:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 13704286.21535714,
+   "need": 5940503.3104774505,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T18:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 68569797.61464489,
+   "need": 40926687.796196476,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T18:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T18:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 48418244.20285704,
+   "need": 36352177.945665024,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T18:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 13581397.28535714,
+   "need": 5817614.380477443,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T21:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 63972037.57464522,
+   "need": 69063637.61861782,
+   "deposit": 5092000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-17T21:30:00"
+  },
+  {
+   "at": "2026-10-17T21:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-17T21:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 43450923.25285703,
+   "need": 68045974.64984381,
+   "deposit": 24689000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-17T21:30:00"
+  },
+  {
+   "at": "2026-10-17T21:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 13581397.28535714,
+   "need": 8916970.876888799,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T00:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 66526778.74464548,
+   "need": 58837515.778286636,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T00:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T00:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 64923359.01285704,
+   "need": 58820931.43820332,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T00:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 13581397.28535714,
+   "need": 6159743.509883002,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T03:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 65745901.80464536,
+   "need": 58133043.7582857,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T03:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T03:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 65096256.852857046,
+   "need": 57964046.98820351,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T03:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 13581397.28535714,
+   "need": 6159743.509883002,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T06:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 65002651.474645376,
+   "need": 57318918.65828675,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T06:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T06:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 64358610.30285704,
+   "need": 56889279.61820315,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T06:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 13581397.28535714,
+   "need": 6159743.509883002,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T09:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 61465094.744645715,
+   "need": 53800597.6582858,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T09:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T09:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 62425237.572857045,
+   "need": 54498556.61820339,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T09:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 13581397.28535714,
+   "need": 6159743.509883002,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T12:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 55823536.35464573,
+   "need": 48148169.54828709,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T12:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T12:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 60829245.04285705,
+   "need": 51693768.00820278,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T12:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 12842946.11535714,
+   "need": 5421292.3398830155,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T15:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 51302001.57464558,
+   "need": 43636820.18828887,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T15:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T15:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 58308234.862857044,
+   "need": 48134238.50820254,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T15:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 12836323.62535714,
+   "need": 5414669.849883006,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T18:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 46898104.78464562,
+   "need": 39249371.498292625,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T18:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 0.0,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T18:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 55529336.32285703,
+   "need": 44287016.518201575,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T18:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 12616433.61535714,
+   "need": 5194779.8398830155,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-18T21:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 43544227.6746459,
+   "need": 123242919.97113064,
+   "deposit": 79699000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-18T21:30:00"
+  },
+  {
+   "at": "2026-10-18T21:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 701.9832444190979,
+   "need": 794950535.9768792,
+   "deposit": 794950000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-18T21:30:00"
+  },
+  {
+   "at": "2026-10-18T21:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 53848749.57285703,
+   "need": 88762295.7263848,
+   "deposit": 34914000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-18T21:30:00"
+  },
+  {
+   "at": "2026-10-18T21:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 12616433.61535714,
+   "need": 14669697.859045023,
+   "deposit": 2054000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-18T21:30:00"
+  },
+  {
+   "at": "2026-10-19T00:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 120994829.9946458,
+   "need": 104264250.62225291,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T00:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 794950701.9832444,
+   "need": 794950535.9768792,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T00:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 86395132.47285703,
+   "need": 69211102.43745646,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T00:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 14670433.61535714,
+   "need": 12097114.231146855,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T03:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 119929528.82464582,
+   "need": 103212600.79225442,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T03:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 794950701.9832444,
+   "need": 794950535.9768792,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T03:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 84712519.20285702,
+   "need": 67262012.05745658,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T03:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 14670433.61535714,
+   "need": 12097114.231146855,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T06:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 118339351.14464587,
+   "need": 101622627.11225411,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T06:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 794950701.9832444,
+   "need": 794950535.9768792,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T06:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 84208472.34285703,
+   "need": 65885259.93745693,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T06:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 12746319.80535714,
+   "need": 10173000.421146853,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T09:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 109863226.12464672,
+   "need": 93176157.17225024,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T09:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 794950701.9832444,
+   "need": 794950535.9768792,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T09:00:00",
+   "account": "Efectivo",
+   "rail": "wire",
+   "balance": 134563224.549644,
+   "need": 364728464.72610074,
+   "deposit": 20352000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-21T10:00:00"
+  },
+  {
+   "at": "2026-10-19T09:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 82280749.97285703,
+   "need": 62726584.2574571,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T09:00:00",
+   "account": "Inversiones",
+   "rail": "wire",
+   "balance": 334017964.21321446,
+   "need": 534762743.434773,
+   "deposit": 66670000.0,
+   "sweep": 0.0,
+   "arrival": "2026-10-21T10:00:00"
+  },
+  {
+   "at": "2026-10-19T09:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 12618642.19535714,
+   "need": 10045322.811146839,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T12:00:00",
+   "account": "Servicios",
+   "rail": "stablecoin",
+   "balance": 95297656.7546466,
+   "need": 78577215.57224652,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T12:00:00",
+   "account": "Tarjetas",
+   "rail": "stablecoin",
+   "balance": 794950701.9832444,
+   "need": 794950535.9768792,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T12:00:00",
+   "account": "Cripto",
+   "rail": "stablecoin",
+   "balance": 80760811.66285703,
+   "need": 59849372.2574571,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  },
+  {
+   "at": "2026-10-19T12:00:00",
+   "account": "Env\u00edos",
+   "rail": "stablecoin",
+   "balance": 10303812.18535714,
+   "need": 7730492.801146847,
+   "deposit": 0.0,
+   "sweep": 0.0,
+   "arrival": null
+  }
+ ],
+ "metrics": {
+  "capital": 1723352140.0856678,
+  "shortfall_rate": 0.0
+ }
+}

@@ -29,6 +29,11 @@ class PolicyConfig:
     # Place a lagged partner's later-day outflow at its settle_cutoff_hour, when it settles, instead
     # of 00:00 (the domestic default keeps 00:00, so a credit landing that day never covers it).
     place_lagged_at_cutoff: bool = False
+    # Sweep: on 24/7 rails, a review that deposits nothing withdraws the balance above the window's
+    # target back to the wallet's pool, when it exceeds sweep_min_share of that target.
+    sweep: bool = False
+    sweep_min_share: float = 0.1
+    sweep_headroom: float = 0.0  # keep target × (1 + headroom) at the partner after a sweep
 
 
 def load_policy(path: str | Path) -> PolicyConfig:
@@ -174,6 +179,42 @@ def recommend_deposit(
         arrival_at=arrival,
         window_end=window_end,
     )
+
+
+def recommend_sweep(decision: Decision, opening_available: float, rail: Rail, policy_cfg: PolicyConfig,
+                    rest_of_day: float = 0.0) -> float:
+    """Amount to withdraw now from a partner back to the wallet's pool (0 when none).
+
+    Only with ``policy_cfg.sweep``, on a rail that moves money any day and hour (a withdrawal at night
+    or on a weekend has to land before banks open), and only when the review deposits nothing. The
+    balance left must still cover the window's ``target`` (the ``alpha``-quantile of what the partner
+    can pay out until the next order lands) times ``1 + sweep_headroom``; credits still in transit are not counted, so the balance
+    alone covers the flows before they land. Below ``sweep_min_share`` of the target the move is not
+    worth its fee. Rounded down to ``lot_size``.
+
+    ``rest_of_day`` is what the partner can still pay out before midnight (``rest_of_day_need``). The
+    window's target counts today's outflow as the forecast minus what already settled, which drops to
+    zero on a day running above forecast, exactly when more is likely to come; the balance kept is at
+    least ``rest_of_day``."""
+    if not policy_cfg.sweep or rail.business_days_only or decision.amount > 0:
+        return 0.0
+    surplus = opening_available - max(decision.target, rest_of_day) * (1 + policy_cfg.sweep_headroom)
+    if surplus <= 0 or surplus < policy_cfg.sweep_min_share * decision.target:
+        return 0.0
+    return float(policy_cfg.lot_size * np.floor(surplus / policy_cfg.lot_size))
+
+
+def rest_of_day_need(paths_today: np.ndarray, partner: Partner, at: pd.Timestamp, alpha: float) -> float:
+    """``alpha``-quantile of today's outflow paths times the share of the day still ahead at ``at``: the
+    hours left for a partner that settles all day, all of it before a lagged partner's cutoff hour and
+    nothing after it."""
+    at = pd.Timestamp(at)
+    hour = at.hour + at.minute / 60
+    if partner.is_realtime:
+        share = max(0.0, 24 - hour) / 24
+    else:
+        share = 1.0 if hour < partner.settle_cutoff_hour else 0.0
+    return float(np.quantile(np.asarray(paths_today, float), alpha) * share)
 
 
 def fixed_buffer_decision(trailing_daily_mean: float, days: float, opening_available: float, lot_size: float) -> Decision:

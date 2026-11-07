@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Prefoundly Monitor</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: the deck's app frame. Sidebar with logo and agent state; main column: numbers, accounts, the agent's moves with their reason, balances, and the MCP note. One light brand look. */
+:root {
+  --petrol-950:#0E3836; --petrol-900:#154E4B; --petrol-800:#1C5F5A; --teal-700:#2C7366; --teal-600:#378B79; --teal-500:#4FA28E;
+  --mint-300:#9EDDC2; --mint-200:#B8E8D2; --mint-100:#D6F2E5;
+  --white:#FFFFFF; --grey-50:#F4F4F4; --grey-100:#EBECEB; --grey-200:#DEE1DF; --grey-300:#C7CCCA; --grey-500:#6E7976; --grey-600:#4F5A57; --grey-700:#35403E;
+  --green-600:#2E7D5B; --green-100:#DDF1E6; --amber-600:#9A6412; --amber-100:#F7ECD6; --red-600:#B3412F; --red-100:#F6E1DC;
+  --font-sans:"Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:"DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+html, body { margin:0; }
+body { background:var(--grey-50); color:var(--grey-700); font-family:var(--font-sans); font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased; }
+.app { display:grid; grid-template-columns:248px minmax(0,1fr); min-height:100vh; }
+.side { background:var(--grey-100); border-right:1px solid var(--grey-200); padding-block:26px 22px; padding-left:max(18px, env(safe-area-inset-left, 0px)); padding-right:18px; display:flex; flex-direction:column; gap:6px; position:sticky; top:0; height:100vh; }
+.side img { width:178px; height:auto; display:block; margin:0 0 22px 6px; }
+.nav { display:flex; align-items:center; gap:12px; height:42px; padding:0 12px; border-radius:12px; color:var(--petrol-900); font-weight:500; text-decoration:none; }
+.nav:hover { background:var(--grey-200); }
+.nav[aria-current="page"] { background:var(--mint-200); font-weight:600; }
+.badge { margin-left:auto; min-width:24px; height:24px; padding:0 7px; border-radius:999px; background:var(--amber-100); color:var(--amber-600); font-size:12.5px; font-weight:700; display:grid; place-items:center; }
+.agent { margin-top:auto; display:flex; flex-direction:column; gap:12px; padding-top:16px; border-top:1px solid var(--grey-200); }
+.state { display:flex; align-items:center; gap:10px; font-weight:600; color:var(--petrol-900); }
+.dot { width:10px; height:10px; border-radius:50%; background:var(--green-600); box-shadow:0 0 0 4px var(--green-100); flex:none; }
+.dot.off { background:var(--red-600); box-shadow:0 0 0 4px var(--red-100); }
+.who { display:flex; align-items:center; gap:10px; color:var(--petrol-900); }
+.who span:first-child { width:34px; height:34px; border-radius:50%; background:var(--mint-200); display:grid; place-items:center; font-weight:700; }
+main { padding-block:28px 48px; padding-left:32px; padding-right:max(32px, env(safe-area-inset-right, 0px)); display:flex; flex-direction:column; gap:18px; min-width:0; }
+h1, h2 { margin:0; color:var(--petrol-900); text-wrap:balance; }
+h1 { font-size:28px; letter-spacing:-0.02em; }
+h2 { font-size:17px; font-weight:600; }
+.top { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+.top p { margin:4px 0 0; color:var(--grey-600); }
+.live { display:inline-flex; align-items:center; gap:8px; height:32px; padding:0 12px; border-radius:999px; background:var(--white); border:1px solid var(--grey-200); font-size:13px; font-weight:600; color:var(--petrol-900); }
+.kpis { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; }
+.kpi { background:var(--white); border:1px solid var(--grey-200); border-radius:18px; padding:14px 18px; display:flex; flex-direction:column; gap:2px; min-width:0; }
+.kpi span { font-size:13.5px; color:var(--grey-600); }
+.kpi b { font-size:26px; font-weight:600; letter-spacing:-0.02em; color:var(--petrol-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; }
+.kpi.warn b { color:var(--amber-600); }
+.kpi.good b { color:var(--teal-600); }
+.alert { display:flex; gap:14px; align-items:flex-start; background:var(--amber-100); border-radius:16px; padding:14px 18px; color:var(--petrol-950); }
+.alert.off { background:var(--red-100); }
+.alert svg { flex:none; margin-top:2px; color:var(--amber-600); }
+.card { background:var(--white); border:1px solid var(--grey-200); border-radius:20px; padding:18px 20px; display:flex; flex-direction:column; gap:12px; min-width:0; }
+.head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.sub { margin:-6px 0 0; font-size:13px; color:var(--grey-600); }
+.grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:16px; }
+.tablewrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:14px; }
+th { text-align:left; font-size:12.5px; color:var(--grey-600); font-weight:500; padding:8px 10px; border-bottom:1px solid var(--grey-200); white-space:nowrap; }
+td { padding:11px 10px; border-bottom:1px solid var(--grey-100); color:var(--petrol-900); vertical-align:top; }
+td.num, th.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+tr.pick { cursor:pointer; }
+tr.pick:hover td { background:var(--grey-50); }
+tr.sel td { background:var(--mint-100); }
+.meter { height:8px; border-radius:8px; background:var(--grey-100); overflow:hidden; min-width:90px; }
+.meter i { display:block; height:100%; border-radius:8px; background:var(--teal-500); }
+.pill { display:inline-flex; align-items:center; height:26px; padding:0 11px; border-radius:999px; font-size:12.5px; font-weight:600; white-space:nowrap; }
+.pill.ok { background:var(--green-100); color:var(--green-600); }
+.pill.sent { background:var(--mint-100); color:var(--teal-700); }
+.pill.warn { background:var(--amber-100); color:var(--amber-600); }
+.pill.off { background:var(--red-100); color:var(--red-600); }
+.moves { display:flex; flex-direction:column; }
+.move { display:grid; grid-template-columns:120px minmax(0,1fr) auto; gap:4px 16px; padding:12px 0; border-bottom:1px solid var(--grey-100); }
+.move:last-child { border-bottom:0; }
+.move .when { font-size:13px; color:var(--grey-600); }
+.move .what { font-weight:600; color:var(--petrol-900); }
+.move .why { grid-column:2 / 4; font-size:13.5px; color:var(--grey-700); }
+.move.new { animation:flash 2.4s ease-out; }
+@keyframes flash { from { background:var(--mint-200); } to { background:transparent; } }
+.chart svg { display:block; width:100%; height:auto; }
+.legend { display:flex; gap:14px; font-size:12.5px; color:var(--grey-600); flex-wrap:wrap; }
+.legend i { display:inline-block; width:12px; height:12px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+.empty { color:var(--grey-500); font-size:14px; padding:8px 0; }
+.mcp { background:var(--petrol-900); border:0; color:var(--white); }
+.mcp h2 { color:var(--white); }
+.mcp p { margin:0; color:var(--mint-100); max-width:70ch; }
+.code { display:flex; align-items:center; gap:10px; background:var(--petrol-950); border-radius:12px; padding:10px 12px; }
+.code code { font-family:var(--font-mono); font-size:13px; color:var(--mint-200); overflow-x:auto; white-space:nowrap; flex:1; min-width:0; }
+.code button { border:0; border-radius:9px; background:var(--mint-200); color:var(--petrol-900); font:inherit; font-size:13px; font-weight:600; padding:6px 12px; cursor:pointer; flex:none; }
+.tools { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+.tool { background:var(--petrol-800); border-radius:12px; padding:10px 12px; display:flex; flex-direction:column; gap:2px; min-width:0; }
+.tool b { font-family:var(--font-mono); font-weight:500; font-size:13px; color:var(--mint-200); }
+.tool span { font-size:13.5px; color:var(--white); }
+.foot { font-size:12.5px; color:var(--grey-500); margin:0; }
+button:focus-visible, a:focus-visible, tr.pick:focus-visible { outline:3px solid var(--teal-500); outline-offset:2px; }
+@media (max-width: 1100px) { .grid { grid-template-columns:minmax(0,1fr); } .tools { grid-template-columns:repeat(2, minmax(0,1fr)); } }
+@media (max-width: 820px) {
+  .app { grid-template-columns:minmax(0,1fr); }
+  .side { position:static; height:auto; flex-direction:row; flex-wrap:wrap; align-items:center; padding-block:14px; padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+  .side img { width:140px; margin:0 12px 0 0; } .nav { height:36px; }
+  .agent { margin:0 0 0 auto; border:0; padding:0; flex-direction:row; } .who { display:none; }
+  main { padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+  .kpis { grid-template-columns:repeat(2, minmax(0,1fr)); } .tools { grid-template-columns:minmax(0,1fr); }
+  .move { grid-template-columns:minmax(0,1fr) auto; } .move .why { grid-column:1 / 3; }
+}
+@media (prefers-reduced-motion: reduce) { .move.new { animation:none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side" aria-label="Navegación">
+    <img src="/logo.png" alt="Prefoundly" id="logo">
+    <a class="nav" href="#resumen" aria-current="page">Resumen</a>
+    <a class="nav" href="#cuentas">Cuentas</a>
+    <a class="nav" href="#movimientos">Movimientos<span class="badge" id="nav-alerts" hidden>0</span></a>
+    <a class="nav" href="#mcp">Tu agente</a>
+    <div class="agent">
+      <span class="state"><span class="dot" id="agent-dot"></span><span id="agent-txt">Agente activo</span></span>
+      <span class="who"><span>T</span><span>Tesorería</span></span>
+    </div>
+  </aside>
+
+  <main id="resumen">
+    <div class="top">
+      <div><h1>Resumen</h1><p id="last">Esperando la primera revisión del agente.</p></div>
+      <span class="live" id="live"><span class="dot"></span>En vivo</span>
+    </div>
+
+    <section class="kpis" aria-label="Números">
+      <div class="kpi"><span>Repuesto por el agente</span><b id="k-sent">—</b></div>
+      <div class="kpi"><span>Reposiciones</span><b id="k-count">—</b></div>
+      <div class="kpi" id="k-alert-box"><span>Alertas abiertas</span><b id="k-alerts">—</b></div>
+      <div class="kpi good"><span>Plata parada vs regla fija</span><b id="k-vs">—</b></div>
+    </section>
+
+    <div id="alerts"></div>
+
+    <section class="card" id="cuentas">
+      <div class="head"><h2>Cuentas</h2><span class="foot">Tocá una para ver su saldo</span></div>
+      <div class="tablewrap"><table><thead><tr><th>Cuenta</th><th class="num">Cargado</th><th class="num">Hace falta en un día malo</th><th>Cobertura</th><th>Última revisión</th></tr></thead><tbody id="acc"></tbody></table></div>
+    </section>
+
+    <div class="grid">
+      <section class="card" id="movimientos">
+        <div class="head"><h2>Qué hizo el agente</h2><span class="foot">Cada envío, con su motivo</span></div>
+        <div class="moves" id="moves"></div>
+      </section>
+      <section class="card">
+        <div class="head"><h2 id="bal-title">Saldo de la cuenta</h2>
+          <div class="legend"><span><i style="background:var(--petrol-900)"></i>Con Prefoundly</span><span><i style="background:var(--grey-300)"></i>Con regla fija</span></div></div>
+        <p class="sub" id="bal-sub">Saldo mínimo de cada día en 8 semanas simuladas.</p>
+        <div class="chart" id="bal"><p class="empty">Calculando la comparación…</p></div>
+      </section>
+    </div>
+
+    <section class="card mcp" id="mcp">
+      <div class="head"><h2>Controlalo desde tu agente</h2><span class="pill ok">MCP listo</span></div>
+      <p>Prefoundly trae un servidor MCP. Desde Claude u otro agente podés preguntar el estado, pedir una revisión, ver las transferencias o pausarlo. Lo que haga aparece acá en vivo.</p>
+      <div class="code"><code id="cmd">claude mcp add prefoundly -- uv run --directory ./hackatwin-treasury treasury-mcp</code><button type="button" id="copy">Copiar</button></div>
+      <div class="tools">
+        <div class="tool"><b>get_status</b><span>Si está activo, sus topes y las transferencias</span></div>
+        <div class="tool"><b>forecast</b><span>Cuánto puede salir de cada cuenta</span></div>
+        <div class="tool"><b>run_review</b><span>Revisión de prueba o ejecutando</span></div>
+        <div class="tool"><b>list_transfers</b><span>Transferencias y su estado</span></div>
+        <div class="tool"><b>set_autonomy</b><span>Pausar o reanudar al agente</span></div>
+        <div class="tool"><b>get_limits</b><span>Topes y cuentas habilitadas</span></div>
+      </div>
+    </section>
+
+    <p class="foot">Datos simulados de 20.000 usuarios. Cada revisión corre el pronóstico real sobre la historia anterior a ese día. Las transferencias no salen a ningún banco.</p>
+  </main>
+</div>
+<script>
+const SNAP = window.__SNAPSHOT__ || null;
+const SYM = { ARS:"$", USD:"US$", BRL:"R$" };
+const nf = new Intl.NumberFormat("es-AR", { maximumFractionDigits:0 });
+const money = (x, c) => x == null ? "s/d" : `${SYM[c] || c} ${Math.abs(x) >= 1e6 ? nf.format(Math.round(x / 1e6)) + " M" : nf.format(Math.round(x))}`;
+const WD = ["dom","lun","mar","mié","jue","vie","sáb"];
+const dt = (s) => new Date(s.length <= 10 ? s + "T00:00:00" : s);
+const day = (s) => { const d = dt(s); return `${WD[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}`; };
+const when = (s) => { const d = dt(s); return `${day(s)} · ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+let pick = null, seen = null;
+try { pick = localStorage.getItem("pf-monitor-pick"); } catch (e) {}
+if (SNAP) { document.getElementById("live").innerHTML = '<span class="dot"></span>Foto de una demo'; }
+
+function render(S) {
+  document.getElementById("agent-dot").className = S.executing ? "dot" : "dot off";
+  document.getElementById("agent-txt").textContent = S.executing ? "Agente activo" : "Agente pausado";
+  document.getElementById("last").textContent = S.last_review ? `Última revisión del agente: ${when(S.last_review)} · datos simulados` : "Esperando la primera revisión del agente.";
+  const cur = S.accounts[0]?.currency || "ARS";
+  const sent = S.moves.reduce((a, m) => a + (m.currency === cur ? m.sent : 0), 0);
+  const count = S.moves.filter((m) => m.sent > 0).length;
+  const alerts = S.moves.filter((m) => m.status === "capped" || m.status === "held");
+  document.getElementById("k-sent").textContent = S.moves.length ? money(sent, cur) : "—";
+  document.getElementById("k-count").textContent = String(count);
+  document.getElementById("k-alerts").textContent = String(alerts.length);
+  document.getElementById("k-alert-box").className = alerts.length ? "kpi warn" : "kpi";
+  const nb = document.getElementById("nav-alerts"); nb.hidden = !alerts.length; nb.textContent = String(alerts.length);
+  if (S.series && S.series.capital) { const c = S.series.capital; document.getElementById("k-vs").textContent = `−${Math.round(100 * (1 - c.prefoundly / c.fixed))} %`; }
+  document.getElementById("alerts").innerHTML = alerts.slice(0, 3).map((m) => `<div class="alert ${m.status === "held" ? "off" : ""}"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></svg><span><b>${day(m.review_at)} · ${m.name}.</b> ${m.why}</span></div>`).join("");
+
+  const accEl = document.getElementById("acc");
+  if (!pick || !S.accounts.some((a) => a.partner === pick)) pick = S.accounts[0]?.partner || null;
+  accEl.innerHTML = S.accounts.map((a) => { const cov = a.need ? Math.min(100, 100 * a.loaded / a.need) : 0;
+    const pill = a.status === "capped" ? '<span class="pill warn">Tope</span>' : a.status === "held" ? '<span class="pill off">Retenida</span>' : a.status === "executed" ? '<span class="pill sent">Repuesta</span>' : '<span class="pill ok">Alcanza</span>';
+    return `<tr class="pick ${a.partner === pick ? "sel" : ""}" tabindex="0" data-p="${a.partner}"><td><b>${a.name}</b></td><td class="num">${money(a.loaded, a.currency)}</td><td class="num">${money(a.need, a.currency)}</td><td><div style="display:flex;align-items:center;gap:10px"><div class="meter"><i style="width:${cov.toFixed(0)}%"></i></div>${pill}</div></td><td>${when(a.review_at)}</td></tr>`; }).join("") || `<tr><td colspan="5" class="empty">Todavía no hay revisiones.</td></tr>`;
+  accEl.querySelectorAll("tr.pick").forEach((tr) => { const go = () => { pick = tr.dataset.p; try { localStorage.setItem("pf-monitor-pick", pick); } catch (e) {} render(S); };
+    tr.onclick = go; tr.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } }; });
+
+  const keys = S.moves.map((m) => m.review_at + m.partner);
+  document.getElementById("moves").innerHTML = S.moves.slice(0, 8).map((m, i) => { const fresh = seen && !seen.has(keys[i]);
+    const pill = m.status === "capped" ? '<span class="pill warn">Tope alcanzado</span>' : m.status === "held" ? '<span class="pill off">Retenida</span>' : m.transfer_status === "credited" ? '<span class="pill ok">Acreditada</span>' : '<span class="pill sent">En camino</span>';
+    return `<div class="move ${fresh ? "new" : ""}"><span class="when">${when(m.review_at)}</span><span class="what">${m.name} · ${money(m.sent, m.currency)}</span>${pill}<span class="why">${m.why}${m.sent > 0 && m.eta ? ` Llega ${when(m.eta)}.` : ""}</span></div>`; }).join("") || '<p class="empty">El agente todavía no movió plata.</p>';
+  seen = new Set(keys);
+
+  const ser = S.series && S.series.partners ? S.series.partners[pick] : null, acc = S.accounts.find((a) => a.partner === pick);
+  document.getElementById("bal-title").textContent = acc ? `Saldo de ${acc.name}` : "Saldo de la cuenta";
+  if (!ser) { document.getElementById("bal").innerHTML = `<p class="empty">${S.series ? "Sin datos para esta cuenta." : "Calculando la comparación…"}</p>`; return; }
+  const pre = ser.prefoundly, fix = ser.fixed, n = pre.days.length, W = 640, H = 250, L = 64, R = 10, T = 12, B = 28;
+  const mx = Math.max(...pre.min, ...fix.min) * 1.08, mn = Math.min(0, ...pre.min, ...fix.min);
+  const x = (i) => L + (W - L - R) * i / Math.max(1, n - 1), y = (v) => T + (H - T - B) * (1 - (v - mn) / (mx - mn || 1));
+  const path = (a) => a.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Saldo diario">`;
+  for (let i = 0; i <= 3; i++) { const v = mn + (mx - mn) * i / 3; s += `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#EBECEB"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" font-size="11" fill="#6E7976" font-family="DM Mono">${money(v, acc.currency)}</text>`; }
+  s += `<path d="${path(fix.min)}" fill="none" stroke="#C7CCCA" stroke-width="2.5"/><path d="${path(pre.min)} L${x(n-1)},${y(Math.max(mn, 0))} L${x(0)},${y(Math.max(mn, 0))} Z" fill="#B8E8D2" opacity=".5"/><path d="${path(pre.min)}" fill="none" stroke="#154E4B" stroke-width="2.5"/>`;
+  for (let i = 0; i < n; i += Math.max(1, Math.round(n / 5))) s += `<text x="${x(i)}" y="${H-8}" text-anchor="middle" font-size="11" fill="#6E7976" font-family="Figtree">${day(pre.days[i])}</text>`;
+  document.getElementById("bal").innerHTML = s + "</svg>";
+  document.getElementById("bal-sub").textContent = `Saldo mínimo de cada día en ${acc.currency}, 8 semanas simuladas. La regla fija carga ${String(S.series.buffer_days.toFixed(1)).replace(".", ",")} días de movimientos.`;
+}
+
+async function tick() {
+  if (SNAP) { render(SNAP); return; }
+  try { const r = await fetch("/api/state", { cache:"no-store" }); render(await r.json());
+    document.getElementById("live").innerHTML = '<span class="dot"></span>En vivo'; }
+  catch (e) { document.getElementById("live").innerHTML = '<span class="dot off"></span>Sin conexión'; }
+}
+document.getElementById("copy").onclick = async (e) => {
+  const text = document.getElementById("cmd").textContent;
+  try { await navigator.clipboard.writeText(text); e.target.textContent = "Copiado"; }
+  catch (err) { const r = document.createRange(); r.selectNodeContents(document.getElementById("cmd")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); e.target.textContent = "Seleccionado"; }
+  setTimeout(() => { e.target.textContent = "Copiar"; }, 1600);
+};
+tick(); if (!SNAP) setInterval(tick, 3000);
+</script>
+</body>
+</html>

@@ -28,6 +28,8 @@ from treasury.policy import (
     PolicyConfig,
     fixed_buffer_decision,
     recommend_deposit,
+    recommend_sweep,
+    rest_of_day_need,
     review_times,
 )
 from treasury.rails import Rail, arrival_time
@@ -367,8 +369,16 @@ def run(
             arrival = arrival_time(rail, t, rail_cal)
             if decision.amount > 0:
                 sent.append((t, arrival, decision.amount))
+            sweep = 0.0
+            if policy == "forecast" and policy_cfg.sweep:
+                k = int(np.searchsorted(fc.dates, t.normalize()))
+                rest = rest_of_day_need(fc.paths[:, k, j], partner, t, policy_cfg.alpha) if k < len(fc.dates) else 0.0
+                sweep = recommend_sweep(decision, available, rail, policy_cfg, rest)
+            if sweep > 0:  # leaves the partner at once, back to the wallet's pool
+                sent.append((t, t, -sweep))
             rows.append({"at": t, "partner": pid, "rail_used": rail.name, "available": available,
-                         "pending": sum(c.amount for c in pending), **vars(decision), "arrival_at": arrival})
+                         "pending": sum(c.amount for c in pending), **vars(decision), "arrival_at": arrival,
+                         "sweep": sweep})
         instruct, arrive, amount = (np.array([s[k] for s in sent], dtype=d) for k, d in
                                     ((0, "datetime64[ns]"), (1, "datetime64[ns]"), (2, float)))
         log = partner_ledger(initial[pid], flow_at, signed, instruct, arrive, amount)
@@ -382,7 +392,7 @@ def run(
             "shortfall_windows": short["windows"], "shortfall_amount": short["amount"],
             "warmup_shortfall_windows": short["warmup_windows"], "warmup_shortfall_amount": short["warmup_amount"],
             "durations": short["durations"], "n_transfers": len(counted),
-            "fees": float(sum(rail.fixed_fee + rail.bps / 1e4 * a for a in counted)),
+            "fees": float(sum(rail.fixed_fee + rail.bps / 1e4 * abs(a) for a in counted)),
         })
         logs.append(log)
     partner_table = pd.DataFrame(by_partner)

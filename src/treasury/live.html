@@ -1,0 +1,443 @@
+<!doctype html>
+<!--
+THESIS: a treasury console where an autonomous agent prefunds one partner once a day and shows its work; no approve button, orders are optional.
+OWN-WORLD: Prefoundly petrol on a cool petrol-tinted neutral scale; Figtree only; hairline panels, tabular figures, mint check ticks for agent steps, amber only for limits and pauses; ECharts for charts.
+STORY: tesorería sees the balance at the partner against the coverage the model asks for, the forecast against what really left each day, and each daily decision as a visible sum (needs, has, sends); if they want, they type an order.
+FIRST VIEWPORT: top bar with partner, autonomy, risk and clock; left four figures over the balance chart over forecast-vs-real bullets; right the agent log rail with ticks and the order field at its foot.
+FORM: operations console (chart-led console with a decision rail). Seed not run: an extension of the existing Prefoundly world, so no concept roll was needed.
+-->
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prefoundly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+<style>
+/* ---- Tokens ---- */
+:root {
+  --n-0:#FFFFFF; --n-25:#F9FBFA; --n-50:#F3F6F5; --n-100:#E8EDEB; --n-200:#D6DEDB; --n-300:#B9C5C1;
+  --n-500:#7D8C88; --n-600:#56655F; --n-800:#253B38; --n-900:#112523;
+  --brand:#154E4B; --brand-hover:#0E3836; --brand-50:#E4F4EC; --brand-100:#C9EAD9; --mint:#9EDDC2; --teal:#3E9682;
+  --warn:#A8620C; --warn-50:#FDF1DE;
+  --font:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --fs-11:11px; --fs-12:12px; --fs-13:13px; --fs-14:14px; --fs-24:26px;
+  --r-sm:8px; --r-md:12px; --r-lg:18px; --r-full:999px;
+  --shadow-panel:0 1px 2px rgba(17,37,35,.05);
+  --ring:0 0 0 3px rgba(62,150,130,.3);
+  --ease:cubic-bezier(.16,1,.3,1);
+  color-scheme: light;
+}
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+html, body { margin:0; height:100%; }
+body { background:#EDF1EF; color:var(--n-900); font:var(--fs-14)/1.45 var(--font); -webkit-font-smoothing:antialiased; }
+button, input { font:inherit; color:inherit; }
+:focus-visible { outline:none; box-shadow:var(--ring); }
+.num { font-variant-numeric:tabular-nums; }
+.muted { color:var(--n-600); }
+
+/* ---- Components ---- */
+.btn-icon { width:30px; height:30px; display:grid; place-items:center; border:0; background:transparent; border-radius:var(--r-sm); color:var(--n-800); cursor:pointer; transition:background .15s; }
+.btn-icon:hover { background:var(--n-100); }
+.btn-icon:disabled { color:var(--n-300); cursor:default; background:transparent; }
+.btn-icon svg { width:14px; height:14px; }
+.group { display:flex; align-items:center; gap:2px; padding:2px; border:1px solid var(--n-200); border-radius:var(--r-md); background:var(--n-0); }
+.group .label { padding:0 8px 0 6px; font-size:var(--fs-12); color:var(--n-600); }
+.badge { display:inline-flex; align-items:center; gap:6px; height:26px; padding:0 10px; border-radius:var(--r-full); font-size:var(--fs-13); font-weight:600; white-space:nowrap; background:var(--n-100); color:var(--n-800); }
+.badge .dot { width:7px; height:7px; border-radius:50%; background:currentColor; }
+.badge.ok { background:var(--brand-50); color:var(--brand); }
+.badge.ok .dot { background:var(--teal); }
+.badge.busy .dot { animation:pulse 1s ease-in-out infinite; }
+.badge.warn { background:var(--warn-50); color:var(--warn); }
+@keyframes pulse { 50% { opacity:.3; } }
+.panel { background:var(--n-0); border:1px solid var(--n-200); border-radius:var(--r-lg); box-shadow:var(--shadow-panel); min-height:0; min-width:0; }
+.panel-h { display:flex; align-items:center; justify-content:space-between; gap:12px; height:46px; padding:0 16px; }
+.panel-h h2 { margin:0; font-size:var(--fs-14); font-weight:600; }
+.legend { display:flex; gap:16px; font-size:var(--fs-12); color:var(--n-600); }
+.legend i { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:-1px; }
+.legend i.ln { width:16px; height:0; border-radius:0; vertical-align:3px; border-top:2px solid var(--teal); }
+.legend i.dash { border-top:2px dashed var(--brand); }
+.legend i.dot { border-top:2px dotted var(--teal); }
+
+/* ---- Top bar ---- */
+.top { height:54px; display:flex; align-items:center; gap:12px; padding:0 20px; background:var(--n-0); border-bottom:1px solid var(--n-200); }
+.top .logo { height:24px; display:block; }
+.crumbs { display:flex; align-items:center; gap:8px; }
+.crumbs .slash { color:var(--n-300); }
+.crumbs b { font-weight:600; }
+.top .grow { flex:1; }
+.clock { font-weight:600; padding:0 4px; min-width:124px; text-align:right; }
+
+/* ---- Layout ---- */
+main { display:grid; grid-template-columns:minmax(0,1fr) 400px; gap:12px; padding:12px; height:calc(100vh - 54px); min-height:680px; }
+.left { display:grid; grid-template-rows:auto minmax(0,1.6fr) minmax(0,1fr); gap:12px; min-height:0; }
+.stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
+.stat { padding:14px 16px 13px; border-left:1px solid var(--n-100); }
+.stat:first-child { border-left:0; }
+.stat .k { font-size:var(--fs-13); color:var(--n-600); }
+.stat .v { margin-top:4px; font-size:var(--fs-24); font-weight:600; letter-spacing:-.015em; line-height:1.15; }
+.stat .s { margin-top:2px; font-size:var(--fs-12); color:var(--n-600); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chart { height:calc(100% - 46px); padding:0 4px 4px 8px; }
+
+/* ---- Hero: the partner balance, in the brand's marbled petrol ---- */
+.marble { background:
+    radial-gradient(70% 120% at 88% 0%, rgba(79,162,142,.65), transparent 60%),
+    radial-gradient(60% 90% at 62% 120%, rgba(158,221,194,.38), transparent 62%),
+    radial-gradient(40% 70% at 8% 0%, rgba(44,115,102,.7), transparent 70%),
+    linear-gradient(135deg, #154E4B 0%, #0E3836 100%); }
+.hero { position:relative; overflow:hidden; border:0; color:#fff; display:grid; grid-template-columns:minmax(0,1.5fr) repeat(3,minmax(0,1fr)); box-shadow:0 8px 24px rgba(14,56,54,.18); }
+.hero::after { content:""; position:absolute; inset:0; pointer-events:none; background-image:radial-gradient(rgba(214,242,229,.22) 1px, transparent 1.4px); background-size:7px 7px;
+  -webkit-mask-image:linear-gradient(100deg, transparent 35%, #000 100%); mask-image:linear-gradient(100deg, transparent 35%, #000 100%); }
+.hero > * { position:relative; z-index:1; }
+.hero .stat { border-left:1px solid rgba(214,242,229,.16); padding:18px 20px; }
+.hero .stat:first-child { border-left:0; padding-right:28px; }
+.hero .stat .k { color:#BFE6D5; }
+.hero .stat .v { color:#fff; }
+.hero .stat .s { color:rgba(214,242,229,.75); }
+.hero .stat.main .v { font-size:40px; letter-spacing:-.025em; margin-top:2px; }
+.meter { margin-top:12px; }
+.meter .track { position:relative; height:10px; border-radius:var(--r-full); background:rgba(214,242,229,.16); }
+.meter .fill { position:absolute; left:0; top:0; bottom:0; border-radius:var(--r-full); background:linear-gradient(90deg, #4FA28E, #9EDDC2); }
+.meter .fill.low { background:linear-gradient(90deg, #C9892E, #F2C46B); }
+.meter .mark { position:absolute; top:-5px; bottom:-5px; width:2px; border-radius:1px; background:#fff; }
+.meter .cap { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-top:8px; font-size:var(--fs-13); color:#D6F2E5; }
+.meter .cap b { color:#fff; font-weight:600; }
+.avatar { width:30px; height:30px; border-radius:50%; flex:none; position:relative; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(255,255,255,.2); }
+.avatar::after { content:""; position:absolute; inset:0; background-image:radial-gradient(rgba(214,242,229,.35) 1px, transparent 1.3px); background-size:4px 4px; }
+.rail .who { display:flex; align-items:center; gap:10px; }
+.rail .who small { display:block; font-size:var(--fs-12); color:var(--n-600); font-weight:400; }
+
+/* ---- Agent rail ---- */
+.rail { display:flex; flex-direction:column; }
+.rail .panel-h { border-bottom:1px solid var(--n-200); height:60px; }
+.entries { flex:1; overflow:auto; }
+.entry { border-bottom:1px solid var(--n-100); }
+.entry > button { all:unset; box-sizing:border-box; width:100%; display:grid; grid-template-columns:62px minmax(0,1fr) auto; align-items:center; gap:8px; padding:12px 16px; cursor:pointer; }
+.entry > button:hover { background:var(--n-25); }
+.entry > button:focus-visible { box-shadow:inset var(--ring); }
+.entry time { font-size:var(--fs-13); color:var(--n-600); }
+.entry .title { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.entry .title q { font-weight:500; color:var(--n-800); }
+.entry .who { font-size:var(--fs-12); font-weight:600; color:var(--n-600); margin-right:6px; }
+.body { display:none; padding:0 16px 14px; }
+.entry.open .body { display:block; }
+.steps { list-style:none; margin:0; padding:0; }
+.step { display:grid; grid-template-columns:18px minmax(0,1fr) auto; gap:10px; align-items:start; padding:4px 0; }
+.step .t small { display:block; font-size:var(--fs-12); color:var(--n-600); }
+.step .v { font-weight:600; }
+.tick { width:18px; height:18px; margin-top:1px; border-radius:50%; background:var(--mint); display:grid; place-items:center; }
+.tick svg { width:10px; height:10px; }
+.tick path { fill:none; stroke:var(--brand-hover); stroke-width:2.6; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:14; }
+.step.warn .tick { background:var(--warn-50); }
+.step.warn .tick path { stroke:var(--warn); }
+.step.wait .tick { background:transparent; border:1.5px solid var(--n-200); }
+.step.now .tick { background:transparent; border:2px solid var(--brand-100); border-top-color:var(--brand); animation:spin .7s linear infinite; }
+.step.wait .tick path, .step.now .tick path { display:none; }
+.step.wait .t { color:var(--n-500); }
+.step.now .t { color:var(--n-900); font-weight:600; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.step.in { animation:stepin .24s var(--ease) both; animation-delay:var(--d, 0ms); }
+.step.in .tick path { animation:draw .32s var(--ease) both; animation-delay:calc(var(--d, 0ms) + 90ms); }
+@keyframes stepin { from { opacity:0; transform:translateY(-2px); } }
+@keyframes draw { from { stroke-dashoffset:14; } }
+.sum { margin:6px 0 6px 28px; padding:11px 14px; border-radius:var(--r-md); background:#EEF8F3; border:1px solid #D6F2E5; }
+.sum .row { display:flex; justify-content:space-between; gap:12px; padding:2px 0; color:var(--n-800); }
+.sum .row b { font-weight:600; }
+.sum .total { margin-top:6px; padding-top:7px; border-top:1px solid #C3E6D5; font-weight:700; color:var(--n-900); }
+.sum .total.zero { color:var(--n-600); font-weight:600; }
+.sum.in { animation:stepin .24s var(--ease) both; animation-delay:var(--d, 0ms); }
+.empty { padding:24px 16px; color:var(--n-600); }
+.empty b { display:block; color:var(--n-900); font-weight:600; margin-bottom:2px; }
+
+.composer { border-top:1px solid var(--n-200); padding:10px 12px 12px; background:var(--n-25); border-radius:0 0 var(--r-lg) var(--r-lg); }
+.hints { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+.hint { border:1px solid #C3E6D5; background:#EEF8F3; color:var(--brand) !important; border-radius:var(--r-full); height:26px; padding:0 11px; font-size:var(--fs-12); font-weight:500; color:var(--n-800); cursor:pointer; transition:border-color .15s; }
+.hint:hover { background:#D6F2E5; }
+.field { display:flex; align-items:center; gap:8px; height:46px; padding:0 7px 0 14px; border:1px solid var(--n-200); border-radius:var(--r-md); background:var(--n-0); transition:border-color .15s, box-shadow .15s; }
+.field:focus-within { border-color:var(--teal); box-shadow:var(--ring); }
+.field input { flex:1; min-width:0; border:0; outline:0; background:transparent; }
+.field input::placeholder { color:var(--n-500); }
+.send { width:32px; height:32px; border:0; border-radius:var(--r-sm); background:var(--brand); color:#fff; display:grid; place-items:center; cursor:pointer; transition:background .15s, opacity .15s; }
+.send:hover { background:var(--brand-hover); }
+.send:disabled { opacity:.35; cursor:default; }
+.send svg { width:13px; height:13px; }
+
+@media (max-width: 1080px) {
+  main { grid-template-columns:minmax(0,1fr); height:auto; padding:12px 16px 16px; }
+  .left { grid-template-rows:auto 320px 240px; }
+  .rail { height:640px; }
+  .top { flex-wrap:wrap; height:auto; padding:10px 16px; row-gap:8px; }
+  .stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .hero .stat.main { grid-column:1 / -1; }
+  .hero .stat:nth-child(2) { border-left:0; }
+  .stat:nth-child(3) { border-left:0; }
+  .stat:nth-child(n+3) { border-top:1px solid var(--n-100); }
+  .legend { display:none; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <img class="logo" src="/logo.png" alt="Prefoundly">
+  <nav class="crumbs" aria-label="Ubicación"><span class="slash">/</span><span class="muted">Prefondeo</span><span class="slash">/</span><b>Partner de pagos</b></nav>
+  <div class="grow"></div>
+  <span class="badge ok" id="status"><span class="dot"></span><span>Autónomo</span></span>
+  <span class="badge" id="risk">Riesgo bajo</span>
+  <span class="badge warn" id="cap" hidden></span>
+  <span class="clock num" id="clock">Vie 16 oct, 9:00</span>
+  <div class="group" aria-label="Simulación">
+    <span class="label">Simulación</span>
+    <button class="btn-icon" id="play" aria-label="Reproducir"></button>
+    <button class="btn-icon num" id="speed" aria-label="Velocidad" style="width:auto;padding:0 8px;font-size:12px;font-weight:600">1×</button>
+    <button class="btn-icon" id="reset" aria-label="Reiniciar"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9"/><path d="M2.5 2.5v3h3"/></svg></button>
+  </div>
+</header>
+
+<main>
+  <div class="left">
+    <section class="panel stats hero marble" aria-label="Resumen">
+      <div class="stat main"><div class="k">Saldo en el partner <span class="num" id="s-bal-n"></span></div><div class="v num" id="s-bal">–</div>
+        <div class="meter" aria-hidden="true"><div class="track"><div class="fill" id="m-fill"></div><div class="mark" id="m-mark"></div></div>
+          <div class="cap"><span id="m-text">&nbsp;</span><span id="m-need"></span></div></div></div>
+      <div class="stat"><div class="k">Salidas esperadas</div><div class="v num" id="s-need">–</div><div class="s" id="s-need-n">&nbsp;</div></div>
+      <div class="stat"><div class="k">Enviado por el agente</div><div class="v num" id="s-sent">–</div><div class="s" id="s-sent-n">&nbsp;</div></div>
+      <div class="stat"><div class="k">Tiempo sin saldo</div><div class="v num" id="s-short">–</div><div class="s">desde el viernes 9:00</div></div>
+    </section>
+    <section class="panel">
+      <div class="panel-h"><h2>Cada día a las 9:00</h2>
+        <div class="legend"><span><i style="background:#C9D3CF"></i>Tenía a las 9:00</span><span><i style="background:var(--brand)"></i>Mandó el agente</span><span><i style="background:var(--mint)"></i>Salió hasta el día siguiente</span></div></div>
+      <div class="chart" id="bal"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-h"><h2>Salidas por día</h2>
+        <div class="legend"><span><i class="ln" style="border-top-width:3px"></i>Pronóstico del viernes</span><span><i style="background:var(--n-100)"></i>Con margen</span><span><i style="background:var(--brand)"></i>Real</span></div></div>
+      <div class="chart" id="days"></div>
+    </section>
+  </div>
+
+  <aside class="panel rail" aria-label="Agente">
+    <div class="panel-h"><div class="who"><span class="avatar marble"></span><h2>Agente Prefoundly<small>decide solo, todos los días a las 9:00</small></h2></div><span class="muted" id="next" style="font-size:13px">&nbsp;</span></div>
+    <div class="entries" id="entries" aria-live="polite"></div>
+    <form class="composer" id="composer" autocomplete="off">
+      <div class="hints" id="hints"></div>
+      <label class="field"><input id="order" placeholder="Dale una orden al agente" aria-label="Orden para el agente" maxlength="300">
+        <button class="send" id="sendbtn" type="submit" aria-label="Enviar orden" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg></button></label>
+    </form>
+  </aside>
+</main>
+
+<script>
+const C = { brand:"#154E4B", teal:"#3E9682", mint:"#9EDDC2", fill:"#C9EAD9", band:"#E4F4EC", grid:"#E3E9E7", n200:"#D6DEDB", n500:"#7D8C88", n600:"#56655F", n100:"#E8EDEB", future:"#F6F9F8" };
+const fmt = (v, d) => v.toLocaleString("es-AR", { minimumFractionDigits:d, maximumFractionDigits:d });
+const M = (x) => x == null ? "–" : "$ " + fmt(x / 1e6, Math.abs(x) >= 1e8 ? 0 : 1) + " M";
+const DAY = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"], DAYL = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
+const MON = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+const hm = (d) => `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`;
+const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const api = (p, o) => fetch(p, Object.assign({ cache:"no-store" }, o));
+const RISK = { 0.99:["bajo","99 de cada 100"], 0.95:["medio","95 de cada 100"], 0.9:["alto","90 de cada 100"] };
+const riskOf = (a) => RISK[Math.round(a * 100) / 100] || ["", ""];
+const ICON = { play:'<svg viewBox="0 0 16 16"><path d="M4.5 2.8v10.4l8.5-5.2z" fill="currentColor"/></svg>', pause:'<svg viewBox="0 0 16 16" fill="currentColor"><rect x="4" y="3" width="2.6" height="10" rx=".8"/><rect x="9.4" y="3" width="2.6" height="10" rx=".8"/></svg>' };
+const CHECK = '<span class="tick"><svg viewBox="0 0 10 10"><path d="M2 5.3l2 2L8 3"/></svg></span>';
+const SENT_KINDS = ["plan", "adjust_in", "manual"];
+const AXIS_TEXT = { color:C.n600, fontFamily:"Figtree", fontSize:12 };
+let S = null, shown = -1, shownPhase = null, toggled = new Map(), speed = 1, hintsKey = "";
+const balChart = echarts.init(document.getElementById("bal"), null, { renderer:"svg" });
+const dayChart = echarts.init(document.getElementById("days"), null, { renderer:"svg" });
+const TOOLTIP = { backgroundColor:"#fff", borderColor:C.n200, borderWidth:1, padding:[8, 12], textStyle:{ color:"#112523", fontFamily:"Figtree", fontSize:13 }, extraCssText:"box-shadow:0 4px 16px rgba(17,37,35,.08);border-radius:8px;" };
+const tipRow = (color, label, value, dash) => `<div style="display:flex;justify-content:space-between;gap:18px;align-items:center"><span><span style="display:inline-block;width:12px;margin-right:6px;vertical-align:3px;border-top:2px ${dash || "solid"} ${color}"></span>${label}</span><b style="font-variant-numeric:tabular-nums">${value}</b></div>`;
+
+function header() {
+  const now = new Date(S.now);
+  document.getElementById("clock").textContent = `${DAY[now.getDay()]} ${now.getDate()} ${MON[now.getMonth()]}, ${hm(now)}`;
+  const st = document.getElementById("status");
+  st.className = "badge " + (S.paused_agent ? "warn" : "ok" + (S.phase ? " busy" : ""));
+  st.lastElementChild.textContent = S.paused_agent ? "Envíos frenados" : S.phase ? "Decidiendo" : "Autónomo";
+  const [rn, rd] = riskOf(S.alpha);
+  document.getElementById("risk").textContent = `Riesgo ${rn}`;
+  document.getElementById("risk").title = `El margen alcanza ${rd} veces`;
+  const cap = document.getElementById("cap");
+  cap.hidden = S.user_cap == null;
+  if (S.user_cap != null) cap.textContent = `Tope ${M(S.user_cap)} por envío`;
+  const play = document.getElementById("play");
+  play.innerHTML = S.playing && !S.done ? ICON.pause : ICON.play;
+  play.setAttribute("aria-label", S.playing ? "Pausar simulación" : "Reproducir simulación");
+  play.disabled = S.done;
+  const nx = S.next ? new Date(S.next.at) : null;
+  document.getElementById("next").textContent = S.done ? "Simulación terminada" : nx ? `Próxima: ${DAY[nx.getDay()].toLowerCase()} ${hm(nx)}` : "";
+  const hints = [S.paused_agent ? "Reanudá" : "Frená los envíos",
+    ...["bajo", "medio", "alto"].filter((r) => r !== rn).map((r) => `Riesgo ${r}`),
+    S.user_cap != null ? "Sacá el tope" : "No mandes más de 100 M"];
+  if (hints.join("|") !== hintsKey) {
+    hintsKey = hints.join("|");
+    document.getElementById("hints").innerHTML = hints.map((h) => `<button type="button" class="hint">${h}</button>`).join("");
+    document.querySelectorAll(".hint").forEach((b) => b.onclick = () => order(b.textContent));
+  }
+}
+
+function stats() {
+  const a = S.accounts[0], sent = S.moves.filter((m) => SENT_KINDS.includes(m.kind));
+  const shortH = S.history.filter((h) => h.a[a.account][0] < 0).length;
+  document.getElementById("s-bal").textContent = M(a.balance);
+  document.getElementById("s-bal-n").textContent = a.incoming > 0 ? `(+ ${M(a.incoming)} en camino)` : "";
+  // what is still to cover until the next load: the last decision's need minus what already left since then
+  const last = (S.agent_log || []).filter((e) => e.kind !== "order").pop(), have = a.balance + a.incoming;
+  const left = last ? Math.max(0, last.need - Math.max(0, last.have + last.sent - have)) : a.need;
+  a.need = left;
+  const top = Math.max(have, a.need, 1) * 1.18;
+  const fill = document.getElementById("m-fill");
+  fill.style.width = `${Math.max(0, Math.min(100, have / top * 100))}%`;
+  fill.classList.toggle("low", have < a.need);
+  document.getElementById("m-mark").style.left = `${a.need / top * 100}%`;
+  const u = last && last.until ? new Date(last.until) : null;
+  document.getElementById("m-need").innerHTML = `faltan salir <b class="num">${M(a.need)}</b>${u ? ` hasta el ${DAY[u.getDay()].toLowerCase()} ${hm(u)}` : ""}`;
+  document.getElementById("m-text").innerHTML = have >= a.need ? `Cubre <b class="num">${Math.round(have / Math.max(a.need, 1) * 100)} %</b>` : `Faltan <b class="num">${M(a.need - have)}</b>`;
+  const dec = (S.agent_log || []).filter((e) => e.kind !== "order").pop();
+  document.getElementById("s-need").textContent = dec ? M(dec.expected) : "–";
+  document.getElementById("s-need-n").textContent = dec ? `hasta ${untilText(dec.until)}` : "después de la primera decisión";
+  document.getElementById("s-sent").textContent = M(d3sum(sent));
+  document.getElementById("s-sent-n").textContent = sent.length ? `${sent.length} ${sent.length === 1 ? "envío" : "envíos"}` : "sin envíos todavía";
+  document.getElementById("s-short").textContent = `${shortH} h`;
+}
+const d3sum = (ms) => ms.reduce((s, m) => s + m.amount, 0);
+
+function balanceChart() {
+  // one group per daily decision: what the partner held at 9:00, what the agent sent, what users took out until the next decision
+  const a = S.accounts[0], decisions = (S.agent_log || []).filter((e) => e.kind !== "order");
+  const nowHave = a.balance + a.incoming;
+  const days = [], d0 = new Date(S.start), d1 = new Date(S.stop);
+  for (const d = new Date(d0.getFullYear(), d0.getMonth(), d0.getDate()); d <= d1; d.setDate(d.getDate() + 1)) days.push(dayKey(d));
+  const rows = days.map((k) => {
+    const i = decisions.findIndex((e) => dayKey(new Date(e.at)) === k);
+    if (i < 0) return { k };
+    const e = decisions[i], after = e.have + e.sent, next = decisions[i + 1];
+    const out = Math.max(0, after - (next ? next.have : nowHave));
+    return { k, e, had:e.have, sent:e.sent, need:e.need, out, after, live:!next && !S.done };
+  });
+  const labels = rows.map((r) => DAYL[new Date(r.k + "T12:00").getDay()]);
+  const lbl = (fmtFn, color) => ({ show:true, position:"top", distance:4, formatter:fmtFn, color, fontFamily:"Figtree", fontSize:12, fontWeight:600 });
+  balChart.setOption({
+    animation:true, animationDurationUpdate:250,
+    grid:{ left:8, right:62, top:30, bottom:28 },
+    tooltip:{ ...TOOLTIP, trigger:"axis", axisPointer:{ type:"shadow", shadowStyle:{ color:"rgba(17,37,35,.04)" } },
+      formatter:(ps) => { const r = rows[ps[0].dataIndex]; if (!r.e) return `${labels[ps[0].dataIndex]}: todavía no decidió`;
+        return `<div style="color:${C.n600};margin-bottom:4px">${labels[ps[0].dataIndex]} 9:00</div>` + tipRow("#B9C5C1", "Tenía", M(r.had)) +
+          tipRow(C.n600, "Necesitaba, con margen", M(r.need), "dashed") + tipRow(C.brand, "Mandó", M(r.sent)) + tipRow(C.mint, r.live ? "Salió hasta ahora" : "Salió hasta el día siguiente", M(r.out)); } },
+    xAxis:{ type:"category", data:labels, axisLine:{ lineStyle:{ color:C.n200 } }, axisTick:{ show:false }, axisLabel:{ ...AXIS_TEXT, fontSize:13, fontWeight:600, color:"#253B38" } },
+    yAxis:{ type:"value", position:"right", min:0, splitNumber:4, axisLabel:{ ...AXIS_TEXT, formatter:(v) => v === 0 ? "0" : fmt(v / 1e6, 0) + " M" }, splitLine:{ lineStyle:{ color:C.grid } } },
+    series:[
+      { name:"Tenía", type:"bar", stack:"a", barWidth:"18%", barGap:"30%", data:rows.map((r) => r.e ? r.had : null), itemStyle:{ color:"#C9D3CF", borderRadius:[5, 5, 0, 0] },
+        label:{ ...lbl((p) => M(p.value), "#253B38"), position:"insideTop", distance:8 } },
+      { name:"baseSent", type:"bar", stack:"s", data:rows.map((r) => r.e ? r.had : null), itemStyle:{ color:"transparent" }, tooltip:{ show:false }, silent:true },
+      { name:"Mandó", type:"bar", stack:"s", data:rows.map((r) => r.e ? r.sent : null), itemStyle:{ color:C.brand, borderRadius:[5, 5, 0, 0] },
+        label:{ ...lbl((p) => `{v|${p.value > 0 ? "+ " + M(p.value) : "+ $ 0"}}\n{n|necesitaba ${M(rows[p.dataIndex].need)}}`, C.brand),
+          rich:{ v:{ fontFamily:"Figtree", fontSize:13, fontWeight:700, color:C.brand, lineHeight:17 }, n:{ fontFamily:"Figtree", fontSize:11.5, color:C.n600, lineHeight:15 } } } },
+      { name:"baseOut", type:"bar", stack:"o", data:rows.map((r) => r.e ? r.after - r.out : null), itemStyle:{ color:"transparent" }, tooltip:{ show:false }, silent:true },
+      { name:"Salió", type:"bar", stack:"o", data:rows.map((r) => r.e ? r.out : null), itemStyle:{ color:C.mint, borderRadius:[0, 0, 5, 5] },
+        label:{ ...lbl((p) => "− " + M(p.value), "#2C7366"), position:"bottom" } },
+    ],
+  });
+}
+
+function daysChart() {
+  if (!S.preview || !S.preview[0]) return;
+  const days = S.preview[0].days, actual = (S.actual || {})[S.accounts[0].account] || {}, today = dayKey(new Date(S.now));
+  const real = days.map((d) => { const v = actual[d.date]; return v != null && v >= 5e4 && d.date <= today ? v : null; });
+  const labels = days.map((d, i) => {
+    const r = real[i], live = d.date === today && !S.done;
+    return r == null ? `{f|pronóstico ${M(d.expected)}}` : `{r|${M(r)}${live ? " hasta ahora" : ""}}\n{f|pronóstico ${M(d.expected)}}`;
+  });
+  dayChart.setOption({
+    animation:true, animationDurationUpdate:250,
+    grid:{ left:8, right:62, top:44, bottom:28 },
+    tooltip:{ ...TOOLTIP, trigger:"axis", axisPointer:{ type:"shadow", shadowStyle:{ color:"rgba(17,37,35,.04)" } },
+      formatter:(ps) => { const i = ps[0].dataIndex, d = days[i];
+        return `<div style="color:${C.n600};margin-bottom:4px">${DAYL[new Date(d.date + "T12:00").getDay()]}</div>` +
+          tipRow(C.teal, "Pronóstico", M(d.expected)) + tipRow(C.n200, "Con margen", M(d.bad)) + tipRow(C.brand, "Real", real[i] == null ? "–" : M(real[i])); } },
+    xAxis:{ type:"category", data:days.map((d) => DAYL[new Date(d.date + "T12:00").getDay()]), axisLine:{ lineStyle:{ color:C.n200 } }, axisTick:{ show:false }, axisLabel:AXIS_TEXT },
+    yAxis:{ type:"value", position:"right", splitNumber:3, axisLabel:{ ...AXIS_TEXT, formatter:(v) => v === 0 ? "0" : fmt(v / 1e6, 0) + " M" }, splitLine:{ lineStyle:{ color:C.grid } } },
+    series:[
+      { name:"Con margen", type:"bar", data:days.map((d) => d.bad), barWidth:"38%", itemStyle:{ color:C.n100, borderRadius:[4, 4, 0, 0] },
+        label:{ show:true, position:"top", distance:6, formatter:(p) => labels[p.dataIndex], rich:{ r:{ fontFamily:"Figtree", fontSize:13, fontWeight:600, color:C.brand, lineHeight:17 }, f:{ fontFamily:"Figtree", fontSize:12, color:C.n600, lineHeight:16 } } } },
+      { name:"Real", type:"bar", data:real, barWidth:"38%", barGap:"-100%", itemStyle:{ color:C.brand, borderRadius:[4, 4, 0, 0] } },
+      { name:"Pronóstico", type:"pictorialBar", data:days.map((d) => d.expected), symbol:"rect", symbolSize:["100%", 3], symbolPosition:"end", symbolOffset:[0, "-50%"], barWidth:"38%", barGap:"-100%", itemStyle:{ color:C.teal }, z:5 },
+    ],
+  }, { notMerge:false });
+}
+
+/* agent rail */
+const PHASES = ["Lee los pagos de hoy", "Pronostica hasta la próxima carga", "Calcula cuánto mandar", "Envía si hace falta"];
+const PHASE_AT = { forecast:1, decide:2, move:3 };
+const decisionTitle = (kind, d) => kind === "plan" ? (d.getDay() === 5 ? "Plan del fin de semana" : "Plan del día") : "Revisión diaria";
+function untilText(iso) { if (!iso) return "la próxima carga"; const d = new Date(iso); return `el ${DAYL[d.getDay()].toLowerCase()} ${hm(d)}`; }
+function head(e) {
+  const d = new Date(e.at), warn = e.kind === "order" ? e.steps.some((s) => s.warn) : (e.held > 0 || e.capped > 0);
+  const res = e.sent > 0 ? `<span class="badge ok num">${M(e.sent)}</span>`
+    : e.kind === "order" ? `<span class="badge${warn ? " warn" : ""}">${warn ? "No aplicada" : "Aplicada"}</span>`
+    : e.held > 0 ? `<span class="badge warn">Frenado</span>` : `<span class="badge">Sin envío</span>`;
+  const title = e.kind === "order" ? `<span class="who">Vos</span><q>${e.text.replace(/</g, "&lt;")}</q>` : decisionTitle(e.kind, d);
+  return `<time class="num">${DAY[d.getDay()]} ${hm(d)}</time><span class="title">${title}</span>${res}`;
+}
+function step(text, small, value, cls, j, anim) {
+  return `<li class="step${cls ? " " + cls : ""}${anim ? " in" : ""}" style="--d:${j * 130}ms">${CHECK}<span class="t">${text}${small ? `<small>${small}</small>` : ""}</span><span class="v num">${value == null ? "" : M(value)}</span></li>`;
+}
+function decisionBody(e, anim) {
+  const gap = Math.max(0, e.need - e.have);
+  let html = `<ul class="steps">` + step("Leyó los pagos de hoy", `salieron ${M(e.today)} hasta las ${hm(new Date(e.at))}`, null, "", 0, anim)
+    + step(`Pronosticó hasta ${untilText(e.until)}`, `lo esperado: ${M(e.expected)}`, null, "", 1, anim)
+    + step("Calculó cuánto mandar", `con margen: alcanza ${riskOf(e.alpha)[1]} veces`, null, "", 2, anim) + `</ul>`;
+  html += `<div class="sum${anim ? " in" : ""}" style="--d:390ms"><div class="row"><span>Necesita, con margen</span><b class="num">${M(e.need)}</b></div>`
+    + `<div class="row"><span>Hay en el partner</span><b class="num">− ${M(e.have)}</b></div>`
+    + (gap > 0 ? `<div class="row total"><span>Manda</span><span class="num">${M(e.sent || gap)}</span></div>` : `<div class="row total zero"><span>Alcanza</span><span class="num">$ 0</span></div>`) + `</div>`;
+  const last = e.held > 0 ? step("Envíos frenados: no envió", "por una orden", e.held, "warn", 4, anim)
+    : e.capped > 0 ? step("Envió hasta el tope", `quedan ${M(e.capped)} para la próxima decisión`, e.sent, "warn", 4, anim)
+    : e.sent > 0 ? step("Envió por stablecoin", e.arrives ? `llega ${hm(new Date(e.arrives))}` : "", e.sent, "", 4, anim)
+    : step("No envió nada", "lo que ya está en el partner alcanza", null, "", 4, anim);
+  return html + `<ul class="steps">${last}</ul>`;
+}
+function orderBody(e, anim) { return `<ul class="steps">` + e.steps.map((s, j) => step(s.text, "", s.value ?? null, s.warn ? "warn" : "", j, anim)).join("") + `</ul>`; }
+function renderLog(animate) {
+  const host = document.getElementById("entries"), log = S.agent_log || [];
+  let html = "";
+  if (S.phase) {
+    const at = PHASE_AT[S.phase.step] ?? 0, d = new Date(S.phase.at);
+    html += `<div class="entry open"><button tabindex="-1"><time class="num">${DAY[d.getDay()]} ${hm(d)}</time><span class="title">${decisionTitle(S.phase.kind, d)}</span><span class="badge ok busy"><span class="dot"></span>En curso</span></button><div class="body"><ul class="steps">` +
+      PHASES.map((t, i) => `<li class="step ${i < at ? (i === at - 1 ? "in" : "") : i === at ? "now" : "wait"}">${CHECK}<span class="t">${t}</span><span></span></li>`).join("") + `</ul></div></div>`;
+  }
+  if (!log.length && !S.phase) { host.innerHTML = `<div class="empty"><b>Sin decisiones todavía</b>El agente decide una vez por día, a las 9:00. Reproducí la simulación para verlo actuar.</div>`; return; }
+  let lastSend = -1; log.forEach((e, i) => { if (e.sent > 0 && e.kind !== "order") lastSend = i; });
+  log.slice().reverse().forEach((e, k) => {
+    const i = log.length - 1 - k, isOpen = toggled.has(i) ? toggled.get(i) : (k === 0 && !S.phase) || i === lastSend, anim = animate && k === 0;
+    html += `<div class="entry${isOpen ? " open" : ""}" data-i="${i}"><button aria-expanded="${isOpen}">${head(e)}</button><div class="body">${e.kind === "order" ? orderBody(e, anim) : decisionBody(e, anim)}</div></div>`;
+  });
+  host.innerHTML = html;
+  host.querySelectorAll(".entry[data-i] > button").forEach((b) => b.onclick = () => { const i = +b.parentElement.dataset.i; toggled.set(i, !b.parentElement.classList.contains("open")); renderLog(false); });
+}
+
+async function tick() {
+  try { S = await (await api("/api/live")).json(); } catch (e) { return; }
+  header(); stats(); balanceChart(); daysChart();
+  const n = (S.agent_log || []).length, ph = S.phase ? S.phase.step : null;
+  if (n !== shown || ph !== shownPhase) { renderLog(n > shown && shown >= 0 && shownPhase === null); shown = n; shownPhase = ph; }
+}
+async function order(text) {
+  if (!text.trim()) return;
+  const input = document.getElementById("order"), btn = document.getElementById("sendbtn");
+  input.value = ""; btn.disabled = true; input.disabled = true;
+  try { await api("/api/command", { method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ text }) }); } finally { input.disabled = false; input.focus(); }
+  tick();
+}
+document.getElementById("composer").onsubmit = (e) => { e.preventDefault(); order(document.getElementById("order").value); };
+document.getElementById("order").oninput = (e) => { document.getElementById("sendbtn").disabled = !e.target.value.trim(); };
+document.getElementById("play").onclick = () => S && api(S.playing ? "/api/pause" : "/api/play").then(tick);
+document.getElementById("speed").onclick = (e) => { speed = speed === 1 ? 4 : 1; e.currentTarget.textContent = speed + "×"; api("/api/speed?x=" + speed); };
+document.getElementById("reset").onclick = async () => { await api("/api/reset"); toggled = new Map(); shown = -1; tick(); };
+window.addEventListener("resize", () => { balChart.resize(); dayChart.resize(); });
+tick(); setInterval(tick, 400);
+</script>
+</body>
+</html>

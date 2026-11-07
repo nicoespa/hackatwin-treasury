@@ -136,6 +136,43 @@ def intl_experiments(data: Path = Path("data/sim/intl"), out: Path = Path("repor
     typer.echo(f"intl experiments written to {out} in {time.perf_counter() - began:.0f}s")
 
 
+
+@app.command()
+def monitor(
+    port: int = 8600,
+    seed: bool = typer.Option(False, "--seed", help="First run and execute the agent's reviews of --days into the shared ledger."),
+    days: str = typer.Option("2026-09-28,2026-09-29,2026-09-30,2026-10-01,2026-10-02", help="Comma-separated review days for --seed."),
+    rail: str = "wire",
+) -> None:
+    """Live dashboard of the autonomous agent at http://127.0.0.1:PORT (reads TREASURY_DATA, TREASURY_LEDGER,
+    TREASURY_RUNS, TREASURY_STATE, shared with treasury-mcp)."""
+    from treasury import monitor as mon
+
+    if seed:
+        typer.echo(f"Corriendo las revisiones del agente: {days}")
+        mon.seed([d.strip() for d in days.split(",") if d.strip()], rail=rail)
+    server = mon.serve(port)
+    typer.echo(f"Dashboard en http://127.0.0.1:{port} (Ctrl+C para cortar)")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        server.server_close()
+
+
+@app.command()
+def live(port: int = 8700, speed: float = typer.Option(1.0, help="Simulated hours per 1.5 real seconds.")) -> None:
+    """Live demo: the agent acts on a running clock over one weekend (16 to 19 Oct 2026), loading accounts,
+    sweeping surpluses back to the pool on 24/7 rails and drawing on a liquidity line when the pool runs short."""
+    from treasury import live as lv
+
+    typer.echo("Ajustando el pronóstico de la semana (tarda menos de un minuto)...")
+    server = lv.serve(port, seconds_per_hour=1.5 / max(0.25, speed))
+    typer.echo(f"Demo en vivo en http://127.0.0.1:{port} (Ctrl+C para cortar)")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        server.server_close()
+
 agent = typer.Typer(no_args_is_help=True, help="Transfers: the policy decides, the LLM explains, a human approves "
                     "(propose) or the agent executes within hard limits (run).")
 app.add_typer(agent, name="agent")

@@ -1,9 +1,10 @@
 """MCP server: lets an AI agent watch and control the autonomous treasury agent.
 
-Tools read the simulated dataset (``TREASURY_DATA``, default ``data/sim/intl``) and the transfer
-ledger (``TREASURY_LEDGER``, default ``data/transfers_mcp.jsonl``). Executions are simulated: the
-ledger is the only thing written. The pause switch is stored in ``TREASURY_STATE`` (default
-``data/agent_state.json``) and overrides ``autonomy.enabled`` of the dataset's config set, so a
+Tools read the simulated dataset and the transfer ledger at the paths shared with the live dashboard
+(``treasury.monitor``: ``TREASURY_DATA``, default ``data/sim/base``; ``TREASURY_LEDGER``;
+``TREASURY_RUNS``; ``TREASURY_STATE``). Executions are simulated: the ledger and the runs log are the
+only things written, and every executed review is appended to the runs log so the dashboard shows it.
+The pause switch in ``TREASURY_STATE`` overrides ``autonomy.enabled`` of the dataset's config set, so a
 paused agent decides but sends nothing.
 
 Run: ``treasury-mcp`` (stdio), or register it in an MCP client, e.g. Claude Code:
@@ -13,7 +14,6 @@ Run: ``treasury-mcp`` (stdio), or register it in an MCP client, e.g. Claude Code
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 from dataclasses import asdict, replace
 from functools import cache
@@ -26,11 +26,8 @@ from treasury.agent.executor import TransferLedger, ledger_status
 from treasury.agent.guardrails import AutonomyConfig, load_autonomy
 from treasury.agent.run import format_summary, run_day
 from treasury.backtest import Dataset
+from treasury.monitor import DATA, LEDGER, STATE, record_run
 from treasury.segmentation import KMeansSegmenter
-
-DATA = Path(os.environ.get("TREASURY_DATA", "data/sim/intl"))
-LEDGER = Path(os.environ.get("TREASURY_LEDGER", "data/transfers_mcp.jsonl"))
-STATE = Path(os.environ.get("TREASURY_STATE", "data/agent_state.json"))
 
 server = MCPServer(
     name="prefoundly",
@@ -74,8 +71,10 @@ def _review(as_of: str, rail: str, execute: bool) -> dict:
     _check_rail(rail)
     if execute:
         LEDGER.parent.mkdir(parents=True, exist_ok=True)
-        return run_day(_dataset(), pd.Timestamp(as_of), TransferLedger(LEDGER), rail=rail, autonomy=_autonomy(),
-                       segmenter=KMeansSegmenter())
+        run = run_day(_dataset(), pd.Timestamp(as_of), TransferLedger(LEDGER), rail=rail, autonomy=_autonomy(),
+                      segmenter=KMeansSegmenter())
+        record_run(run)
+        return run
     with tempfile.TemporaryDirectory() as tmp:
         return run_day(_dataset(), pd.Timestamp(as_of), TransferLedger(Path(tmp) / "dry_run.jsonl"), rail=rail,
                        autonomy=_autonomy(), segmenter=KMeansSegmenter())
@@ -103,7 +102,7 @@ def get_limits() -> dict:
 
 
 @server.tool()
-def forecast(partner: str, as_of: str, rail: str = "swift") -> dict:
+def forecast(partner: str, as_of: str, rail: str = "wire") -> dict:
     """Next 7 days of outflow quantiles (q05, q50, q95, q99) for ``partner``, plus what the policy
     needs at the 09:00 review of ``as_of`` on ``rail``. Nothing is executed."""
     run = _review(as_of, rail, execute=False)
@@ -115,7 +114,7 @@ def forecast(partner: str, as_of: str, rail: str = "swift") -> dict:
 
 
 @server.tool()
-def run_review(as_of: str, rail: str = "swift", execute: bool = False) -> dict:
+def run_review(as_of: str, rail: str = "wire", execute: bool = False) -> dict:
     """The agent's 09:00 review of ``as_of``: forecast, decision, limits and guardrails per partner.
     ``execute=false`` (default) is a dry run; ``execute=true`` records simulated transfers in the
     ledger (idempotent per partner and review time). Returns a Spanish summary and the details."""
