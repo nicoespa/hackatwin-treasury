@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html><head>
+<script>window.__resources={"https://unpkg.com/react@18.3.1/umd/react.production.min.js":"assets/react.production.min.js","https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js":"assets/react-dom.production.min.js"};</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="assets/dc-runtime.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <title>Prefoundly AI</title>
+  <style>/* Figtree (variable 300–900) + DM Mono — self-hosted from Google Fonts. Substitutes: no brand font files were supplied. */
+@font-face{font-family:'Figtree';font-style:normal;font-weight:300 900;font-display:swap;src:url("assets/figtree-latin.woff2") format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Figtree';font-style:normal;font-weight:300 900;font-display:swap;src:url("assets/font-2.woff2") format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:swap;src:url("assets/font-3.woff2") format('woff2')}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:500;font-display:swap;src:url("assets/font-4.woff2") format('woff2')}
+</style>
+  <style>:root{
+/* Brand — base values from the brand brief */
+--pf-petrol-950:#0E3836;--pf-petrol-900:#154E4B;--pf-petrol-800:#1C5F5A;
+--pf-teal-700:#2C7366;--pf-teal-600:#378B79;--pf-teal-500:#4FA28E;
+--pf-mint-400:#7FCFB1;--pf-mint-300:#9EDDC2;--pf-mint-200:#B8E8D2;--pf-mint-100:#D6F2E5;
+--pf-ivory-100:#ECF2E5;--pf-ivory-50:#F5F8F0;
+/* Neutrals — very slightly green-tinted greys */
+--pf-white:#FFFFFF;--pf-grey-50:#F4F4F4;--pf-grey-100:#EBECEB;--pf-grey-200:#DEE1DF;--pf-grey-300:#C7CCCA;
+--pf-grey-400:#9AA3A0;--pf-grey-500:#6E7976;--pf-grey-600:#4F5A57;--pf-grey-700:#35403E;--pf-grey-900:#16201F;
+/* Status */
+--pf-green-600:#2E7D5B;--pf-green-100:#DDF1E6;
+--pf-amber-600:#9A6412;--pf-amber-100:#F7ECD6;
+--pf-red-600:#B3412F;--pf-red-100:#F6E1DC;
+
+/* Semantic — surfaces */
+--surface-page:var(--pf-grey-50);
+--surface-card:var(--pf-white);
+--surface-soft:var(--pf-ivory-100);
+--surface-mint:var(--pf-mint-200);
+--surface-mint-soft:var(--pf-mint-100);
+--surface-inverse:var(--pf-petrol-900);
+--surface-sunken:var(--pf-grey-100);
+--surface-overlay:rgba(14,56,54,.32);
+/* Semantic — text */
+--text-strong:var(--pf-petrol-900);
+--text-body:var(--pf-grey-700);
+--text-muted:var(--pf-grey-600);
+--text-subtle:var(--pf-grey-500);
+--text-on-inverse:var(--pf-white);
+--text-on-mint:var(--pf-petrol-900);
+--text-accent:var(--pf-teal-700);
+--text-disabled:var(--pf-grey-400);
+/* Semantic — borders */
+--border-subtle:var(--pf-grey-200);
+--border-default:var(--pf-grey-300);
+--border-strong:var(--pf-petrol-900);
+--border-accent:var(--pf-teal-600);
+/* Semantic — interactive */
+--action-primary:var(--pf-petrol-900);
+--action-primary-hover:var(--pf-petrol-800);
+--action-primary-press:var(--pf-petrol-950);
+--action-secondary:var(--pf-mint-200);
+--action-secondary-hover:var(--pf-mint-300);
+--action-accent:var(--pf-teal-600);
+--action-ghost-hover:rgba(21,78,75,.06);
+--action-ghost-press:rgba(21,78,75,.10);
+--focus-ring-color:rgba(55,139,121,.40);
+/* Semantic — status */
+--status-success-fg:var(--pf-green-600);--status-success-bg:var(--pf-green-100);
+--status-warning-fg:var(--pf-amber-600);--status-warning-bg:var(--pf-amber-100);
+--status-danger-fg:var(--pf-red-600);--status-danger-bg:var(--pf-red-100);
+--status-info-fg:var(--pf-petrol-900);--status-info-bg:var(--pf-mint-100);
+}
+</style>
+  <style>:root{
+--font-sans:'Figtree',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+--font-mono:'DM Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+--weight-regular:400;--weight-medium:500;--weight-semibold:600;--weight-bold:700;
+/* Size scale */
+--text-display:64px;--text-h1:44px;--text-h2:34px;--text-h3:26px;--text-h4:20px;
+--text-lg:18px;--text-md:16px;--text-sm:14px;--text-xs:12px;
+/* Line heights */
+--leading-tight:1.08;--leading-snug:1.2;--leading-normal:1.5;--leading-relaxed:1.65;
+/* Tracking */
+--tracking-display:-0.03em;--tracking-heading:-0.015em;--tracking-body:0;--tracking-label:0.06em;
+/* Semantic roles */
+--type-display:var(--weight-semibold) var(--text-display)/var(--leading-tight) var(--font-sans);
+--type-h1:var(--weight-semibold) var(--text-h1)/var(--leading-tight) var(--font-sans);
+--type-h2:var(--weight-semibold) var(--text-h2)/var(--leading-snug) var(--font-sans);
+--type-h3:var(--weight-semibold) var(--text-h3)/var(--leading-snug) var(--font-sans);
+--type-h4:var(--weight-semibold) var(--text-h4)/var(--leading-snug) var(--font-sans);
+--type-body-lg:var(--weight-regular) var(--text-lg)/var(--leading-relaxed) var(--font-sans);
+--type-body:var(--weight-regular) var(--text-md)/var(--leading-normal) var(--font-sans);
+--type-body-sm:var(--weight-regular) var(--text-sm)/var(--leading-normal) var(--font-sans);
+--type-label:var(--weight-semibold) var(--text-xs)/1.2 var(--font-sans);
+--type-mono:var(--weight-regular) var(--text-sm)/var(--leading-normal) var(--font-mono);
+}
+</style>
+  <style>:root{
+--space-0:0;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;
+--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;--space-20:80px;--space-24:96px;--space-32:128px;
+/* Semantic */
+--gap-inline:var(--space-2);--gap-stack:var(--space-4);--pad-card:var(--space-6);--pad-section:var(--space-24);
+--control-h-sm:32px;--control-h-md:40px;--control-h-lg:48px;
+--content-max:1200px;--prose-max:640px;
+}
+</style>
+  <style>:root{
+--radius-xs:6px;--radius-sm:10px;--radius-md:14px;--radius-lg:20px;--radius-xl:28px;--radius-2xl:40px;--radius-pill:999px;
+/* Organic "pebble" corners for expressive marble shapes */
+--radius-organic:48% 52% 44% 56% / 58% 46% 54% 42%;
+/* Semantic */
+--radius-control:var(--radius-sm);--radius-card:var(--radius-lg);--radius-panel:var(--radius-xl);--radius-feature:var(--radius-2xl);
+}
+</style>
+  <style>:root{
+--border-width:1px;
+--shadow-none:none;
+--shadow-xs:0 1px 2px rgba(21,78,75,.06);
+--shadow-sm:0 1px 2px rgba(21,78,75,.05),0 2px 8px -2px rgba(21,78,75,.07);
+--shadow-md:0 2px 4px rgba(21,78,75,.04),0 10px 28px -8px rgba(21,78,75,.14);
+--shadow-lg:0 4px 8px rgba(21,78,75,.04),0 24px 56px -16px rgba(21,78,75,.22);
+--focus-ring:0 0 0 3px var(--focus-ring-color);
+/* Semantic */
+--elevation-card:var(--shadow-xs);--elevation-popover:var(--shadow-md);--elevation-dialog:var(--shadow-lg);
+}
+</style>
+  <style>:root{
+--ease-out:cubic-bezier(.2,.7,.2,1);/* @kind other */--ease-in-out:cubic-bezier(.45,0,.25,1);/* @kind other */--ease-soft:cubic-bezier(.33,1,.68,1);/* @kind other */
+--dur-fast:120ms;/* @kind other */--dur-base:200ms;/* @kind other */--dur-slow:320ms;/* @kind other */--dur-flow:900ms;/* @kind other */
+}
+</style>
+  <style>/* Brand textures. Utility classes (not vars) so asset URLs resolve relative to this file. */
+:root{
+--cross-pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 5v4M5 7h4' stroke='white' stroke-width='1' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E");/* @kind other */
+--cross-pattern-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 5v4M5 7h4' stroke='%23154E4B' stroke-width='1' stroke-linecap='round' opacity='.14'/%3E%3C/svg%3E");/* @kind other */
+}
+.pf-grain{background-color:var(--surface-page);background-image:url("assets/grain.png");background-size:cover;background-position:center}
+.pf-marble{background-color:var(--pf-teal-600);background-image:var(--cross-pattern),url("assets/marble.png");background-size:14px 14px,cover;background-position:center}
+.pf-marble-ribbon{background-color:var(--surface-page);background-image:url("assets/marble-ribbon.png");background-size:cover;background-position:right center;background-repeat:no-repeat}
+.pf-crosses{background-image:var(--cross-pattern);background-size:14px 14px}
+.pf-crosses-ink{background-image:var(--cross-pattern-ink);background-size:14px 14px}
+.pf-logo{display:inline-block;aspect-ratio:1550/220;background:url('../assets/logo-profoundly-ai-transparent.png') center/contain no-repeat}
+</style>
+  <style>/* Minimal element defaults */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{margin:0;font:var(--type-body);color:var(--text-body);background:var(--surface-page)}
+h1,h2,h3,h4{color:var(--text-strong);margin:0;text-wrap:balance}
+h1{font:var(--type-h1);letter-spacing:var(--tracking-display)}
+h2{font:var(--type-h2);letter-spacing:var(--tracking-heading)}
+h3{font:var(--type-h3);letter-spacing:var(--tracking-heading)}
+h4{font:var(--type-h4)}
+p{margin:0;text-wrap:pretty}
+a{color:var(--text-accent);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--text-strong)}
+code,kbd{font-family:var(--font-mono);font-size:.92em}
+::selection{background:var(--pf-mint-200);color:var(--pf-petrol-900)}
+:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+</style>
+  <style>/* Component styles — consumed by components/*.jsx via className. */
+.pf-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:var(--control-h-md);padding:0 18px;border-radius:var(--radius-pill);border:1px solid transparent;font:var(--weight-semibold) var(--text-sm)/1 var(--font-sans);letter-spacing:.005em;cursor:pointer;white-space:nowrap;transition:background var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out),color var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out);text-decoration:none}
+.pf-btn:active:not(:disabled){transform:scale(.98)}
+.pf-btn:disabled{cursor:not-allowed;opacity:.45}
+.pf-btn--sm{height:var(--control-h-sm);padding:0 14px;font-size:var(--text-xs)}
+.pf-btn--lg{height:var(--control-h-lg);padding:0 24px;font-size:var(--text-md)}
+.pf-btn--block{width:100%}
+.pf-btn--primary{background:var(--action-primary);color:var(--text-on-inverse)}
+.pf-btn--primary:hover:not(:disabled){background:var(--action-primary-hover)}
+.pf-btn--primary:active:not(:disabled){background:var(--action-primary-press)}
+.pf-btn--secondary{background:var(--action-secondary);color:var(--text-on-mint)}
+.pf-btn--secondary:hover:not(:disabled){background:var(--action-secondary-hover)}
+.pf-btn--outline{background:transparent;color:var(--text-strong);border-color:var(--border-default)}
+.pf-btn--outline:hover:not(:disabled){border-color:var(--border-strong);background:var(--action-ghost-hover)}
+.pf-btn--ghost{background:transparent;color:var(--text-strong)}
+.pf-btn--ghost:hover:not(:disabled){background:var(--action-ghost-hover)}
+.pf-btn--ghost:active:not(:disabled){background:var(--action-ghost-press)}
+.pf-btn--danger{background:var(--status-danger-fg);color:#fff}
+.pf-btn--danger:hover:not(:disabled){background:#9A3626}
+.pf-iconbtn{padding:0;width:var(--control-h-md)}.pf-iconbtn.pf-btn--sm{width:var(--control-h-sm)}.pf-iconbtn.pf-btn--lg{width:var(--control-h-lg)}
+.pf-icon{display:inline-block;flex:none;background:currentColor;-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat}
+.pf-field{display:flex;flex-direction:column;gap:6px;font-family:var(--font-sans)}
+.pf-field__label{font:var(--weight-semibold) var(--text-sm)/1.3 var(--font-sans);color:var(--text-strong)}
+.pf-field__hint{font:var(--type-body-sm);font-size:13px;color:var(--text-muted)}
+.pf-field__hint--error{color:var(--status-danger-fg)}
+.pf-control{display:flex;align-items:center;gap:8px;min-height:var(--control-h-md);padding:0 14px;background:var(--surface-card);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-subtle);transition:border-color var(--dur-fast) var(--ease-out),box-shadow var(--dur-fast) var(--ease-out)}
+.pf-control:hover{border-color:var(--pf-grey-400)}
+.pf-control:focus-within{border-color:var(--border-accent);box-shadow:var(--focus-ring)}
+.pf-control--error{border-color:var(--status-danger-fg)}
+.pf-control--disabled{background:var(--surface-sunken);opacity:.7;pointer-events:none}
+.pf-control--lg{min-height:var(--control-h-lg)}
+.pf-control input,.pf-control textarea,.pf-control select{flex:1;min-width:0;border:0;outline:0;background:transparent;font:var(--type-body);font-size:15px;color:var(--text-strong);padding:9px 0;resize:vertical;appearance:none;-webkit-appearance:none}
+.pf-control input::placeholder,.pf-control textarea::placeholder{color:var(--text-subtle)}
+.pf-control select{cursor:pointer;padding-right:4px}
+.pf-control *:focus-visible{box-shadow:none}
+.pf-check{display:inline-flex;align-items:flex-start;gap:10px;cursor:pointer;font:var(--type-body-sm);font-size:15px;color:var(--text-strong);position:relative}
+.pf-check input{position:absolute;opacity:0;width:1px;height:1px}
+.pf-check__box{flex:none;width:20px;height:20px;margin-top:1px;border:1.5px solid var(--border-default);background:var(--surface-card);border-radius:6px;display:grid;place-items:center;color:#fff;transition:all var(--dur-fast) var(--ease-out)}
+.pf-check--radio .pf-check__box{border-radius:50%}
+.pf-check:hover .pf-check__box{border-color:var(--pf-teal-600)}
+.pf-check input:checked+.pf-check__box{background:var(--action-primary);border-color:var(--action-primary)}
+.pf-check--radio input:checked+.pf-check__box{background:var(--surface-card);border:6px solid var(--action-primary)}
+.pf-check input:focus-visible+.pf-check__box{box-shadow:var(--focus-ring)}
+.pf-check input:disabled+.pf-check__box{opacity:.45}
+.pf-check--disabled{cursor:not-allowed;color:var(--text-disabled)}
+.pf-check__desc{display:block;color:var(--text-muted);font-size:13px;margin-top:2px}
+.pf-switch__track{flex:none;width:38px;height:22px;border-radius:var(--radius-pill);background:var(--pf-grey-300);position:relative;transition:background var(--dur-base) var(--ease-out)}
+.pf-switch__track::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:var(--shadow-xs);transition:transform var(--dur-base) var(--ease-soft)}
+.pf-check input:checked+.pf-switch__track{background:var(--action-accent)}
+.pf-check input:checked+.pf-switch__track::after{transform:translateX(16px)}
+.pf-check input:focus-visible+.pf-switch__track{box-shadow:var(--focus-ring)}
+.pf-check input:disabled+.pf-switch__track{opacity:.45}
+.pf-card{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-card);box-shadow:var(--elevation-card);overflow:hidden;color:var(--text-body);display:flex;flex-direction:column}
+.pf-card--soft{background:var(--surface-soft);border-color:transparent;box-shadow:none}
+.pf-card--mint{background:var(--surface-mint-soft);border-color:transparent;box-shadow:none}
+.pf-card--inverse{background:var(--surface-inverse);border-color:transparent;color:rgba(255,255,255,.82)}
+.pf-card--inverse .pf-card__title{color:#fff}
+.pf-card--interactive{cursor:pointer;transition:border-color var(--dur-fast) var(--ease-out),box-shadow var(--dur-base) var(--ease-out),transform var(--dur-base) var(--ease-out)}
+.pf-card--interactive:hover{border-color:var(--pf-mint-400);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.pf-card__media{height:132px;flex:none}
+.pf-card__body{padding:var(--pad-card);display:flex;flex-direction:column;gap:8px;flex:1}
+.pf-card__eyebrow{font:var(--type-label);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--text-accent)}
+.pf-card__title{font:var(--type-h4);color:var(--text-strong);letter-spacing:-.01em;margin:0}
+.pf-card__footer{padding:0 var(--pad-card) var(--pad-card);display:flex;gap:8px;align-items:center}
+.pf-badge{display:inline-flex;align-self:flex-start;width:fit-content;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--radius-pill);font:var(--weight-semibold) var(--text-xs)/1 var(--font-sans);white-space:nowrap}
+.pf-badge__dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pf-badge--neutral{background:var(--surface-sunken);color:var(--text-body)}
+.pf-badge--accent{background:var(--surface-mint);color:var(--text-on-mint)}
+.pf-badge--solid{background:var(--action-primary);color:#fff}
+.pf-badge--success{background:var(--status-success-bg);color:var(--status-success-fg)}
+.pf-badge--warning{background:var(--status-warning-bg);color:var(--status-warning-fg)}
+.pf-badge--danger{background:var(--status-danger-bg);color:var(--status-danger-fg)}
+.pf-badge--info{background:var(--status-info-bg);color:var(--status-info-fg)}
+.pf-tag{display:inline-flex;flex:none;white-space:nowrap;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--radius-pill);border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-strong);font:var(--weight-medium) var(--text-sm)/1 var(--font-sans);cursor:pointer;transition:all var(--dur-fast) var(--ease-out)}
+.pf-tag:hover{border-color:var(--border-strong)}
+.pf-tag--selected{background:var(--surface-mint);border-color:var(--pf-mint-400)}
+.pf-tag__x{display:grid;place-items:center;width:18px;height:18px;margin-right:-4px;border-radius:50%;border:0;padding:0;background:transparent;color:inherit;cursor:pointer}
+.pf-tag__x:hover{background:var(--action-ghost-press)}
+.pf-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border-subtle)}
+.pf-tab{position:relative;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 14px;border:0;background:transparent;font:var(--weight-semibold) var(--text-sm)/1 var(--font-sans);color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;transition:color var(--dur-fast) var(--ease-out)}
+.pf-tab:hover{color:var(--text-strong)}
+.pf-tab[aria-selected="true"]{color:var(--text-strong)}
+.pf-tab[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:var(--action-primary)}
+.pf-tabs--pill{display:inline-flex;border:0;background:var(--surface-sunken);padding:4px;border-radius:var(--radius-pill)}
+.pf-tabs--pill .pf-tab{height:34px;border-radius:var(--radius-pill);padding:0 16px}
+.pf-tabs--pill .pf-tab[aria-selected="true"]{background:var(--surface-card);box-shadow:var(--shadow-xs)}
+.pf-tabs--pill .pf-tab[aria-selected="true"]::after{display:none}
+.pf-tab__count{font:var(--weight-semibold) 11px/1 var(--font-sans);padding:3px 6px;border-radius:var(--radius-pill);background:var(--surface-sunken);color:var(--text-muted)}
+.pf-overlay{position:fixed;inset:0;background:var(--surface-overlay);display:grid;place-items:center;padding:24px;z-index:100;animation:pf-fade var(--dur-base) var(--ease-out)}
+.pf-overlay--contained{position:absolute}
+.pf-dialog{width:100%;max-width:480px;background:var(--surface-card);border-radius:var(--radius-panel);box-shadow:var(--elevation-dialog);display:flex;flex-direction:column;animation:pf-rise var(--dur-slow) var(--ease-soft)}
+.pf-dialog__head{padding:28px 28px 0;display:flex;gap:16px;align-items:flex-start}
+.pf-dialog__title{font:var(--type-h4);font-size:22px;color:var(--text-strong);margin:0}
+.pf-dialog__desc{font:var(--type-body);color:var(--text-muted);margin-top:6px}
+.pf-dialog__body{padding:20px 28px 0;color:var(--text-body)}
+.pf-dialog__foot{padding:24px 28px 28px;display:flex;justify-content:flex-end;gap:10px}
+.pf-toast{display:flex;gap:12px;align-items:flex-start;width:360px;max-width:100%;padding:14px 14px 14px 16px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--elevation-popover);font-family:var(--font-sans)}
+.pf-toast__icon{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center}
+.pf-toast__title{font:var(--weight-semibold) var(--text-sm)/1.35 var(--font-sans);color:var(--text-strong)}
+.pf-toast__desc{font:var(--type-body-sm);font-size:13px;color:var(--text-muted);margin-top:2px}
+.pf-toast--inverse{background:var(--surface-inverse);border-color:transparent}
+.pf-toast--inverse .pf-toast__title{color:#fff}.pf-toast--inverse .pf-toast__desc{color:rgba(255,255,255,.75)}
+.pf-tooltip-wrap{position:relative;display:inline-flex}
+.pf-tooltip{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);padding:7px 10px;border-radius:var(--radius-sm);background:var(--pf-petrol-950);color:#fff;font:var(--weight-medium) 12px/1.3 var(--font-sans);white-space:nowrap;pointer-events:none;z-index:50;animation:pf-fade var(--dur-fast) var(--ease-out)}
+.pf-tooltip--bottom{bottom:auto;top:calc(100% + 8px)}
+.pf-marble-surface{position:relative;overflow:hidden}
+@keyframes pf-fade{from{opacity:0}to{opacity:1}}
+@keyframes pf-rise{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+</style>
+  <style>/* Figtree (variable 300–900) + DM Mono — self-hosted from Google Fonts. Substitutes: no brand font files were supplied. */
+@font-face{font-family:'Figtree';font-style:normal;font-weight:300 900;font-display:swap;src:url("assets/figtree-latin.woff2") format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:'Figtree';font-style:normal;font-weight:300 900;font-display:swap;src:url("assets/font-2.woff2") format('woff2');unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:400;font-display:swap;src:url("assets/font-3.woff2") format('woff2')}
+@font-face{font-family:'DM Mono';font-style:normal;font-weight:500;font-display:swap;src:url("assets/font-4.woff2") format('woff2')}
+
+:root{
+/* Brand — base values from the brand brief */
+--pf-petrol-950:#0E3836;--pf-petrol-900:#154E4B;--pf-petrol-800:#1C5F5A;
+--pf-teal-700:#2C7366;--pf-teal-600:#378B79;--pf-teal-500:#4FA28E;
+--pf-mint-400:#7FCFB1;--pf-mint-300:#9EDDC2;--pf-mint-200:#B8E8D2;--pf-mint-100:#D6F2E5;
+--pf-ivory-100:#ECF2E5;--pf-ivory-50:#F5F8F0;
+/* Neutrals — very slightly green-tinted greys */
+--pf-white:#FFFFFF;--pf-grey-50:#F4F4F4;--pf-grey-100:#EBECEB;--pf-grey-200:#DEE1DF;--pf-grey-300:#C7CCCA;
+--pf-grey-400:#9AA3A0;--pf-grey-500:#6E7976;--pf-grey-600:#4F5A57;--pf-grey-700:#35403E;--pf-grey-900:#16201F;
+/* Status */
+--pf-green-600:#2E7D5B;--pf-green-100:#DDF1E6;
+--pf-amber-600:#9A6412;--pf-amber-100:#F7ECD6;
+--pf-red-600:#B3412F;--pf-red-100:#F6E1DC;
+
+/* Semantic — surfaces */
+--surface-page:var(--pf-grey-50);
+--surface-card:var(--pf-white);
+--surface-soft:var(--pf-ivory-100);
+--surface-mint:var(--pf-mint-200);
+--surface-mint-soft:var(--pf-mint-100);
+--surface-inverse:var(--pf-petrol-900);
+--surface-sunken:var(--pf-grey-100);
+--surface-overlay:rgba(14,56,54,.32);
+/* Semantic — text */
+--text-strong:var(--pf-petrol-900);
+--text-body:var(--pf-grey-700);
+--text-muted:var(--pf-grey-600);
+--text-subtle:var(--pf-grey-500);
+--text-on-inverse:var(--pf-white);
+--text-on-mint:var(--pf-petrol-900);
+--text-accent:var(--pf-teal-700);
+--text-disabled:var(--pf-grey-400);
+/* Semantic — borders */
+--border-subtle:var(--pf-grey-200);
+--border-default:var(--pf-grey-300);
+--border-strong:var(--pf-petrol-900);
+--border-accent:var(--pf-teal-600);
+/* Semantic — interactive */
+--action-primary:var(--pf-petrol-900);
+--action-primary-hover:var(--pf-petrol-800);
+--action-primary-press:var(--pf-petrol-950);
+--action-secondary:var(--pf-mint-200);
+--action-secondary-hover:var(--pf-mint-300);
+--action-accent:var(--pf-teal-600);
+--action-ghost-hover:rgba(21,78,75,.06);
+--action-ghost-press:rgba(21,78,75,.10);
+--focus-ring-color:rgba(55,139,121,.40);
+/* Semantic — status */
+--status-success-fg:var(--pf-green-600);--status-success-bg:var(--pf-green-100);
+--status-warning-fg:var(--pf-amber-600);--status-warning-bg:var(--pf-amber-100);
+--status-danger-fg:var(--pf-red-600);--status-danger-bg:var(--pf-red-100);
+--status-info-fg:var(--pf-petrol-900);--status-info-bg:var(--pf-mint-100);
+}
+
+:root{
+--font-sans:'Figtree',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+--font-mono:'DM Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+--weight-regular:400;--weight-medium:500;--weight-semibold:600;--weight-bold:700;
+/* Size scale */
+--text-display:64px;--text-h1:44px;--text-h2:34px;--text-h3:26px;--text-h4:20px;
+--text-lg:18px;--text-md:16px;--text-sm:14px;--text-xs:12px;
+/* Line heights */
+--leading-tight:1.08;--leading-snug:1.2;--leading-normal:1.5;--leading-relaxed:1.65;
+/* Tracking */
+--tracking-display:-0.03em;--tracking-heading:-0.015em;--tracking-body:0;--tracking-label:0.06em;
+/* Semantic roles */
+--type-display:var(--weight-semibold) var(--text-display)/var(--leading-tight) var(--font-sans);
+--type-h1:var(--weight-semibold) var(--text-h1)/var(--leading-tight) var(--font-sans);
+--type-h2:var(--weight-semibold) var(--text-h2)/var(--leading-snug) var(--font-sans);
+--type-h3:var(--weight-semibold) var(--text-h3)/var(--leading-snug) var(--font-sans);
+--type-h4:var(--weight-semibold) var(--text-h4)/var(--leading-snug) var(--font-sans);
+--type-body-lg:var(--weight-regular) var(--text-lg)/var(--leading-relaxed) var(--font-sans);
+--type-body:var(--weight-regular) var(--text-md)/var(--leading-normal) var(--font-sans);
+--type-body-sm:var(--weight-regular) var(--text-sm)/var(--leading-normal) var(--font-sans);
+--type-label:var(--weight-semibold) var(--text-xs)/1.2 var(--font-sans);
+--type-mono:var(--weight-regular) var(--text-sm)/var(--leading-normal) var(--font-mono);
+}
+
+:root{
+--space-0:0;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;
+--space-8:32px;--space-10:40px;--space-12:48px;--space-16:64px;--space-20:80px;--space-24:96px;--space-32:128px;
+/* Semantic */
+--gap-inline:var(--space-2);--gap-stack:var(--space-4);--pad-card:var(--space-6);--pad-section:var(--space-24);
+--control-h-sm:32px;--control-h-md:40px;--control-h-lg:48px;
+--content-max:1200px;--prose-max:640px;
+}
+
+:root{
+--radius-xs:6px;--radius-sm:10px;--radius-md:14px;--radius-lg:20px;--radius-xl:28px;--radius-2xl:40px;--radius-pill:999px;
+/* Organic "pebble" corners for expressive marble shapes */
+--radius-organic:48% 52% 44% 56% / 58% 46% 54% 42%;
+/* Semantic */
+--radius-control:var(--radius-sm);--radius-card:var(--radius-lg);--radius-panel:var(--radius-xl);--radius-feature:var(--radius-2xl);
+}
+
+:root{
+--border-width:1px;
+--shadow-none:none;
+--shadow-xs:0 1px 2px rgba(21,78,75,.06);
+--shadow-sm:0 1px 2px rgba(21,78,75,.05),0 2px 8px -2px rgba(21,78,75,.07);
+--shadow-md:0 2px 4px rgba(21,78,75,.04),0 10px 28px -8px rgba(21,78,75,.14);
+--shadow-lg:0 4px 8px rgba(21,78,75,.04),0 24px 56px -16px rgba(21,78,75,.22);
+--focus-ring:0 0 0 3px var(--focus-ring-color);
+/* Semantic */
+--elevation-card:var(--shadow-xs);--elevation-popover:var(--shadow-md);--elevation-dialog:var(--shadow-lg);
+}
+
+:root{
+--ease-out:cubic-bezier(.2,.7,.2,1);/* @kind other */--ease-in-out:cubic-bezier(.45,0,.25,1);/* @kind other */--ease-soft:cubic-bezier(.33,1,.68,1);/* @kind other */
+--dur-fast:120ms;/* @kind other */--dur-base:200ms;/* @kind other */--dur-slow:320ms;/* @kind other */--dur-flow:900ms;/* @kind other */
+}
+
+/* Brand textures. Utility classes (not vars) so asset URLs resolve relative to this file. */
+:root{
+--cross-pattern:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 5v4M5 7h4' stroke='white' stroke-width='1' stroke-linecap='round' opacity='.7'/%3E%3C/svg%3E");/* @kind other */
+--cross-pattern-ink:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14'%3E%3Cpath d='M7 5v4M5 7h4' stroke='%23154E4B' stroke-width='1' stroke-linecap='round' opacity='.14'/%3E%3C/svg%3E");/* @kind other */
+}
+.pf-grain{background-color:var(--surface-page);background-image:url("assets/grain.png");background-size:cover;background-position:center}
+.pf-marble{background-color:var(--pf-teal-600);background-image:var(--cross-pattern),url("assets/marble.png");background-size:14px 14px,cover;background-position:center}
+.pf-marble-ribbon{background-color:var(--surface-page);background-image:url("assets/marble-ribbon.png");background-size:cover;background-position:right center;background-repeat:no-repeat}
+.pf-crosses{background-image:var(--cross-pattern);background-size:14px 14px}
+.pf-crosses-ink{background-image:var(--cross-pattern-ink);background-size:14px 14px}
+.pf-logo{display:inline-block;aspect-ratio:1550/220;background:url('../assets/logo-profoundly-ai-transparent.png') center/contain no-repeat}
+
+/* Minimal element defaults */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{margin:0;font:var(--type-body);color:var(--text-body);background:var(--surface-page)}
+h1,h2,h3,h4{color:var(--text-strong);margin:0;text-wrap:balance}
+h1{font:var(--type-h1);letter-spacing:var(--tracking-display)}
+h2{font:var(--type-h2);letter-spacing:var(--tracking-heading)}
+h3{font:var(--type-h3);letter-spacing:var(--tracking-heading)}
+h4{font:var(--type-h4)}
+p{margin:0;text-wrap:pretty}
+a{color:var(--text-accent);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:var(--text-strong)}
+code,kbd{font-family:var(--font-mono);font-size:.92em}
+::selection{background:var(--pf-mint-200);color:var(--pf-petrol-900)}
+:focus-visible{outline:none;box-shadow:var(--focus-ring)}
+
+/* Component styles — consumed by components/*.jsx via className. */
+.pf-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:var(--control-h-md);padding:0 18px;border-radius:var(--radius-pill);border:1px solid transparent;font:var(--weight-semibold) var(--text-sm)/1 var(--font-sans);letter-spacing:.005em;cursor:pointer;white-space:nowrap;transition:background var(--dur-fast) var(--ease-out),border-color var(--dur-fast) var(--ease-out),color var(--dur-fast) var(--ease-out),transform var(--dur-fast) var(--ease-out);text-decoration:none}
+.pf-btn:active:not(:disabled){transform:scale(.98)}
+.pf-btn:disabled{cursor:not-allowed;opacity:.45}
+.pf-btn--sm{height:var(--control-h-sm);padding:0 14px;font-size:var(--text-xs)}
+.pf-btn--lg{height:var(--control-h-lg);padding:0 24px;font-size:var(--text-md)}
+.pf-btn--block{width:100%}
+.pf-btn--primary{background:var(--action-primary);color:var(--text-on-inverse)}
+.pf-btn--primary:hover:not(:disabled){background:var(--action-primary-hover)}
+.pf-btn--primary:active:not(:disabled){background:var(--action-primary-press)}
+.pf-btn--secondary{background:var(--action-secondary);color:var(--text-on-mint)}
+.pf-btn--secondary:hover:not(:disabled){background:var(--action-secondary-hover)}
+.pf-btn--outline{background:transparent;color:var(--text-strong);border-color:var(--border-default)}
+.pf-btn--outline:hover:not(:disabled){border-color:var(--border-strong);background:var(--action-ghost-hover)}
+.pf-btn--ghost{background:transparent;color:var(--text-strong)}
+.pf-btn--ghost:hover:not(:disabled){background:var(--action-ghost-hover)}
+.pf-btn--ghost:active:not(:disabled){background:var(--action-ghost-press)}
+.pf-btn--danger{background:var(--status-danger-fg);color:#fff}
+.pf-btn--danger:hover:not(:disabled){background:#9A3626}
+.pf-iconbtn{padding:0;width:var(--control-h-md)}.pf-iconbtn.pf-btn--sm{width:var(--control-h-sm)}.pf-iconbtn.pf-btn--lg{width:var(--control-h-lg)}
+.pf-icon{display:inline-block;flex:none;background:currentColor;-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat}
+.pf-field{display:flex;flex-direction:column;gap:6px;font-family:var(--font-sans)}
+.pf-field__label{font:var(--weight-semibold) var(--text-sm)/1.3 var(--font-sans);color:var(--text-strong)}
+.pf-field__hint{font:var(--type-body-sm);font-size:13px;color:var(--text-muted)}
+.pf-field__hint--error{color:var(--status-danger-fg)}
+.pf-control{display:flex;align-items:center;gap:8px;min-height:var(--control-h-md);padding:0 14px;background:var(--surface-card);border:1px solid var(--border-default);border-radius:var(--radius-md);color:var(--text-subtle);transition:border-color var(--dur-fast) var(--ease-out),box-shadow var(--dur-fast) var(--ease-out)}
+.pf-control:hover{border-color:var(--pf-grey-400)}
+.pf-control:focus-within{border-color:var(--border-accent);box-shadow:var(--focus-ring)}
+.pf-control--error{border-color:var(--status-danger-fg)}
+.pf-control--disabled{background:var(--surface-sunken);opacity:.7;pointer-events:none}
+.pf-control--lg{min-height:var(--control-h-lg)}
+.pf-control input,.pf-control textarea,.pf-control select{flex:1;min-width:0;border:0;outline:0;background:transparent;font:var(--type-body);font-size:15px;color:var(--text-strong);padding:9px 0;resize:vertical;appearance:none;-webkit-appearance:none}
+.pf-control input::placeholder,.pf-control textarea::placeholder{color:var(--text-subtle)}
+.pf-control select{cursor:pointer;padding-right:4px}
+.pf-control *:focus-visible{box-shadow:none}
+.pf-check{display:inline-flex;align-items:flex-start;gap:10px;cursor:pointer;font:var(--type-body-sm);font-size:15px;color:var(--text-strong);position:relative}
+.pf-check input{position:absolute;opacity:0;width:1px;height:1px}
+.pf-check__box{flex:none;width:20px;height:20px;margin-top:1px;border:1.5px solid var(--border-default);background:var(--surface-card);border-radius:6px;display:grid;place-items:center;color:#fff;transition:all var(--dur-fast) var(--ease-out)}
+.pf-check--radio .pf-check__box{border-radius:50%}
+.pf-check:hover .pf-check__box{border-color:var(--pf-teal-600)}
+.pf-check input:checked+.pf-check__box{background:var(--action-primary);border-color:var(--action-primary)}
+.pf-check--radio input:checked+.pf-check__box{background:var(--surface-card);border:6px solid var(--action-primary)}
+.pf-check input:focus-visible+.pf-check__box{box-shadow:var(--focus-ring)}
+.pf-check input:disabled+.pf-check__box{opacity:.45}
+.pf-check--disabled{cursor:not-allowed;color:var(--text-disabled)}
+.pf-check__desc{display:block;color:var(--text-muted);font-size:13px;margin-top:2px}
+.pf-switch__track{flex:none;width:38px;height:22px;border-radius:var(--radius-pill);background:var(--pf-grey-300);position:relative;transition:background var(--dur-base) var(--ease-out)}
+.pf-switch__track::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:var(--shadow-xs);transition:transform var(--dur-base) var(--ease-soft)}
+.pf-check input:checked+.pf-switch__track{background:var(--action-accent)}
+.pf-check input:checked+.pf-switch__track::after{transform:translateX(16px)}
+.pf-check input:focus-visible+.pf-switch__track{box-shadow:var(--focus-ring)}
+.pf-check input:disabled+.pf-switch__track{opacity:.45}
+.pf-card{background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-card);box-shadow:var(--elevation-card);overflow:hidden;color:var(--text-body);display:flex;flex-direction:column}
+.pf-card--soft{background:var(--surface-soft);border-color:transparent;box-shadow:none}
+.pf-card--mint{background:var(--surface-mint-soft);border-color:transparent;box-shadow:none}
+.pf-card--inverse{background:var(--surface-inverse);border-color:transparent;color:rgba(255,255,255,.82)}
+.pf-card--inverse .pf-card__title{color:#fff}
+.pf-card--interactive{cursor:pointer;transition:border-color var(--dur-fast) var(--ease-out),box-shadow var(--dur-base) var(--ease-out),transform var(--dur-base) var(--ease-out)}
+.pf-card--interactive:hover{border-color:var(--pf-mint-400);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.pf-card__media{height:132px;flex:none}
+.pf-card__body{padding:var(--pad-card);display:flex;flex-direction:column;gap:8px;flex:1}
+.pf-card__eyebrow{font:var(--type-label);letter-spacing:var(--tracking-label);text-transform:uppercase;color:var(--text-accent)}
+.pf-card__title{font:var(--type-h4);color:var(--text-strong);letter-spacing:-.01em;margin:0}
+.pf-card__footer{padding:0 var(--pad-card) var(--pad-card);display:flex;gap:8px;align-items:center}
+.pf-badge{display:inline-flex;align-self:flex-start;width:fit-content;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:var(--radius-pill);font:var(--weight-semibold) var(--text-xs)/1 var(--font-sans);white-space:nowrap}
+.pf-badge__dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pf-badge--neutral{background:var(--surface-sunken);color:var(--text-body)}
+.pf-badge--accent{background:var(--surface-mint);color:var(--text-on-mint)}
+.pf-badge--solid{background:var(--action-primary);color:#fff}
+.pf-badge--success{background:var(--status-success-bg);color:var(--status-success-fg)}
+.pf-badge--warning{background:var(--status-warning-bg);color:var(--status-warning-fg)}
+.pf-badge--danger{background:var(--status-danger-bg);color:var(--status-danger-fg)}
+.pf-badge--info{background:var(--status-info-bg);color:var(--status-info-fg)}
+.pf-tag{display:inline-flex;flex:none;white-space:nowrap;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:var(--radius-pill);border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-strong);font:var(--weight-medium) var(--text-sm)/1 var(--font-sans);cursor:pointer;transition:all var(--dur-fast) var(--ease-out)}
+.pf-tag:hover{border-color:var(--border-strong)}
+.pf-tag--selected{background:var(--surface-mint);border-color:var(--pf-mint-400)}
+.pf-tag__x{display:grid;place-items:center;width:18px;height:18px;margin-right:-4px;border-radius:50%;border:0;padding:0;background:transparent;color:inherit;cursor:pointer}
+.pf-tag__x:hover{background:var(--action-ghost-press)}
+.pf-tabs{display:flex;gap:4px;border-bottom:1px solid var(--border-subtle)}
+.pf-tab{position:relative;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 14px;border:0;background:transparent;font:var(--weight-semibold) var(--text-sm)/1 var(--font-sans);color:var(--text-muted);cursor:pointer;border-radius:var(--radius-sm) var(--radius-sm) 0 0;transition:color var(--dur-fast) var(--ease-out)}
+.pf-tab:hover{color:var(--text-strong)}
+.pf-tab[aria-selected="true"]{color:var(--text-strong)}
+.pf-tab[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;border-radius:2px;background:var(--action-primary)}
+.pf-tabs--pill{display:inline-flex;border:0;background:var(--surface-sunken);padding:4px;border-radius:var(--radius-pill)}
+.pf-tabs--pill .pf-tab{height:34px;border-radius:var(--radius-pill);padding:0 16px}
+.pf-tabs--pill .pf-tab[aria-selected="true"]{background:var(--surface-card);box-shadow:var(--shadow-xs)}
+.pf-tabs--pill .pf-tab[aria-selected="true"]::after{display:none}
+.pf-tab__count{font:var(--weight-semibold) 11px/1 var(--font-sans);padding:3px 6px;border-radius:var(--radius-pill);background:var(--surface-sunken);color:var(--text-muted)}
+.pf-overlay{position:fixed;inset:0;background:var(--surface-overlay);display:grid;place-items:center;padding:24px;z-index:100;animation:pf-fade var(--dur-base) var(--ease-out)}
+.pf-overlay--contained{position:absolute}
+.pf-dialog{width:100%;max-width:480px;background:var(--surface-card);border-radius:var(--radius-panel);box-shadow:var(--elevation-dialog);display:flex;flex-direction:column;animation:pf-rise var(--dur-slow) var(--ease-soft)}
+.pf-dialog__head{padding:28px 28px 0;display:flex;gap:16px;align-items:flex-start}
+.pf-dialog__title{font:var(--type-h4);font-size:22px;color:var(--text-strong);margin:0}
+.pf-dialog__desc{font:var(--type-body);color:var(--text-muted);margin-top:6px}
+.pf-dialog__body{padding:20px 28px 0;color:var(--text-body)}
+.pf-dialog__foot{padding:24px 28px 28px;display:flex;justify-content:flex-end;gap:10px}
+.pf-toast{display:flex;gap:12px;align-items:flex-start;width:360px;max-width:100%;padding:14px 14px 14px 16px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:var(--radius-lg);box-shadow:var(--elevation-popover);font-family:var(--font-sans)}
+.pf-toast__icon{flex:none;width:28px;height:28px;border-radius:50%;display:grid;place-items:center}
+.pf-toast__title{font:var(--weight-semibold) var(--text-sm)/1.35 var(--font-sans);color:var(--text-strong)}
+.pf-toast__desc{font:var(--type-body-sm);font-size:13px;color:var(--text-muted);margin-top:2px}
+.pf-toast--inverse{background:var(--surface-inverse);border-color:transparent}
+.pf-toast--inverse .pf-toast__title{color:#fff}.pf-toast--inverse .pf-toast__desc{color:rgba(255,255,255,.75)}
+.pf-tooltip-wrap{position:relative;display:inline-flex}
+.pf-tooltip{position:absolute;left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);padding:7px 10px;border-radius:var(--radius-sm);background:var(--pf-petrol-950);color:#fff;font:var(--weight-medium) 12px/1.3 var(--font-sans);white-space:nowrap;pointer-events:none;z-index:50;animation:pf-fade var(--dur-fast) var(--ease-out)}
+.pf-tooltip--bottom{bottom:auto;top:calc(100% + 8px)}
+.pf-marble-surface{position:relative;overflow:hidden}
+@keyframes pf-fade{from{opacity:0}to{opacity:1}}
+@keyframes pf-rise{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+
+</style>
+  <script src="assets/design-system.js"></script>
+  <style>
+    html,body{margin:0;height:100%;overflow:hidden;background:#E9ECEA}
+    a{color:var(--pf-teal-700)} a:hover{color:var(--pf-petrol-900)}
+    @keyframes pfPulse{0%{box-shadow:0 0 0 0 rgba(79,191,149,.55)}70%{box-shadow:0 0 0 12px rgba(79,191,149,0)}100%{box-shadow:0 0 0 0 rgba(79,191,149,0)}}
+    @keyframes pfDots{0%,80%,100%{opacity:.25}40%{opacity:1}}
+    @keyframes pfIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+    input::placeholder{color:var(--pf-grey-500)}
+
+    /* phones and small tablets: an app layout. Fixed top bar (logo, clock, partner) and bottom tabs
+       (Monitoreo, Agente, Historial, Conectar); the stage reflows to one column, zoomed from a 520 px virtual width. */
+    @media (max-width: 899px) {
+      html,body{height:auto !important;overflow:auto !important;background:var(--pf-grey-50) !important}
+      [data-r="frame"]{position:static !important;overflow:visible !important;min-height:100vh;background:var(--pf-grey-50) !important;padding:112px 0 calc(76px + env(safe-area-inset-bottom))}
+      [data-r="mtop"]{display:block !important;position:fixed;top:0;left:0;right:0;z-index:40;padding:12px 16px 10px;background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--pf-grey-200)}
+      [data-r="mtabs"]{display:flex !important;position:fixed;left:0;right:0;bottom:0;z-index:40;padding:6px 8px calc(6px + env(safe-area-inset-bottom));background:rgba(255,255,255,.96);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--pf-grey-200)}
+      [data-r="stage"]{position:static !important;transform:none !important;width:520px !important;height:auto !important;display:block !important;background:transparent !important}
+      [data-r="aside"],[data-r="header"]{display:none !important}
+      [data-r="main"]{display:block !important}
+      [data-r="live"]{display:flex !important;flex-direction:column;padding:16px 16px 20px !important;gap:16px !important}
+      [data-r="live"][data-view="monitor"] [data-r="agent"]{display:none !important}
+      [data-r="live"][data-view="agent"] [data-r="livecol"]{display:none !important}
+      [data-r="livecol"]{padding-bottom:0 !important;gap:16px !important}
+      [data-r="hero"]{flex-direction:column !important;align-items:flex-start !important;padding:24px 26px !important;gap:16px !important;border-radius:26px !important}
+      [data-r="herov"]{font-size:80px !important}
+      [data-r="heroright"]{align-items:flex-start !important;margin-right:0 !important}
+      [data-r="kpis"]{grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:14px !important}
+      [data-r="chart"]{flex:none !important;height:360px}
+      [data-r="agent"]{border:1px solid var(--pf-grey-200) !important;border-radius:24px}
+      [data-r="page"]{padding:16px 16px 20px !important}
+      [data-r="hkpis"]{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+      [data-r="hrow"]{grid-template-columns:80px 1fr 1fr 1fr !important;column-gap:10px !important;font-size:17px !important}
+      [data-r="hrow"] > :nth-child(n+5){display:none !important}
+      [data-r="mcp"]{display:flex !important;flex-direction:column;padding:16px 16px 20px !important}
+    }
+  </style>
+</helmet>
+<div data-r="frame" style="position:fixed;inset:0;overflow:hidden;background:#E9ECEA;font-family:var(--font-sans)">
+<div data-r="mtop" style="display:none">
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <img src="assets/logo.png" alt="Prefoundly AI" style="display:block;width:118px;height:auto">
+    <span style="display:inline-flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;background:var(--pf-mint-100);font-size:14px;font-weight:600;color:var(--pf-petrol-900)"><span style="width:8px;height:8px;border-radius:50%;background:var(--pf-teal-500);animation:pfPulse 1.8s ease-out infinite"></span><span>{{ mClock }}</span></span>
+  </div>
+  <div data-tour="m-partners" style="display:flex;gap:4px;margin-top:10px;padding:4px;border-radius:12px;background:var(--pf-grey-100)">
+    <sc-for list="{{ partners }}" as="q" hint-placeholder-count="2">
+      <button sc-camel-on-click="{{ q.onClick }}" style="flex:1;height:36px;border:0;border-radius:9px;background:{{ q.mBg }};box-shadow:{{ q.mShadow }};font:inherit;font-size:14px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ q.name }}</button>
+    </sc-for>
+  </div>
+</div>
+<div data-r="stage" style="position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center center;transform:{{ stageT }};zoom:{{ stageZoom }};background:var(--pf-grey-50);display:grid;grid-template-columns:300px minmax(0,1fr);overflow:hidden">
+
+  <aside data-r="aside" style="background:var(--pf-grey-100);border-right:1px solid var(--pf-grey-200);padding:36px 22px 28px;display:flex;flex-direction:column;gap:8px">
+    <img data-r="logo" src="assets/logo.png" alt="Prefoundly AI" style="display:block;width:230px;height:auto;margin:0 0 32px 8px">
+    <button sc-camel-on-click="{{ goLive }}" style="display:flex;align-items:center;gap:14px;height:60px;padding:0 18px;border:0;border-radius:16px;background:{{ liveNavBg }};font:inherit;font-size:22px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer;text-align:left">
+      <x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="activity" size="24px" hint-size="24px,24px"></x-import><span>Monitoreo</span>
+    </button>
+    <button data-tour="history" sc-camel-on-click="{{ goHist }}" style="display:flex;align-items:center;gap:14px;height:60px;padding:0 18px;border:0;border-radius:16px;background:{{ histNavBg }};font:inherit;font-size:22px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer;text-align:left">
+      <x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="chart-column" size="24px" hint-size="24px,24px"></x-import><span>Historial</span>
+    </button>
+    <button data-tour="mcp" sc-camel-on-click="{{ goMcp }}" style="display:flex;align-items:center;gap:14px;height:60px;padding:0 18px;border:0;border-radius:16px;background:{{ mcpNavBg }};font:inherit;font-size:22px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer;text-align:left">
+      <x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="plug" size="24px" hint-size="24px,24px"></x-import><span>Conectar agente</span>
+    </button>
+    <div data-r="partners" data-tour="partners" data-tip="partners" style="display:flex;flex-direction:column;gap:8px">
+    <span data-r="plabel" style="margin:28px 0 6px 18px;font-size:18px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--pf-grey-600)">Partners</span>
+    <sc-for list="{{ partners }}" as="q" hint-placeholder-count="2">
+      <button sc-camel-on-click="{{ q.onClick }}" style="display:flex;align-items:center;justify-content:space-between;height:56px;padding:0 18px;border-radius:14px;background:{{ q.bg }};border:{{ q.border }};font:inherit;cursor:pointer;text-align:left">
+        <span style="font-size:22px;font-weight:{{ q.weight }};color:var(--pf-petrol-900)">{{ q.name }}</span>
+        <span style="font-family:var(--font-mono);font-size:17px;color:var(--pf-grey-600)">{{ q.time }}</span>
+      </button>
+    </sc-for>
+    </div>
+    </aside>
+
+  <main data-r="main" style="display:flex;flex-direction:column;min-width:0;min-height:0">
+    <header data-r="header" style="flex:none;height:100px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--pf-grey-200)">
+      <div style="display:flex;align-items:baseline;gap:18px">
+        <span style="font-size:36px;font-weight:600;letter-spacing:-0.02em;color:var(--pf-petrol-900)">{{ pageTitle }}</span>
+        <span style="font-size:22px;color:var(--pf-grey-600)">{{ pageSub }}</span>
+      </div>
+      <span style="display:inline-flex;align-items:center;gap:12px;height:48px;padding:0 20px;border-radius:999px;background:#fff;border:1px solid var(--pf-grey-200);font-size:20px;font-weight:600;color:var(--pf-petrol-900)"><span style="width:12px;height:12px;border-radius:50%;background:var(--pf-teal-500);animation:pfPulse 1.8s ease-out infinite"></span><span>{{ clock }}</span></span>
+    </header>
+
+    <sc-if value="{{ isLive }}" hint-placeholder-val="{{ true }}">
+      <div data-r="live" data-view="{{ liveView }}" style="flex:1;min-height:0;padding:28px 0 0 40px;display:grid;grid-template-columns:minmax(0,1fr) 580px;gap:28px">
+        <div data-r="livecol" style="min-height:0;padding-bottom:32px;display:flex;flex-direction:column;gap:22px">
+          <section data-r="hero" data-tour="hero" data-tip="hero" style="flex:none;position:relative;overflow:hidden;background:var(--pf-petrol-900);border-radius:32px;padding:30px 40px;display:flex;align-items:center;justify-content:space-between;gap:32px">
+            <div class="pf-marble" style="position:absolute;right:-120px;top:-130px;width:360px;height:260px;border-radius:var(--radius-organic);opacity:.9"></div>
+            <div style="position:relative;display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:22px;font-weight:600;color:var(--pf-mint-200)">Reposición de hoy</span>
+              <span data-r="herov" style="font-size:104px;line-height:1;font-weight:600;letter-spacing:-0.045em;color:#fff;white-space:nowrap">{{ depTxt }}</span>
+              <span style="font-size:20px;color:var(--pf-mint-100);white-space:nowrap">{{ sentTxt }}</span>
+            </div>
+            <div data-r="heroright" style="position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:14px;margin-right:120px">
+              <span style="display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 20px;border-radius:999px;background:var(--pf-mint-200);font-size:20px;font-weight:600;color:var(--pf-petrol-900)"><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="check" size="20px" hint-size="20px,20px"></x-import><span>{{ arrTxt }}</span></span>
+              <span style="font-size:18px;color:var(--pf-mint-100);white-space:nowrap">Objetivo de cobertura del {{ protTxt }}</span>
+            </div>
+          </section>
+          <div data-r="kpis" data-tour="kpis" style="flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px">
+            <section data-tip="bal" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
+              <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Saldo disponible</span>
+              <span style="font-size:40px;line-height:1;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900);white-space:nowrap">{{ balTxt }}</span>
+              <div style="height:26px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--pf-grey-700);white-space:nowrap"><div style="flex:1;height:8px;border-radius:999px;background:var(--pf-grey-100);overflow:hidden"><div style="height:100%;width:{{ balPct }};border-radius:999px;background:{{ balColor }}"></div></div><span style="font-weight:600;color:var(--pf-petrol-900)">{{ balPctTxt }}</span></div>
+            </section>
+            <section data-tip="cons" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
+              <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Pagado hoy</span>
+              <span style="font-size:40px;line-height:1;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900);white-space:nowrap">{{ consTxt }}</span>
+              <div style="height:26px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--pf-grey-700);white-space:nowrap">hasta las {{ clock }}</div>
+            </section>
+            <section data-tip="dev" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
+              <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Desvío</span>
+              <span style="font-size:40px;line-height:1;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900);white-space:nowrap">{{ devTxt }}</span>
+              <div style="height:26px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--pf-grey-700);white-space:nowrap">vs. lo esperado</div>
+            </section>
+            <section data-tip="next" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 24px 20px;display:flex;flex-direction:column;justify-content:space-between;gap:12px;min-width:0">
+              <span style="font-size:18px;font-weight:500;color:var(--pf-grey-600);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Mañana, estimado</span>
+              <span style="font-size:40px;line-height:1;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900);white-space:nowrap">{{ fcTxt }}</span>
+              <div style="height:26px;display:flex;align-items:center;gap:12px;font-size:16px;color:var(--pf-grey-700);white-space:nowrap">
+                <div style="position:relative;flex:1;height:24px">
+                  <svg sc-camel-view-box="0 0 100 100" sc-camel-preserve-aspect-ratio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible"><polyline points="{{ updPts }}" fill="none" stroke="#378B79" stroke-width="2" vector-effect="non-scaling-stroke"></polyline></svg>
+                  <sc-for list="{{ updDots }}" as="u" hint-placeholder-count="6"><span style="position:absolute;left:{{ u.x }};top:{{ u.y }};width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:{{ u.bg }};border:2px solid #fff;box-sizing:content-box"></span></sc-for>
+                </div>
+                <span style="font-weight:600;color:var(--pf-petrol-900)">{{ fcDelta }}</span>
+              </div>
+            </section>
+          </div>
+          <section data-r="chart" data-tour="chart" data-tip="chart" style="flex:1;min-height:0;background:#fff;border:1px solid var(--pf-grey-200);border-radius:28px;padding:26px 32px 20px;display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:20px">
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <span style="font-size:24px;font-weight:600;color:var(--pf-petrol-900)">Pagos de hoy</span>
+                <span style="font-size:18px;color:var(--pf-grey-600)">Monto por hora · Millones de $</span>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+                <span style="font-size:18px;color:var(--pf-grey-600)">{{ lastLabel }}</span>
+                <span style="font-size:30px;line-height:1.1;font-weight:600;letter-spacing:-0.02em;color:var(--pf-petrol-900);white-space:nowrap">{{ lastTxt }}</span>
+              </div>
+            </div>
+            <div style="flex:1;min-height:0;position:relative;border-bottom:1px solid var(--pf-grey-200)">
+              <svg sc-camel-view-box="0 0 400 100" sc-camel-preserve-aspect-ratio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+                <line x1="0" x2="400" y1="25" y2="25" stroke="#EEF0EF" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                <line x1="0" x2="400" y1="50" y2="50" stroke="#EEF0EF" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                <line x1="0" x2="400" y1="75" y2="75" stroke="#EEF0EF" stroke-width="1" vector-effect="non-scaling-stroke"></line>
+                <polygon points="{{ areaPts }}" fill="#B8E8D2" fill-opacity="0.45"></polygon>
+                <polyline points="{{ expPts }}" fill="none" stroke="#4FBF95" stroke-width="3" stroke-dasharray="8 7" vector-effect="non-scaling-stroke"></polyline>
+                <polyline points="{{ realPts }}" fill="none" stroke="#154E4B" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline>
+              </svg>
+              <span style="position:absolute;left:100%;top:{{ dotTop }};width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;background:var(--pf-petrol-900);border:4px solid #fff;box-sizing:border-box;animation:pfPulse 1.8s ease-out infinite;transition:top .5s cubic-bezier(.2,.7,.2,1)"></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:17px;color:var(--pf-grey-600)">
+              <sc-for list="{{ ticks }}" as="k" hint-placeholder-count="5"><span>{{ k }}</span></sc-for>
+            </div>
+            <div style="display:flex;gap:24px;font-size:17px;color:var(--pf-grey-700)">
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:4px;border-radius:2px;background:var(--pf-petrol-900)"></span>Real</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:22px;height:0;border-top:3px dashed var(--pf-teal-500)"></span>Esperado</span>
+            </div>
+          </section>
+        </div>
+
+        <section data-r="agent" data-tour="agent" style="height:{{ agentH }};min-height:0;background:#fff;border-left:1px solid var(--pf-grey-200);display:flex;flex-direction:column;overflow:hidden">
+          <div style="flex:none;height:88px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--pf-grey-100)">
+            <div style="display:flex;align-items:center;gap:14px">
+              <span style="width:12px;height:12px;border-radius:50%;background:var(--pf-teal-500);animation:pfPulse 1.8s ease-out infinite"></span>
+              <span style="font-size:24px;font-weight:600;color:var(--pf-petrol-900)">Agente en vivo</span>
+            </div>
+            <span style="font-size:18px;color:var(--pf-grey-600)">{{ feedSub }}</span>
+          </div>
+          <div ref="{{ feedRef }}" style="flex:1;min-height:0;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column">
+            
+            <sc-for list="{{ log }}" as="s" hint-placeholder-count="4">
+              <sc-if value="{{ s.isStep }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:none;display:grid;grid-template-columns:36px minmax(0,1fr);gap:14px;animation:pfIn .45s cubic-bezier(.2,.7,.2,1) both">
+                  <div style="display:flex;flex-direction:column;align-items:center">
+                    <span style="display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;background:{{ s.dotBg }}"><span style="width:10px;height:10px;border-radius:50%;background:{{ s.dotFg }}"></span></span>
+                    <span style="flex:1;width:2px;min-height:12px;background:var(--pf-grey-200)"></span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:3px;padding:3px 0 18px">
+                    <div style="display:flex;align-items:baseline;gap:12px"><span style="font-family:var(--font-mono);font-size:16px;color:var(--pf-grey-600)">{{ s.time }}</span><span style="font-size:20px;font-weight:600;color:var(--pf-petrol-900)">{{ s.title }}</span></div>
+                    <span style="font-size:18px;line-height:1.4;color:var(--pf-grey-700)">{{ s.detail }}</span>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ s.isQA }}" hint-placeholder-val="{{ false }}">
+                <div style="flex:none;display:flex;flex-direction:column;gap:10px;margin-bottom:20px;animation:pfIn .45s both">
+                  <div style="align-self:flex-end;max-width:440px;padding:14px 22px;border-radius:22px 22px 6px 22px;background:var(--pf-petrol-900);font-size:20px;line-height:1.4;color:#fff">{{ s.q }}</div>
+                  <div style="display:flex;flex-direction:column;gap:6px;padding:16px 20px;border-radius:6px 22px 22px 22px;background:var(--pf-mint-100)">
+                    <span style="font-size:18px;font-weight:600;color:var(--pf-petrol-900)">Prefoundly AI</span>
+                    <p style="margin:0;font-size:20px;line-height:1.45;color:var(--pf-petrol-900);text-wrap:pretty">{{ s.a }}</p>
+                  </div>
+                </div>
+              </sc-if>
+            </sc-for>
+            
+          </div>
+          <div data-tour="ask" data-tip="ask" style="flex:none;padding:16px 24px 28px;border-top:1px solid var(--pf-grey-100);display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <sc-for list="{{ chips }}" as="c" hint-placeholder-count="3">
+                <button sc-camel-on-click="{{ c.onClick }}" style="display:inline-flex;align-items:center;height:42px;padding:0 16px;border-radius:999px;border:1px solid var(--pf-grey-300);background:#fff;font:inherit;font-size:17px;font-weight:500;color:var(--pf-petrol-900);cursor:pointer;white-space:nowrap" style-hover="background:var(--pf-mint-100);border-color:var(--pf-mint-300)">{{ c.label }}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;height:68px;padding:0 8px 0 22px;border-radius:20px;border:1px solid var(--pf-grey-300);background:var(--pf-grey-50)">
+              <input value="{{ draft }}" sc-camel-on-change="{{ onDraft }}" sc-camel-on-key-down="{{ onKey }}" placeholder="Preguntale al agente…" style="flex:1;min-width:0;border:0;outline:none;background:transparent;font:inherit;font-size:20px;color:var(--pf-petrol-900)">
+              <button sc-camel-on-click="{{ onSend }}" style="display:grid;place-items:center;width:52px;height:52px;border:0;border-radius:16px;background:var(--pf-petrol-900);color:#fff;cursor:pointer"><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="send" size="22px" hint-size="22px,22px"></x-import></button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isHist }}" hint-placeholder-val="{{ false }}">
+      <div data-r="page" style="flex:1;min-height:0;padding:28px 40px 32px;display:flex;flex-direction:column;gap:20px">
+        <div style="display:flex;align-items:center;gap:24px">
+          <span style="font-size:22px;font-weight:600;color:var(--pf-petrol-900)">Reposición diaria · {{ hourTxt }}</span>
+          <div style="display:flex;gap:12px">
+            <span style="display:inline-flex;align-items:center;gap:12px;height:52px;padding:0 20px;border-radius:14px;background:#fff;border:1px solid var(--pf-grey-300);font-size:20px;color:var(--pf-petrol-900)"><span>Últimos 14 días</span><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="chevron-down" size="20px" hint-size="20px,20px"></x-import></span>
+            
+          </div>
+        </div>
+        <div data-r="hkpis" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px">
+          <div data-tip="h-total" style="background:var(--pf-petrol-900);border-radius:24px;padding:22px 28px;display:flex;flex-direction:column;gap:4px"><span style="font-size:19px;color:var(--pf-mint-200)">Total repuesto</span><span style="font-size:48px;line-height:1.05;font-weight:600;letter-spacing:-0.03em;color:#fff">{{ hTotal }}</span></div>
+          <div data-tip="h-short" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 28px;display:flex;flex-direction:column;gap:4px"><span style="font-size:19px;color:var(--pf-grey-600)">Días con faltante</span><span style="font-size:48px;line-height:1.05;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900)">{{ hShort }}</span></div>
+          <div data-tip="h-close" style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:24px;padding:22px 28px;display:flex;flex-direction:column;gap:4px"><span style="font-size:19px;color:var(--pf-grey-600)">Saldo promedio al cierre</span><span style="font-size:48px;line-height:1.05;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900)">{{ hClose }}</span></div>
+          <div data-tip="h-mape" style="background:var(--pf-mint-200);border-radius:24px;padding:22px 28px;display:flex;flex-direction:column;gap:4px"><span style="font-size:19px;color:var(--pf-teal-700)">Error promedio del pronóstico</span><span style="font-size:48px;line-height:1.05;font-weight:600;letter-spacing:-0.03em;color:var(--pf-petrol-900)">{{ hMape }}</span></div>
+        </div>
+        <div data-tip="h-bars" style="flex:none;background:#fff;border:1px solid var(--pf-grey-200);border-radius:28px;padding:24px 32px 18px;display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:22px;font-weight:600;color:var(--pf-petrol-900)">Reposiciones y pagos por día</span><span style="font-size:18px;color:var(--pf-grey-600)">Montos en millones de $</span></div>
+            <div style="display:flex;gap:24px;font-size:18px;color:var(--pf-grey-700)">
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:16px;height:16px;border-radius:4px;background:var(--pf-mint-300)"></span>Repuesto</span>
+              <span style="display:flex;align-items:center;gap:8px"><span style="width:16px;height:16px;border-radius:4px;background:var(--pf-petrol-900)"></span>Pagos procesados</span>
+            </div>
+          </div>
+          <div style="height:220px;display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:14px;align-items:end;border-bottom:1px solid var(--pf-grey-200)">
+            <sc-for list="{{ hbars }}" as="b" hint-placeholder-count="14">
+              <div style="height:100%;display:flex;align-items:flex-end;justify-content:center;gap:5px">
+                <div style="width:42%;height:{{ b.sentH }};border-radius:8px 8px 0 0;background:var(--pf-mint-300)"></div>
+                <div style="width:42%;height:{{ b.usedH }};border-radius:8px 8px 0 0;background:var(--pf-petrol-900);opacity:{{ b.op }}"></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:14px">
+            <sc-for list="{{ hbars }}" as="b" hint-placeholder-count="14">
+              <div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span style="text-align:center;font-size:16px;color:var(--pf-grey-600)">{{ b.label }}</span><span style="font-size:14px;font-weight:600;color:var(--pf-teal-700);white-space:nowrap">{{ b.tag }}</span></div>
+            </sc-for>
+          </div>
+        </div>
+        <div data-tip="h-table" style="flex:1;min-height:0;background:#fff;border:1px solid var(--pf-grey-200);border-radius:28px;padding:16px 32px;display:flex;flex-direction:column;overflow:hidden">
+          <div data-r="hrow" style="display:grid;grid-template-columns:120px 150px 210px 190px minmax(0,1fr) 230px;column-gap:20px;align-items:center;height:48px;font-size:18px;color:var(--pf-grey-600)">
+            <span>Fecha</span><span>Reposición</span><span>Pagos procesados</span><span>Saldo al cierre</span><span>Motivo</span><span></span>
+          </div>
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+            <div data-r="hrow" style="display:grid;grid-template-columns:120px 150px 210px 190px minmax(0,1fr) 230px;column-gap:20px;align-items:center;height:58px;border-top:1px solid var(--pf-grey-100);font-size:20px;color:var(--pf-petrol-900)">
+              <span>{{ r.date }}</span><span style="font-weight:600">{{ r.sent }}</span><span>{{ r.used }}</span><span>{{ r.left }}</span>
+              <span style="font-size:19px;color:var(--pf-grey-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.note }}</span>
+              <button sc-camel-on-click="{{ r.onAsk }}" style="justify-self:end;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border-radius:12px;border:1px solid var(--pf-grey-300);background:#fff;font:inherit;font-size:17px;font-weight:600;color:var(--pf-teal-700);cursor:pointer;white-space:nowrap" style-hover="background:var(--pf-mint-100)"><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="sparkle" size="18px" hint-size="18px,18px"></x-import><span>Preguntar al agente</span></button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isMcp }}" hint-placeholder-val="{{ false }}">
+      <div data-r="mcp" style="flex:1;min-height:0;padding:28px 40px 32px;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px">
+        <div style="min-height:0;display:flex;flex-direction:column;gap:22px">
+          <section style="position:relative;overflow:hidden;background:var(--pf-petrol-900);border-radius:32px;padding:34px 40px;display:flex;flex-direction:column;gap:12px">
+            <div class="pf-marble" style="position:absolute;right:-110px;top:-120px;width:340px;height:250px;border-radius:var(--radius-organic);opacity:.9"></div>
+            <span style="position:relative;font-size:22px;font-weight:600;color:var(--pf-mint-200)">Servidor MCP de Prefoundly</span>
+            <span style="position:relative;max-width:760px;font-size:44px;line-height:1.1;font-weight:600;letter-spacing:-0.03em;color:#fff">Controlá el agente desde Claude o tu propio agente</span>
+            <span style="position:relative;max-width:720px;font-size:20px;line-height:1.45;color:var(--pf-mint-100)">Consultá saldos y pronósticos, corré la revisión de las 09:00 o frená los envíos con una frase. Los límites de autonomía se aplican siempre.</span>
+          </section>
+          <section style="flex:1;min-height:0;background:#fff;border:1px solid var(--pf-grey-200);border-radius:28px;padding:28px 32px;display:flex;flex-direction:column;gap:18px">
+            <span style="font-size:24px;font-weight:600;color:var(--pf-petrol-900)">Conectalo en dos pasos</span>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <span style="font-size:19px;color:var(--pf-grey-700)"><b style="color:var(--pf-petrol-900)">1.</b> Bajá el proyecto e instalá las dependencias</span>
+              <div style="display:flex;align-items:center;gap:14px;padding:16px 16px 16px 22px;border-radius:16px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100)"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ mcpClone }}</span><button sc-camel-on-click="{{ copyClone }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ cloneBtn }}</button></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <span style="font-size:19px;color:var(--pf-grey-700)"><b style="color:var(--pf-petrol-900)">2.</b> Agregalo a Claude Code</span>
+              <div style="display:flex;align-items:center;gap:14px;padding:16px 16px 16px 22px;border-radius:16px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100)"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ mcpAdd }}</span><button sc-camel-on-click="{{ copyAdd }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ addBtn }}</button></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <span style="font-size:19px;color:var(--pf-grey-700)">O en Claude Desktop, en <span style="font-family:var(--font-mono);font-size:17px">claude_desktop_config.json</span></span>
+              <div style="display:flex;align-items:center;gap:14px;padding:16px 16px 16px 22px;border-radius:16px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100);align-items:flex-start"><pre style="flex:1;min-width:0;margin:0;font:inherit;font-size:15px;line-height:1.4;white-space:pre;overflow:hidden">{{ mcpJson }}</pre><button sc-camel-on-click="{{ copyJson }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ jsonBtn }}</button></div>
+            </div>
+            <span style="font-size:16px;color:var(--pf-grey-600)">El repositorio es privado: pedí acceso al equipo. El servidor corre en tu máquina, por stdio, con los datos simulados del proyecto.</span>
+          </section>
+        </div>
+        <div style="min-height:0;display:flex;flex-direction:column;gap:22px">
+          <section style="background:#fff;border:1px solid var(--pf-grey-200);border-radius:28px;padding:26px 30px;display:flex;flex-direction:column">
+            <span style="font-size:24px;font-weight:600;color:var(--pf-petrol-900);margin-bottom:8px">Herramientas</span>
+            <sc-for list="{{ mcpTools }}" as="m" hint-placeholder-count="6">
+              <div style="display:grid;grid-template-columns:210px minmax(0,1fr);gap:16px;align-items:baseline;padding:13px 0;border-top:1px solid var(--pf-grey-100)">
+                <span style="font-family:var(--font-mono);font-size:18px;color:var(--pf-teal-700)">{{ m.name }}</span>
+                <span style="font-size:18px;line-height:1.4;color:var(--pf-grey-700)">{{ m.desc }}</span>
+              </div>
+            </sc-for>
+          </section>
+          <section style="flex:1;min-height:0;background:var(--pf-mint-100);border-radius:28px;padding:26px 30px;display:flex;flex-direction:column;gap:14px">
+            <span style="font-size:24px;font-weight:600;color:var(--pf-petrol-900)">Probá pedirle</span>
+            <sc-for list="{{ mcpPrompts }}" as="x" hint-placeholder-count="3">
+              <div style="align-self:flex-start;max-width:100%;padding:14px 22px;border-radius:22px 22px 22px 6px;background:#fff;font-size:20px;line-height:1.4;color:var(--pf-petrol-900)">{{ x }}</div>
+            </sc-for>
+          </section>
+        </div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+<nav data-r="mtabs" style="display:none" aria-label="Secciones">
+  <button data-tour="m-live" sc-camel-on-click="{{ goLive }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;font:inherit;font-size:11.5px;font-weight:600;color:{{ tabLiveC }};cursor:pointer;padding:6px 0">
+    <span style="display:grid;place-items:center;width:46px;height:28px;border-radius:999px;background:{{ tabLiveBg }}"><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="activity" size="20px" hint-size="20px,20px"></x-import></span>Monitoreo
+  </button>
+  <button data-tour="m-agent" sc-camel-on-click="{{ goAgent }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;font:inherit;font-size:11.5px;font-weight:600;color:{{ tabAgentC }};cursor:pointer;padding:6px 0">
+    <span style="display:grid;place-items:center;width:46px;height:28px;border-radius:999px;background:{{ tabAgentBg }}"><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="message-circle" size="20px" hint-size="20px,20px"></x-import></span>Agente
+  </button>
+  <button data-tour="m-history" sc-camel-on-click="{{ goHist }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;font:inherit;font-size:11.5px;font-weight:600;color:{{ tabHistC }};cursor:pointer;padding:6px 0">
+    <span style="display:grid;place-items:center;width:46px;height:28px;border-radius:999px;background:{{ tabHistBg }}"><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="chart-column" size="20px" hint-size="20px,20px"></x-import></span>Historial
+  </button>
+  <button data-tour="m-mcp" sc-camel-on-click="{{ goMcp }}" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;background:transparent;font:inherit;font-size:11.5px;font-weight:600;color:{{ tabMcpC }};cursor:pointer;padding:6px 0">
+    <span style="display:grid;place-items:center;width:46px;height:28px;border-radius:999px;background:{{ tabMcpBg }}"><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="plug" size="20px" hint-size="20px,20px"></x-import></span>Conectar
+  </button>
+</nav>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script="">
+// Prefoundly console: replays the model's day (data.json, built by scripts/build_console_data.py)
+// minute by minute. The 09:00 deposit, the expected curve, tomorrow's forecast and the history are the
+// model's; the agent answers through /api/ask (Claude) and falls back to answers built from the same numbers.
+const pad = (n) => String(n).padStart(2, '0');
+const hm = (m) => pad(Math.floor(m / 60) % 24) + ':' + pad(m % 60);
+const hmIso = (iso) => { const d = new Date(iso); return pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const M = (v) => '$' + (v / 1e6).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' M';
+const M0 = (v) => '$' + Math.round(v / 1e6).toLocaleString('es-AR') + ' M';
+const pct = (v) => (v >= 0 ? '+' : '−') + Math.abs(v * 100).toLocaleString('es-AR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' %';
+const pctTxt = (a) => (a * 100).toLocaleString('es-AR', { maximumFractionDigits: 1 }) + ' %';
+const DAYS = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+const DAYS_S = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MON = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+const parseDay = (s) => new Date(s + 'T12:00:00');
+const dayLabel = (s) => { const d = parseDay(s); return d.getDate() + ' ' + MON[d.getMonth()]; };
+const sum = (a, i0, i1) => { let s = 0; for (let i = Math.max(0, i0); i < Math.min(a.length, i1); i++) s += a[i]; return s; };
+const MCP = {
+  clone: 'git clone https://github.com/nicoespa/hackatwin-treasury && cd hackatwin-treasury && uv sync',
+  add: 'claude mcp add prefoundly -- uv run --directory "$PWD" treasury-mcp',
+  json: '{\n  "mcpServers": {\n    "prefoundly": {\n      "command": "uv",\n      "args": ["run", "--directory", "/ruta/a/hackatwin-treasury", "treasury-mcp"]\n    }\n  }\n}',
+  tools: [
+    { name: 'get_status', desc: 'Si el agente está ejecutando o frenado, y cuántas transferencias hizo.' },
+    { name: 'get_limits', desc: 'Los límites de autonomía: por envío, por partner y por día.' },
+    { name: 'forecast', desc: 'El pronóstico de pagos de un partner con su rango de escenarios.' },
+    { name: 'run_review', desc: 'Corre la revisión de las 09:00: simula o ejecuta los envíos.' },
+    { name: 'list_transfers', desc: 'Las transferencias enviadas y si ya se acreditaron.' },
+    { name: 'set_autonomy', desc: 'Frena o reanuda los envíos automáticos.' },
+  ],
+  prompts: ['¿Cuánto le mandó hoy Prefoundly a cada partner?', 'Frená los envíos automáticos hasta el lunes.', '¿Qué espera el modelo para el Partner A esta semana?'],
+};
+const START = 15 * 60 + 30;
+const REVIEW = 9 * 60;
+
+class Component extends DCLogic {
+  constructor(p) {
+    super(p);
+    this.state = { data: null, pi: 0, tab: 'live', min: START, seq: 0, draft: '', alpha: 0.99, scale: 1, upd: [], log: [] };
+  }
+  feedRef = React.createRef();
+  componentDidMount() {
+    this.fit = () => { const w = window.innerWidth, h = window.innerHeight, mobile = w < 900; this.setState((s) => ({ mobile, vh: h, scale: mobile ? w / 520 : Math.min(w / 1920, h / 1080), tab: !mobile && s.tab === 'agent' ? 'live' : s.tab })); };
+    this.fit(); window.addEventListener('resize', this.fit);
+    fetch('data.json').then((r) => r.json()).then((data) => this.load(data, 0));
+    this.t1 = setInterval(() => this.tick(), 2400);
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this.fit); clearInterval(this.t1); clearTimeout(this.t3); }
+  componentDidUpdate() {
+    // chat-like feed: new entries land at the bottom; follow them only while the reader is at the bottom
+    const el = this.feedRef.current; if (!el) return;
+    if (!el.__pf) { el.__pf = true; el.addEventListener('scroll', () => { this.pinned = el.scrollHeight - el.scrollTop - el.clientHeight < 80; }); }
+    const n = this.state.log.length;
+    if (n !== this.logLen) { const first = this.logLen == null; this.logLen = n; if (first || this.pinned !== false || this.forceBottom) { this.forceBottom = false; el.scrollTo({ top: el.scrollHeight, behavior: first ? 'auto' : 'smooth' }); } }
+  }
+
+  // ---- the day's numbers at a given minute ----
+  P(s = this.state) { return s.data ? s.data.partners[s.pi] : null; }
+  calc(s = this.state, min = s.min) {
+    const p = this.P(s), t = p.today, a = t.minutes.amount, e = t.minutes.expected;
+    const cons = sum(a, 0, min + 1), expC = sum(e, 0, min + 1), dev = expC > 0 ? cons / expC - 1 : 0;
+    const funds = t.available + t.deposit;
+    const spent = sum(a, REVIEW, min + 1);
+    const tomRatio = t.median_today > 0 ? t.tomorrow.median / t.median_today : 1;
+    const proj = (sum(e, min + 1, 1440) + sum(e, 0, REVIEW + 30) * tomRatio) * (1 + dev);
+    const balance = funds - spent, margin = balance - proj;
+    const altTarget = (t.alt[String(s.alpha)] || t.alt['0.99']).target;
+    const nextDeposit = Math.max(0, altTarget * tomRatio - margin);
+    return { cons, expC, dev, funds, spent, balance, proj, margin, nextDeposit };
+  }
+  copy(key, text) {
+    try { navigator.clipboard.writeText(text); } catch (e) { /* clipboard unavailable */ }
+    this.setState({ copied: key }); clearTimeout(this.tc); this.tc = setTimeout(() => this.setState({ copied: null }), 1600);
+  }
+  rail(s = this.state) { const d = parseDay(s.data.today).getDay(); return d === 0 || d === 6 ? 'Stablecoin' : 'Transferencia'; }
+  load(data, pi) {
+    const p = data.partners[pi], t = p.today, alpha = data.alpha;
+    const s0 = { ...this.state, data, pi, alpha, min: START };
+    const c = this.calc(s0);
+    const upd = [];
+    for (let m = REVIEW + 60; m <= START; m += 60) upd.push(Math.round(this.calc(s0, m).nextDeposit / 1e5) / 10);
+    const d = parseDay(data.today);
+    const log = [
+      { isStep: true, time: hm(START - 2), title: 'El saldo alcanza', detail: 'Hasta la próxima reposición queda un margen estimado de ' + M(c.margin) + '.' },
+      { isStep: true, time: hm(START - 6), title: c.dev >= 0 ? 'Más pagos de lo esperado' : 'Menos pagos de lo esperado', detail: 'Desde las 00:00 los pagos van ' + pct(c.dev) + ' contra el pronóstico del modelo.' },
+    ];
+    if (t.deposit > 0) {
+      log.push({ isStep: true, time: hmIso(t.arrival), title: 'Reposición acreditada', detail: M(t.deposit) + ' en el ' + p.name + ' por ' + this.rail(s0).toLowerCase() + '.' });
+      log.push({ isStep: true, time: '09:00', title: 'Envió ' + M(t.deposit) + ' al ' + p.name, detail: 'Pronosticó los pagos hasta la próxima reposición: con una cobertura del ' + pctTxt(alpha) + ' necesita ' + M(t.target) + '. Había ' + M(t.available) + ', mandó la diferencia.' });
+    } else {
+      log.push({ isStep: true, time: '09:00', title: 'No hizo falta reponer', detail: 'Con ' + M(t.available) + ' alcanza hasta la próxima reposición con una cobertura del ' + pctTxt(alpha) + '.' });
+    }
+    log.push({ isStep: true, time: '08:58', title: 'Pronóstico de hoy listo', detail: 'Esperaba ' + M(t.expected_day) + ' de pagos para el ' + DAYS[d.getDay()] + '.' });
+    this.logLen = null; this.pinned = true;
+    this.setState({ data, pi, alpha, min: START, seq: 0, upd, log: log.reverse(), tab: this.state.tab });
+  }
+  tick() {
+    if (!this.state.data) return;
+    this.setState((s) => {
+      if (s.min >= 1439) return null;
+      const min = s.min + 1, ns = { ...s, min }, c = this.calc(ns), p = this.P(s), t = p.today, k = s.seq % 4;
+      let ev = null, upd = s.upd;
+      if (k === 1) {
+        const prev = upd.length ? upd[upd.length - 1] : null, next = Math.round(c.nextDeposit / 1e5) / 10;
+        if (prev === null || Math.abs(next - prev) >= 0.1) {
+          upd = [...upd, next].slice(-8);
+          if (prev !== null && Math.abs(next - prev) >= 0.5) ev = { title: (next > prev ? 'Subió' : 'Bajó') + ' la reposición estimada para mañana', detail: 'Con lo que va del día, pasó de ' + M(prev * 1e6) + ' a ' + M(next * 1e6) + '.' };
+        }
+      } else if (s.seq % 8 === 3) {
+        const j = Math.floor(s.seq / 4) % 3;
+        if (j === 0) {
+          const names = Object.keys(t.products), devs = names.map((n) => {
+            const act = sum(t.products[n], 0, min + 1), exp = c.expC * (t.product_share[n] || 0);
+            return [n, exp > 0 ? act / exp - 1 : 0];
+          }).sort((x, y) => Math.abs(y[1]) - Math.abs(x[1]));
+          ev = { title: c.dev >= 0 ? 'Más pagos de lo esperado' : 'Menos pagos de lo esperado', detail: 'El mayor desvío está en ' + devs[0][0] + ' (' + pct(devs[0][1]) + ').' };
+        } else if (j === 1) {
+          const h = Math.floor(min / 60), u = t.users.today[h], ty = t.users.typical[h];
+          const r = ty > 0 ? u / ty - 1 : 0;
+          ev = { title: 'Cambio en los hábitos', detail: (r >= 0 ? 'Hay ' : 'Hay ') + Math.abs(Math.round(r * 100)) + ' % ' + (r >= 0 ? 'más' : 'menos') + ' usuarios activos que un ' + DAYS[parseDay(s.data.today).getDay()] + ' típico a esta hora.' };
+        } else {
+          ev = c.margin >= 0 ? { title: 'El saldo alcanza', detail: 'Hasta la próxima reposición queda un margen estimado de ' + M(c.margin) + '.' }
+            : { title: 'El margen se achica', detail: 'Al ritmo actual faltarían ' + M(-c.margin) + '; mañana a las 09:00 repone la diferencia.' };
+        }
+      }
+      if (ev && (Date.now() < (this.quietUntil || 0) || this.busy)) ev = null;
+      const log = ev ? [...s.log, { isStep: true, time: hm(min), ...ev }].slice(-30) : s.log;
+      return { min, seq: s.seq + 1, log, upd };
+    });
+  }
+
+  // ---- the agent ----
+  context() {
+    const s = this.state, p = this.P(), t = p.today, c = this.calc();
+    return {
+      partner: p.name, users_do: p.label, date: s.data.today, now: hm(s.min), coverage: s.alpha,
+      deposit_0900: t.deposit, target_with_coverage: t.target, balance_before_0900: t.available, arrival: t.arrival, covers_until: t.window_end,
+      deposit_at_other_coverages: Object.fromEntries(Object.entries(t.alt).map(([k, v]) => [k, v.deposit])),
+      expected_payments_today: t.expected_day, payments_so_far: c.cons, expected_so_far: c.expC, deviation: c.dev,
+      balance_now_estimate: c.balance, projected_until_next_deposit: c.proj, margin_estimate: c.margin,
+      next_deposit_estimate: c.nextDeposit, tomorrow_forecast: t.tomorrow.median,
+      history: p.history.slice(0, -1).map((h) => ({ date: h.date, deposit: h.deposit, payments: h.outflow, close: h.close, forecast: h.forecast, note: h.note })),
+      kpis: p.kpis,
+    };
+  }
+  local(q) {
+    const tq = q.toLowerCase(), s = this.state, p = this.P(), t = p.today, c = this.calc(), u = s.upd;
+    const cov = tq.match(/(9\d(?:[,.]\d)?)\s*%/);
+    if (cov || /cobertura|riesgo|proteg/.test(tq)) {
+      const a = cov ? parseFloat(cov[1].replace(',', '.')) / 100 : (/m[aá]s|subi|baj[aá] el riesgo/.test(tq) ? 0.995 : 0.95);
+      const key = [0.95, 0.99, 0.995].reduce((b, x) => Math.abs(x - a) < Math.abs(b - a) ? x : b, 0.99);
+      const alt = t.alt[String(key)];
+      return { patch: { alpha: key }, text: 'Listo, desde la próxima reposición uso una cobertura del ' + pctTxt(key) + '. Con ese nivel, hoy a las 09:00 habría mandado ' + M(alt.deposit) + ' en lugar de ' + M(t.deposit) + '.' };
+    }
+    if (/qu[eé] cambi/.test(tq)) return { text: 'Desde las 00:00 los pagos van ' + pct(c.dev) + ' contra lo que esperaba el modelo. Actualicé ' + u.length + ' veces la reposición estimada para mañana: pasó de ' + M(u[0] * 1e6) + ' a ' + M(u[u.length - 1] * 1e6) + '.' };
+    if (/mañana|pron[oó]stico|subi|baj/.test(tq)) return { text: 'Para mañana el modelo espera ' + M(t.tomorrow.median) + ' de pagos. Como hoy los pagos van ' + pct(c.dev) + ', proyecto que a las 09:00 van a quedar ' + M(Math.max(0, c.margin)) + ' en el partner y que habrá que reponer unos ' + M(c.nextDeposit) + '.' };
+    if (/alcanza|saldo|margen/.test(tq)) return { text: (c.margin >= 0 ? 'Sí. ' : 'Justo. ') + 'Al ritmo actual se pagan ' + M(c.proj) + ' más hasta mañana a las ' + hmIso(t.window_end) + ' y el partner tiene ' + M(c.balance) + '. El margen estimado es de ' + M(c.margin) + '.' };
+    if (/por qu[eé]|monto|cu[aá]nto mand|repusiste/.test(tq)) {
+      const h = p.history.find((x) => tq.includes(String(parseDay(x.date).getDate()) + ' ' + MON[parseDay(x.date).getMonth()]));
+      if (h && h.date !== s.data.today) return { text: 'El ' + dayLabel(h.date) + ' mandé ' + M(h.deposit) + ': el modelo pronosticaba ' + M(h.forecast || 0) + ' de pagos y había que cubrir hasta las 09:30 del día siguiente con una cobertura del 99 %. Se pagaron ' + M(h.outflow) + ' y cerró con ' + M(h.close || 0) + ' en el partner (' + h.note.toLowerCase() + ').' };
+      return { text: 'A las 09:00 el modelo pronosticó los pagos hasta mañana a las ' + hmIso(t.window_end) + '. Con una cobertura del ' + pctTxt(s.alpha) + ' hacían falta ' + M(t.target) + '; el partner tenía ' + M(t.available) + ', así que mandé la diferencia: ' + M(t.deposit) + '.' };
+    }
+    if (/fren|paus|no mandes/.test(tq)) return { text: 'Anotado: freno los envíos automáticos al ' + p.name + '. Sigo pronosticando y te aviso si el saldo no alcanza.' };
+    return { text: 'Hoy repuse ' + M(t.deposit) + ' al ' + p.name + ' y sigo controlando los pagos minuto a minuto. Preguntame qué cambió, si alcanza el saldo o por qué mandé ese monto.' };
+  }
+  send(text) {
+    const q = (text ?? this.state.draft).trim(); if (!q || this.busy || !this.state.data) return;
+    this.busy = true; const id = Date.now(), ctx = this.context(), local = this.local(q);
+    this.forceBottom = true;
+    this.setState((s) => ({ tab: s.mobile ? 'agent' : 'live', draft: '', log: [...s.log, { isQA: true, id, q, a: '…' }] }));
+    const done = (text) => { this.busy = false; this.quietUntil = Date.now() + 25000; this.setState((s) => ({ ...(local.patch || {}), log: s.log.map((x) => x.id === id ? { ...x, a: text } : x) })); };
+    const ctrl = new AbortController(); this.t3 = setTimeout(() => ctrl.abort(), 9000);
+    fetch('/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q, context: ctx, applied: local.patch || null }), signal: ctrl.signal })
+      .then((r) => r.ok ? r.json() : Promise.reject(r.status)).then((r) => done(r.text || local.text))
+      .catch(() => setTimeout(() => done(local.text), 700)).finally(() => clearTimeout(this.t3));
+  }
+
+  renderVals() {
+    const s = this.state, p = this.P();
+    const base = { stageT: s.mobile ? 'none' : 'translate(-50%,-50%) scale(' + s.scale + ')', stageZoom: s.mobile ? s.scale.toFixed(4) : 1, isLive: s.tab === 'live' || s.tab === 'agent', isHist: s.tab === 'hist', liveView: s.tab === 'agent' ? 'agent' : 'monitor',
+      agentH: s.mobile ? Math.max(420, (s.vh - 196) / s.scale).toFixed(0) + 'px' : 'auto', mClock: hm(s.min),
+      goLive: () => this.setState({ tab: 'live' }), goAgent: () => this.setState({ tab: 'agent' }),
+      tabLiveC: s.tab === 'live' ? 'var(--pf-petrol-900)' : 'var(--pf-grey-600)', tabLiveBg: s.tab === 'live' ? 'var(--pf-mint-200)' : 'transparent',
+      tabAgentC: s.tab === 'agent' ? 'var(--pf-petrol-900)' : 'var(--pf-grey-600)', tabAgentBg: s.tab === 'agent' ? 'var(--pf-mint-200)' : 'transparent',
+      tabHistC: s.tab === 'hist' ? 'var(--pf-petrol-900)' : 'var(--pf-grey-600)', tabHistBg: s.tab === 'hist' ? 'var(--pf-mint-200)' : 'transparent',
+      tabMcpC: s.tab === 'mcp' ? 'var(--pf-petrol-900)' : 'var(--pf-grey-600)', tabMcpBg: s.tab === 'mcp' ? 'var(--pf-mint-200)' : 'transparent', feedRef: this.feedRef,
+      liveNavBg: s.tab === 'live' ? 'var(--pf-mint-200)' : 'transparent', histNavBg: s.tab === 'hist' ? 'var(--pf-mint-200)' : 'transparent',
+      goHist: () => this.setState({ tab: 'hist' }), goMcp: () => this.setState({ tab: 'mcp' }),
+      isMcp: s.tab === 'mcp', mcpNavBg: s.tab === 'mcp' ? 'var(--pf-mint-200)' : 'transparent',
+      mcpClone: MCP.clone, mcpAdd: MCP.add, mcpJson: MCP.json, mcpTools: MCP.tools, mcpPrompts: MCP.prompts,
+      cloneBtn: s.copied === 'clone' ? 'Copiado' : 'Copiar', addBtn: s.copied === 'add' ? 'Copiado' : 'Copiar', jsonBtn: s.copied === 'json' ? 'Copiado' : 'Copiar',
+      copyClone: () => this.copy('clone', MCP.clone), copyAdd: () => this.copy('add', MCP.add), copyJson: () => this.copy('json', MCP.json),
+      draft: s.draft, onDraft: (e) => this.setState({ draft: e.target.value }), onKey: (e) => { if (e.key === 'Enter') this.send(); }, onSend: () => this.send() };
+    if (!p) return { ...base, mClock: '--:--', partners: [], pageTitle: 'Prefoundly', pageSub: 'Cargando…', clock: '--:--', log: [], chips: [], depTxt: '–', sentTxt: '', arrTxt: '', protTxt: '', consTxt: '–', devTxt: '–', balTxt: '–', balPctTxt: '', balPct: '0%', balColor: 'var(--pf-teal-500)', fcTxt: '–', fcDelta: '', updPts: '', updDots: [], realPts: '', areaPts: '', expPts: '', dotTop: '50%', ticks: [], lastLabel: '', lastTxt: '', feedSub: '', hourTxt: '09:00', hbars: [], rows: [], hTotal: '–', hShort: '–', hClose: '–', hMape: '–' };
+    const t = p.today, c = this.calc(), d = parseDay(s.data.today);
+    const u = s.upd.length ? s.upd : [c.nextDeposit / 1e6], umin = Math.min(...u) - 1, umax = Math.max(...u) + 1;
+    const ux = (i) => (u.length > 1 ? i / (u.length - 1) * 100 : 100), uy = (v) => (90 - (v - umin) / (umax - umin) * 80);
+    const dlt = u.length > 1 ? u[u.length - 1] - u[u.length - 2] : 0;
+    const firstStep = s.log.map((x) => !!x.isStep).lastIndexOf(true);
+    const log = s.log.map((x, i) => x.isStep ? { ...x, dotBg: i === firstStep ? 'var(--pf-petrol-900)' : 'var(--pf-mint-100)', dotFg: i === firstStep ? 'var(--pf-mint-300)' : 'var(--pf-teal-500)' } : x);
+    const H = p.history, hmax = Math.max(...H.map((h) => Math.max(h.deposit, h.outflow))) * 1.08;
+    const hbars = H.map((h, i) => ({ label: String(parseDay(h.date).getDate()), tag: i === H.length - 1 ? 'Hoy' : (h.short ? 'Faltante' : ''), op: i === H.length - 1 ? 0.45 : 1,
+      sentH: (h.deposit / hmax * 100) + '%', usedH: (h.outflow / hmax * 100) + '%' }));
+    const rows = H.slice(0, -1).reverse().slice(0, 5).map((h) => ({ date: dayLabel(h.date), sent: M(h.deposit), used: M(h.outflow), left: h.close == null ? '–' : M(h.close), note: h.note,
+      onAsk: () => this.send('¿Por qué el ' + dayLabel(h.date) + ' repusiste ' + M(h.deposit) + '?') }));
+    // one point per completed hour, from 00:00; the chart moves when an hour closes
+    const hDone = Math.max(2, Math.floor((s.min + 1) / 60)), pts = [];
+    for (let h = 0; h < hDone; h++) pts.push({ h, real: sum(t.minutes.amount, h * 60, (h + 1) * 60) / 1e6, exp: sum(t.minutes.expected, h * 60, (h + 1) * 60) / 1e6, n: sum(t.minutes.count, h * 60, (h + 1) * 60) });
+    const ymax = Math.max(0.1, ...pts.map((x) => Math.max(x.real, x.exp))) * 1.2, np = pts.length;
+    const X = (i) => (i / (np - 1) * 400).toFixed(1), Y = (v) => (100 - v / ymax * 100).toFixed(1);
+    const realPts = pts.map((x, i) => X(i) + ',' + Y(x.real)).join(' '), lastH = pts[np - 1];
+    const ticks = [0, 0.25, 0.5, 0.75, 1].map((f) => pad(pts[Math.round(f * (np - 1))].h) + ':00');
+    return {
+      ...base,
+      partners: s.data.partners.map((q, i) => ({ name: q.name, time: '09:00', mBg: i === s.pi ? '#fff' : 'transparent', mShadow: i === s.pi ? '0 1px 3px rgba(17,37,35,.12)' : 'none', bg: i === s.pi ? '#fff' : 'transparent', border: i === s.pi ? '1px solid var(--pf-grey-200)' : '1px solid transparent', weight: i === s.pi ? '600' : '400', onClick: () => i !== s.pi && this.load(s.data, i) })),
+      pageTitle: s.tab === 'mcp' ? 'Conectar agente' : s.tab === 'live' ? p.name + ' · En vivo' : 'Historial · ' + p.name,
+      pageSub: s.tab === 'mcp' ? 'MCP · Claude Code, Claude Desktop u otro agente' : p.label + ' · ' + DAYS_S[d.getDay()] + ' ' + d.getDate() + ' ' + MON[d.getMonth()] + ' · Datos simulados',
+      clock: hm(s.min), log,
+      chips: ['¿Qué cambió hoy?', '¿Alcanza el saldo?', '¿Por qué mandaste ese monto?'].map((l) => ({ label: l, onClick: () => this.send(l) })),
+      depTxt: t.deposit > 0 ? M(t.deposit) : '$0',
+      sentTxt: t.deposit > 0 ? 'Enviada a las 09:00 · ' + this.rail() + ' · Automática' : 'A las 09:00 no hizo falta reponer',
+      arrTxt: t.deposit > 0 ? 'Acreditada a las ' + hmIso(t.arrival) : 'Saldo suficiente',
+      protTxt: pctTxt(s.alpha), coverTxt: 'Hasta mañana a las ' + hmIso(t.window_end),
+      consTxt: M(c.cons), devTxt: pct(c.dev),
+      balTxt: M(Math.max(0, c.balance)), balPctTxt: Math.round(Math.max(0, c.balance) / c.funds * 100) + ' %',
+      balPct: Math.max(0, Math.min(100, c.balance / c.funds * 100)).toFixed(1) + '%', balColor: c.margin >= 0 ? 'var(--pf-teal-500)' : '#C9892E',
+      fcTxt: M(c.nextDeposit), fcDelta: u.length > 1 && Math.abs(dlt) >= 0.05 ? (dlt >= 0 ? '↑ ' : '↓ ') + M(Math.abs(dlt) * 1e6) : '=',
+      updPts: u.map((v, i) => ux(i).toFixed(1) + ',' + uy(v).toFixed(1)).join(' '),
+      updDots: u.map((v, i) => ({ x: ux(i).toFixed(1) + '%', y: uy(v).toFixed(1) + '%', bg: i === u.length - 1 ? 'var(--pf-petrol-900)' : 'var(--pf-teal-500)' })),
+      realPts, areaPts: '0,100 ' + realPts + ' 400,100', expPts: pts.map((x, i) => X(i) + ',' + Y(x.exp)).join(' '), dotTop: Y(lastH.real) + '%', ticks,
+      lastLabel: 'Última hora, ' + pad(lastH.h) + ':00 a ' + pad(lastH.h + 1) + ':00',
+      lastTxt: lastH.n.toLocaleString('es-AR') + (lastH.n === 1 ? ' pago · ' : ' pagos · ') + M(lastH.real * 1e6),
+      feedSub: p.label + ' · ' + p.name, hourTxt: '09:00',
+      hbars, rows,
+      hTotal: M0(p.kpis.deposits), hShort: String(p.kpis.short_days), hClose: M0(p.kpis.avg_close), hMape: Math.round(p.kpis.mape * 100) + ' %',
+    };
+  }
+}
+</script>
+
+
+<script src="assets/tour.js" defer></script>
+</body></html>
