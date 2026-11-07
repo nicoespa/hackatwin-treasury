@@ -611,6 +611,7 @@ code,kbd{font-family:var(--font-mono);font-size:.92em}
               <span style="font-size:22px;font-weight:600;color:var(--pf-mint-200)">Reposición de hoy</span>
               <span data-r="herov" style="font-size:104px;line-height:1;font-weight:600;letter-spacing:-0.045em;color:#fff;white-space:nowrap">{{ depTxt }}</span>
               <span style="font-size:20px;color:var(--pf-mint-100);white-space:nowrap">{{ sentTxt }}</span>
+              <button sc-camel-on-click="{{ runLive }}" style="display:{{ liveBtnDisplay }};align-self:flex-start;margin-top:12px;align-items:center;gap:10px;height:46px;padding:0 20px;border-radius:999px;border:1.5px solid var(--pf-mint-200);background:transparent;font:inherit;font-size:18px;font-weight:600;color:var(--pf-mint-100);cursor:pointer;white-space:nowrap" style-hover="background:rgba(214,242,229,.12)"><span style="width:9px;height:9px;border-radius:50%;background:var(--pf-mint-300);animation:{{ liveDotAnim }}"></span>{{ liveBtnTxt }}</button>
             </div>
             <div data-r="heroright" style="position:relative;display:flex;flex-direction:column;align-items:flex-end;gap:14px;margin-right:120px">
               <span style="display:inline-flex;align-items:center;gap:10px;height:46px;padding:0 20px;border-radius:999px;background:var(--pf-mint-200);font-size:20px;font-weight:600;color:var(--pf-petrol-900)"><x-import component-from-global-scope="ProfoundlyAIDesignSystem_bb6bcd.Icon" name="check" size="20px" hint-size="20px,20px"></x-import><span>{{ arrTxt }}</span></span>
@@ -788,21 +789,21 @@ code,kbd{font-family:var(--font-mono);font-size:.92em}
             <span style="position:relative;max-width:760px;font-size:44px;line-height:1.1;font-weight:600;letter-spacing:-0.03em;color:#fff">Controlá el agente desde Claude o tu propio agente</span>
             <span style="position:relative;max-width:720px;font-size:20px;line-height:1.45;color:var(--pf-mint-100)">Consultá saldos y pronósticos, corré la revisión de las 09:00 o frená los envíos con una frase. Los límites de autonomía se aplican siempre.</span>
           </section>
-          <section style="flex:1;min-height:0;background:#fff;border:1px solid var(--pf-grey-200);border-radius:28px;padding:28px 32px;display:flex;flex-direction:column;gap:18px">
+          <section style="flex:1;min-height:0;background:#fff;border:1px solid var(--pf-grey-200);border-radius:28px;padding:24px 32px;display:flex;flex-direction:column;gap:12px">
             <span style="font-size:24px;font-weight:600;color:var(--pf-petrol-900)">Conectalo en dos pasos</span>
-            <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:8px">
               <span style="font-size:19px;color:var(--pf-grey-700)"><b style="color:var(--pf-petrol-900)">1.</b> Bajá el proyecto e instalá las dependencias</span>
-              <div style="display:flex;align-items:center;gap:14px;padding:16px 16px 16px 22px;border-radius:16px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100)"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ mcpClone }}</span><button sc-camel-on-click="{{ copyClone }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ cloneBtn }}</button></div>
+              <div style="display:flex;align-items:center;gap:14px;padding:11px 12px 11px 20px;border-radius:14px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100)"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ mcpClone }}</span><button sc-camel-on-click="{{ copyClone }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ cloneBtn }}</button></div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:8px">
               <span style="font-size:19px;color:var(--pf-grey-700)"><b style="color:var(--pf-petrol-900)">2.</b> Agregalo a Claude Code</span>
-              <div style="display:flex;align-items:center;gap:14px;padding:16px 16px 16px 22px;border-radius:16px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100)"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ mcpAdd }}</span><button sc-camel-on-click="{{ copyAdd }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ addBtn }}</button></div>
+              <div style="display:flex;align-items:center;gap:14px;padding:11px 12px 11px 20px;border-radius:14px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100)"><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ mcpAdd }}</span><button sc-camel-on-click="{{ copyAdd }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ addBtn }}</button></div>
             </div>
-            <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;flex-direction:column;gap:8px">
               <span style="font-size:19px;color:var(--pf-grey-700)">O en Claude Desktop, en <span style="font-family:var(--font-mono);font-size:17px">claude_desktop_config.json</span></span>
-              <div style="display:flex;align-items:center;gap:14px;padding:16px 16px 16px 22px;border-radius:16px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100);align-items:flex-start"><pre style="flex:1;min-width:0;margin:0;font:inherit;font-size:15px;line-height:1.4;white-space:pre;overflow:hidden">{{ mcpJson }}</pre><button sc-camel-on-click="{{ copyJson }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ jsonBtn }}</button></div>
+              <div style="display:flex;align-items:center;gap:14px;padding:11px 12px 11px 20px;border-radius:14px;background:var(--pf-petrol-950);font-family:var(--font-mono);font-size:18px;color:var(--pf-mint-100);align-items:flex-start"><pre style="flex:1;min-width:0;margin:0;font:inherit;font-size:15px;line-height:1.4;white-space:pre;overflow-x:auto">{{ mcpJson }}</pre><button sc-camel-on-click="{{ copyJson }}" style="flex:none;display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;border:0;border-radius:12px;background:var(--pf-mint-200);font:inherit;font-family:var(--font-sans);font-size:16px;font-weight:600;color:var(--pf-petrol-900);cursor:pointer">{{ jsonBtn }}</button></div>
             </div>
-            <span style="font-size:16px;color:var(--pf-grey-600)">El repositorio es privado: pedí acceso al equipo. El servidor corre en tu máquina, por stdio, con los datos simulados del proyecto.</span>
+            <span style="font-size:16px;color:var(--pf-grey-600)">El código es abierto, en <a href="https://github.com/nicoespa/hackatwin-treasury" target="_blank" rel="noopener" style="color:var(--pf-petrol-700);font-weight:600">github.com/nicoespa/hackatwin-treasury</a>. El servidor corre en tu máquina, por stdio, con los datos simulados del proyecto.</span>
           </section>
         </div>
         <div style="min-height:0;display:flex;flex-direction:column;gap:22px">
@@ -873,6 +874,18 @@ const MCP = {
   ],
   prompts: ['¿Cuánto le mandó hoy Prefoundly a cada partner?', 'Frená los envíos automáticos hasta el lunes.', '¿Qué espera el modelo para el Partner A esta semana?'],
 };
+// the live model service (treasury model-api). Off by default; ?model=on (or the full address) turns it on
+// in this browser, ?model= turns it off. Only these origins are accepted, so a link cannot point the
+// console at someone else's server.
+const MODEL_ORIGINS = ['https://omarchy.tail299125.ts.net', 'http://localhost:8790', 'http://127.0.0.1:8790'];
+const MODEL_URL = (() => {
+  const pick = (v) => { if (!v) return ''; if (v === 'on') return MODEL_ORIGINS[0]; try { const o = new URL(v).origin; return MODEL_ORIGINS.includes(o) ? o : ''; } catch (e) { return ''; } };
+  const q = new URLSearchParams(location.search).get('model');
+  try {
+    if (q !== null) { const v = pick(q); if (v) localStorage.setItem('pf-model-url', v); else localStorage.removeItem('pf-model-url'); return v; }
+    return pick(localStorage.getItem('pf-model-url'));
+  } catch (e) { return pick(q); }
+})();
 const START = 15 * 60 + 30;
 const REVIEW = 9 * 60;
 
@@ -888,7 +901,7 @@ class Component extends DCLogic {
     fetch('data.json').then((r) => r.json()).then((data) => this.load(data, 0));
     this.t1 = setInterval(() => this.tick(), 2400);
   }
-  componentWillUnmount() { window.removeEventListener('resize', this.fit); clearInterval(this.t1); clearTimeout(this.t3); }
+  componentWillUnmount() { window.removeEventListener('resize', this.fit); clearInterval(this.t1); clearTimeout(this.t3); clearTimeout(this.tl); }
   componentDidUpdate() {
     // chat-like feed: new entries land at the bottom; follow them only while the reader is at the bottom
     const el = this.feedRef.current; if (!el) return;
@@ -914,6 +927,33 @@ class Component extends DCLogic {
   copy(key, text) {
     try { navigator.clipboard.writeText(text); } catch (e) { /* clipboard unavailable */ }
     this.setState({ copied: key }); clearTimeout(this.tc); this.tc = setTimeout(() => this.setState({ copied: null }), 1600);
+  }
+  runLive() {
+    const s = this.state, p = this.P(); if (!MODEL_URL || !p || this.liveRunning) return;
+    this.liveRunning = true; this.forceBottom = true;
+    const t = p.today, now = hm(s.min), queue = [];
+    let shown = 0, finished = null;
+    const add = (e) => this.setState((st) => ({ log: [...st.log, { isStep: true, time: now, ...e }] }));
+    const pump = () => {  // one step every 450 ms, so the run reads step by step even when the model is faster
+      if (shown < queue.length) { add(queue[shown++]); this.tl = setTimeout(pump, 450); }
+      else if (finished) finished();
+      else this.tl = setTimeout(pump, 150);
+    };
+    add({ title: 'Corriendo el modelo en vivo', detail: 'Reentrena con los datos hasta ayer y decide la reposición de hoy.' });
+    this.setState({ liveRuns: (s.liveRuns || 0) + 1 });
+    const url = MODEL_URL + '/api/run?partner=' + encodeURIComponent(p.id) + '&date=' + s.data.today + '&available=' + Math.round(t.available) + '&alpha=' + s.alpha;
+    const es = new EventSource(url);
+    es.addEventListener('step', (ev) => { const d = JSON.parse(ev.data); queue.push({ title: d.title, detail: d.detail }); });
+    es.addEventListener('done', (ev) => {
+      es.close(); const d = JSON.parse(ev.data);
+      finished = () => {
+        t.deposit = d.deposit; t.target = d.target; (t.alt[String(s.alpha)] || (t.alt[String(s.alpha)] = {})).target = d.target; t.alt[String(s.alpha)].deposit = d.deposit;
+        add({ title: d.deposit > 0 ? 'Decidió mandar ' + M(d.deposit) : 'Decidió no mandar', detail: 'Necesita ' + M(d.target) + ' con margen (lo esperado: ' + M(d.expected) + '); había ' + M(d.available) + '. El modelo tardó ' + String(d.seconds).replace('.', ',') + ' s.' });
+        this.liveRunning = false; this.setState((st) => ({ liveRuns: st.liveRuns + 1 }));
+      };
+    });
+    es.onerror = () => { es.close(); if (!finished) { finished = () => { add({ title: 'No se pudo correr el modelo', detail: 'El servicio no respondió. Los números siguen siendo los de la corrida anterior.' }); this.liveRunning = false; this.setState((st) => ({ liveRuns: st.liveRuns + 1 })); }; } };
+    pump();
   }
   rail(s = this.state) { const d = parseDay(s.data.today).getDay(); return d === 0 || d === 6 ? 'Stablecoin' : 'Transferencia'; }
   load(data, pi) {
@@ -1034,7 +1074,7 @@ class Component extends DCLogic {
       cloneBtn: s.copied === 'clone' ? 'Copiado' : 'Copiar', addBtn: s.copied === 'add' ? 'Copiado' : 'Copiar', jsonBtn: s.copied === 'json' ? 'Copiado' : 'Copiar',
       copyClone: () => this.copy('clone', MCP.clone), copyAdd: () => this.copy('add', MCP.add), copyJson: () => this.copy('json', MCP.json),
       draft: s.draft, onDraft: (e) => this.setState({ draft: e.target.value }), onKey: (e) => { if (e.key === 'Enter') this.send(); }, onSend: () => this.send() };
-    if (!p) return { ...base, mClock: '--:--', partners: [], pageTitle: 'Prefoundly', pageSub: 'Cargando…', clock: '--:--', log: [], chips: [], depTxt: '–', sentTxt: '', arrTxt: '', protTxt: '', consTxt: '–', devTxt: '–', balTxt: '–', balPctTxt: '', balPct: '0%', balColor: 'var(--pf-teal-500)', fcTxt: '–', fcDelta: '', updPts: '', updDots: [], realPts: '', areaPts: '', expPts: '', dotTop: '50%', ticks: [], lastLabel: '', lastTxt: '', feedSub: '', hourTxt: '09:00', hbars: [], rows: [], hTotal: '–', hShort: '–', hClose: '–', hMape: '–' };
+    if (!p) return { ...base, runLive: () => {}, liveBtnDisplay: 'none', liveBtnTxt: '', liveDotAnim: 'none', mClock: '--:--', partners: [], pageTitle: 'Prefoundly', pageSub: 'Cargando…', clock: '--:--', log: [], chips: [], depTxt: '–', sentTxt: '', arrTxt: '', protTxt: '', consTxt: '–', devTxt: '–', balTxt: '–', balPctTxt: '', balPct: '0%', balColor: 'var(--pf-teal-500)', fcTxt: '–', fcDelta: '', updPts: '', updDots: [], realPts: '', areaPts: '', expPts: '', dotTop: '50%', ticks: [], lastLabel: '', lastTxt: '', feedSub: '', hourTxt: '09:00', hbars: [], rows: [], hTotal: '–', hShort: '–', hClose: '–', hMape: '–' };
     const t = p.today, c = this.calc(), d = parseDay(s.data.today);
     const u = s.upd.length ? s.upd : [c.nextDeposit / 1e6], umin = Math.min(...u) - 1, umax = Math.max(...u) + 1;
     const ux = (i) => (u.length > 1 ? i / (u.length - 1) * 100 : 100), uy = (v) => (90 - (v - umin) / (umax - umin) * 80);
@@ -1061,6 +1101,8 @@ class Component extends DCLogic {
       clock: hm(s.min), log,
       chips: ['¿Qué cambió hoy?', '¿Alcanza el saldo?', '¿Por qué mandaste ese monto?'].map((l) => ({ label: l, onClick: () => this.send(l) })),
       depTxt: t.deposit > 0 ? M(t.deposit) : '$0',
+      runLive: () => this.runLive(), liveBtnDisplay: MODEL_URL ? 'inline-flex' : 'none',
+      liveBtnTxt: this.liveRunning ? 'Corriendo el modelo…' : 'Correr el modelo en vivo', liveDotAnim: this.liveRunning ? 'pfPulse 1s ease-out infinite' : 'none',
       sentTxt: t.deposit > 0 ? 'Enviada a las 09:00 · ' + this.rail() + ' · Automática' : 'A las 09:00 no hizo falta reponer',
       arrTxt: t.deposit > 0 ? 'Acreditada a las ' + hmIso(t.arrival) : 'Saldo suficiente',
       protTxt: pctTxt(s.alpha), coverTxt: 'Hasta mañana a las ' + hmIso(t.window_end),

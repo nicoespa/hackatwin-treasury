@@ -264,6 +264,25 @@ server connected (next section), asking your agent to run and execute a review m
 on the dashboard; pausing the agent shows it as paused. To start over, delete `data/agent_runs.jsonl` and
 `data/transfers_mcp.jsonl`.
 
+## Live model (optional)
+
+`treasury model-api` serves the model itself: `GET /api/run?partner=bills_aggregator&date=2026-10-23&available=95276826&alpha=0.99`
+streams (Server-Sent Events) each step of a from-scratch 09:00 decision on the data before `date`: k-means
+segments, the Tweedie LightGBM fit, 1,000 Monte Carlo paths and `recommend_deposit`. It takes about 2 seconds.
+The console shows a "Correr el modelo en vivo" button once it knows the service's address
+(`https://prefoundly.vercel.app/?model=on`, remembered in that browser; only the home server and localhost are accepted) and replaces the precomputed
+decision with the live one.
+
+To serve it from the home server (ThinkPad, Tailscale), from the Mac:
+
+```bash
+rsync -az --exclude .venv --exclude node_modules --exclude web/console/.vercel ~/Documents/Code/hackatwin-treasury/ linux:Code/hackatwin-treasury/
+ssh linux 'cd ~/Code/hackatwin-treasury && uv sync && tmux new-window -d -t work -n model "uv run treasury model-api --port 8790"'
+ssh linux 'tailscale funnel --bg 8790'   # prints the public https://…ts.net address
+```
+
+Funnel makes that one port reachable from the internet; `tailscale funnel --bg off` closes it.
+
 ## MCP server: control the agent from your own AI agent
 
 `treasury-mcp` exposes the autonomous agent over the Model Context Protocol (stdio), so an agent such

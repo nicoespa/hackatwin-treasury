@@ -14,18 +14,36 @@ Si "applied" no es null, el usuario dio una orden: confirmá lo aplicado y su ef
 
 const client = new Anthropic();
 
+// The endpoint spends the project's API key, so it only answers the console itself, with a bounded
+// context, and a few questions per minute per IP (best effort: the counter lives in one warm instance).
+const MAX_CONTEXT = 8000;
+const ORIGINS = (process.env.ALLOWED_ORIGINS || "https://prefoundly.vercel.app").split(",").map((o) => o.trim());
+const allowedOrigin = (o) => !!o && (ORIGINS.includes(o) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(o));
+const WINDOW_MS = 60_000, PER_WINDOW = 12, hits = new Map();
+function rateLimited(req) {
+  const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown", now = Date.now();
+  const recent = (hits.get(ip) || []).filter((t) => now - t < WINDOW_MS);
+  recent.push(now); hits.set(ip, recent);
+  if (hits.size > 5000) hits.clear();
+  return recent.length > PER_WINDOW;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
   if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: "no model configured" });
+  if (!allowedOrigin(req.headers.origin)) return res.status(403).json({ error: "forbidden" });
+  if (rateLimited(req)) return res.status(429).json({ error: "too many questions" });
   const { q, context, applied } = req.body || {};
   if (typeof q !== "string" || !q.trim() || q.length > 500) return res.status(400).json({ error: "bad question" });
+  const ctx = JSON.stringify(context ?? {}), act = JSON.stringify(applied ?? null);
+  if (ctx.length > MAX_CONTEXT || act.length > 200) return res.status(413).json({ error: "context too large" });
   try {
     const msg = await client.messages.create({
       model: MODEL,
-      max_tokens: 1024,
+      max_tokens: 600,
       thinking: { type: "disabled" }, // a short grounded answer; Haiku 5.5 accepts disabled at its default effort
       system: SYSTEM,
-      messages: [{ role: "user", content: `Contexto (JSON):\n${JSON.stringify(context ?? {})}\n\napplied: ${JSON.stringify(applied ?? null)}\n\nPregunta: ${q.trim()}` }],
+      messages: [{ role: "user", content: `Contexto (JSON):\n${ctx}\n\napplied: ${act}\n\nPregunta: ${q.trim()}` }],
     });
     if (msg.stop_reason === "refusal") return res.status(502).json({ error: "refused" });
     const text = msg.content.filter((b) => b.type === "text").map((b) => b.text).join("").trim();

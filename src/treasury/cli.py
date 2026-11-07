@@ -173,6 +173,21 @@ def live(port: int = 8700, speed: float = typer.Option(1.0, help="Simulated hour
     except KeyboardInterrupt:
         server.server_close()
 
+@app.command("model-api")
+def model_api(port: int = 8790) -> None:
+    """The model, live: an HTTP service that runs a partner's 09:00 decision from scratch (segments, fit,
+    Monte Carlo, deposit) and streams each step to the console."""
+    from treasury import model_api as ma
+
+    typer.echo("Cargando los datos...")
+    server = ma.serve(port)
+    typer.echo(f"Modelo en vivo en http://0.0.0.0:{port} (Ctrl+C para cortar)")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        server.server_close()
+
+
 agent = typer.Typer(no_args_is_help=True, help="Transfers: the policy decides, the LLM explains, a human approves "
                     "(propose) or the agent executes within hard limits (run).")
 app.add_typer(agent, name="agent")
