@@ -877,7 +877,7 @@ const MCP = {
 // the live model service (treasury model-api). Off by default; ?model=on (or the full address) turns it on
 // in this browser, ?model= turns it off. Only these origins are accepted, so a link cannot point the
 // console at someone else's server.
-const MODEL_ORIGINS = ['https://omarchy.tail299125.ts.net', 'http://localhost:8790', 'http://127.0.0.1:8790'];
+const MODEL_ORIGINS = ['http://localhost:8790', 'http://127.0.0.1:8790'];
 const MODEL_URL = (() => {
   const pick = (v) => { if (!v) return ''; if (v === 'on') return MODEL_ORIGINS[0]; try { const o = new URL(v).origin; return MODEL_ORIGINS.includes(o) ? o : ''; } catch (e) { return ''; } };
   const q = new URLSearchParams(location.search).get('model');
