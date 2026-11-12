@@ -27,7 +27,7 @@ Segmenting matters because groups move differently. Retirees spend in the ANSES 
 
 ## Step 2. Forecast each segment, product, and partner
 
-`treasury.models.segment_lgbm.SegmentLGBM` fits one LightGBM model per node, where a node is a segment, a product, and a partner. Each model predicts the ratio of the day's payments to a seasonal-naive baseline, with a Tweedie objective because many node-days are zero. The drivers are known in advance: active users per segment, planned campaigns, and payments already scheduled (autodebits).
+`treasury.models.segment_lgbm.SegmentLGBM` forecasts each node, where a node is a segment, a product, and a partner. One LightGBM model covers every node, with the segment and the product as categorical features, so a small node borrows patterns from the others. The model predicts the ratio of the day's payments to a seasonal-naive baseline, the average of the same weekday over the last 8 weeks. It uses a Tweedie objective because many node-days are zero. Its features are known in advance: the calendar (weekday, business day, holiday, payday, ANSES and aguinaldo windows), active and new users per segment, planned campaigns, and the ratio 7 and 14 days before.
 
 Scheduled payments are certain, so the model adds them on top of the forecast instead of predicting them.
 
